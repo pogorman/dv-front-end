@@ -11,7 +11,6 @@ import {
   Subtitle1,
   Caption1,
   Dialog,
-  DialogTrigger,
   DialogSurface,
   DialogBody,
   DialogTitle,
@@ -37,6 +36,7 @@ import { Customer } from "../types";
 import {
   getCustomers,
   createCustomer,
+  updateCustomer,
   deleteCustomer,
 } from "../services/dataverseService";
 
@@ -96,6 +96,7 @@ export const Contacts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(emptyContact);
 
   const loadContacts = useCallback(async () => {
@@ -114,11 +115,34 @@ export const Contacts: React.FC = () => {
     loadContacts();
   }, [loadContacts]);
 
+  const openNew = () => {
+    setEditingId(null);
+    setFormData(emptyContact);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (contact: Customer) => {
+    setEditingId(contact.contactid ?? null);
+    setFormData({
+      firstname: contact.firstname,
+      lastname: contact.lastname,
+      emailaddress1: contact.emailaddress1,
+      telephone1: contact.telephone1,
+      jobtitle: contact.jobtitle,
+    });
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     try {
-      await createCustomer(formData);
+      if (editingId) {
+        await updateCustomer(editingId, formData);
+      } else {
+        await createCustomer(formData);
+      }
       setDialogOpen(false);
       setFormData(emptyContact);
+      setEditingId(null);
       loadContacts();
     } catch (err) {
       console.error("Failed to save contact:", err);
@@ -181,6 +205,7 @@ export const Contacts: React.FC = () => {
             icon={<Edit24Regular />}
             size="small"
             title="Edit"
+            onClick={() => openEdit(item)}
           />
           <Button
             appearance="subtle"
@@ -205,14 +230,12 @@ export const Contacts: React.FC = () => {
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
-          <DialogTrigger disableButtonEnhancement>
-            <Button appearance="primary" icon={<Add24Regular />}>
-              Add Contact
-            </Button>
-          </DialogTrigger>
+          <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
+            Add Contact
+          </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>New Contact</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Contact" : "New Contact"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formField}>
@@ -274,9 +297,9 @@ export const Contacts: React.FC = () => {
                 </div>
               </DialogContent>
               <DialogActions>
-                <DialogTrigger disableButtonEnhancement>
-                  <Button appearance="secondary">Cancel</Button>
-                </DialogTrigger>
+                <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button appearance="primary" onClick={handleSave}>
                   Save
                 </Button>

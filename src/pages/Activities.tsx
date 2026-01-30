@@ -12,7 +12,6 @@ import {
   Caption1,
   Divider,
   Dialog,
-  DialogTrigger,
   DialogSurface,
   DialogBody,
   DialogTitle,
@@ -28,12 +27,15 @@ import {
   Search24Regular,
   Star24Filled,
   CalendarLtr24Regular,
+  Edit24Regular,
   Delete24Regular,
 } from "@fluentui/react-icons";
 import { HighValueActivity, Account } from "../types";
+import { formatDate } from "../utils/formatDate";
 import {
   getActivities,
   createActivity,
+  updateActivity,
   deleteActivity,
   getAccounts,
 } from "../services/dataverseService";
@@ -132,6 +134,7 @@ export const Activities: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
 
   const loadActivities = useCallback(async () => {
@@ -160,6 +163,23 @@ export const Activities: React.FC = () => {
     loadAccounts();
   }, [loadActivities, loadAccounts]);
 
+  const openNew = () => {
+    setEditingId(null);
+    setFormData(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (activity: HighValueActivity) => {
+    setEditingId(activity.tdvsp_hvaid ?? null);
+    setFormData({
+      tdvsp_name: activity.tdvsp_name,
+      tdvsp_description: activity.tdvsp_description,
+      tdvsp_date: activity.tdvsp_date ? activity.tdvsp_date.split("T")[0] : "",
+      customerAccountId: activity.tdvsp_Customer?.accountid ?? "",
+    });
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     try {
       const payload: {
@@ -175,9 +195,14 @@ export const Activities: React.FC = () => {
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
       }
-      await createActivity(payload);
+      if (editingId) {
+        await updateActivity(editingId, payload);
+      } else {
+        await createActivity(payload);
+      }
       setDialogOpen(false);
       setFormData(emptyForm);
+      setEditingId(null);
       loadActivities();
     } catch (err) {
       console.error("Failed to save activity:", err);
@@ -213,14 +238,12 @@ export const Activities: React.FC = () => {
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
-          <DialogTrigger disableButtonEnhancement>
-            <Button appearance="primary" icon={<Add24Regular />}>
-              New Activity
-            </Button>
-          </DialogTrigger>
+          <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
+            New Activity
+          </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>New High-Value Activity</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Activity" : "New High-Value Activity"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -280,9 +303,9 @@ export const Activities: React.FC = () => {
                 </div>
               </DialogContent>
               <DialogActions>
-                <DialogTrigger disableButtonEnhancement>
-                  <Button appearance="secondary">Cancel</Button>
-                </DialogTrigger>
+                <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button appearance="primary" onClick={handleSave}>
                   Save
                 </Button>
@@ -310,15 +333,24 @@ export const Activities: React.FC = () => {
             <Card key={activity.tdvsp_hvaid} className={styles.activityCard}>
               <div className={styles.cardHeader}>
                 <Subtitle1 block>{activity.tdvsp_name}</Subtitle1>
-                <Button
-                  appearance="subtle"
-                  icon={<Delete24Regular />}
-                  size="small"
-                  title="Delete"
-                  onClick={() =>
-                    activity.tdvsp_hvaid && handleDelete(activity.tdvsp_hvaid)
-                  }
-                />
+                <div style={{ display: "flex", gap: 4 }}>
+                  <Button
+                    appearance="subtle"
+                    icon={<Edit24Regular />}
+                    size="small"
+                    title="Edit"
+                    onClick={() => openEdit(activity)}
+                  />
+                  <Button
+                    appearance="subtle"
+                    icon={<Delete24Regular />}
+                    size="small"
+                    title="Delete"
+                    onClick={() =>
+                      activity.tdvsp_hvaid && handleDelete(activity.tdvsp_hvaid)
+                    }
+                  />
+                </div>
               </div>
               {activity.tdvsp_description && (
                 <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
@@ -330,7 +362,7 @@ export const Activities: React.FC = () => {
                 {activity.tdvsp_date && (
                   <div className={styles.metaItem}>
                     <CalendarLtr24Regular style={{ fontSize: 16 }} />
-                    <Caption1>{activity.tdvsp_date}</Caption1>
+                    <Caption1>{formatDate(activity.tdvsp_date)}</Caption1>
                   </div>
                 )}
                 {activity.tdvsp_Customer?.name && (

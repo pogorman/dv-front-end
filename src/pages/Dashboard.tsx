@@ -18,8 +18,9 @@ import {
   Warning24Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { HighValueActivity, ActionItem } from "../types";
-import { getActivities, getActionItems } from "../services/dataverseService";
+import { HighValueActivity, ActionItem, Account } from "../types";
+import { getActivities, getActionItems, getAccounts } from "../services/dataverseService";
+import { formatDate } from "../utils/formatDate";
 
 const useStyles = makeStyles({
   container: {
@@ -92,10 +93,12 @@ const useStyles = makeStyles({
 export const Dashboard: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [activities, setActivities] = useState<HighValueActivity[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
   useEffect(() => {
+    getAccounts().then(setAccounts);
     getActivities().then(setActivities);
     getActionItems().then(setActionItems);
   }, []);
@@ -134,10 +137,10 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className={styles.statNumber} style={{ color: "#0078d4" }}>
-            --
+            {accounts.length}
           </div>
           <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-            Connect Dataverse to see count
+            Total accounts
           </Caption1>
         </Card>
 
@@ -225,7 +228,7 @@ export const Dashboard: React.FC = () => {
                   </div>
                   {a.tdvsp_date && (
                     <Badge appearance="outline" color="informative">
-                      {a.tdvsp_date}
+                      {formatDate(a.tdvsp_date)}
                     </Badge>
                   )}
                 </div>
@@ -252,7 +255,7 @@ export const Dashboard: React.FC = () => {
                     <Caption1
                       style={{ color: tokens.colorNeutralForeground3 }}
                     >
-                      {t.tdvsp_date && `Due: ${t.tdvsp_date}`}
+                      {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
                       {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                     </Caption1>
                   </div>

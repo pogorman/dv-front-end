@@ -12,7 +12,6 @@ import {
   Caption1,
   Divider,
   Dialog,
-  DialogTrigger,
   DialogSurface,
   DialogBody,
   DialogTitle,
@@ -27,12 +26,15 @@ import {
   Search24Regular,
   TaskListSquareLtr24Filled,
   CalendarLtr24Regular,
+  Edit24Regular,
   Delete24Regular,
 } from "@fluentui/react-icons";
 import { ActionItem, Account } from "../types";
+import { formatDate } from "../utils/formatDate";
 import {
   getActionItems,
   createActionItem,
+  updateActionItem,
   deleteActionItem,
   getAccounts,
 } from "../services/dataverseService";
@@ -127,6 +129,7 @@ export const Tasks: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
 
   const loadItems = useCallback(async () => {
@@ -155,6 +158,22 @@ export const Tasks: React.FC = () => {
     loadAccounts();
   }, [loadItems, loadAccounts]);
 
+  const openNew = () => {
+    setEditingId(null);
+    setFormData(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (item: ActionItem) => {
+    setEditingId(item.tdvsp_actionitemid ?? null);
+    setFormData({
+      tdvsp_name: item.tdvsp_name,
+      tdvsp_date: item.tdvsp_date ? item.tdvsp_date.split("T")[0] : "",
+      customerAccountId: item.tdvsp_Customer?.accountid ?? "",
+    });
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     try {
       const payload: {
@@ -168,9 +187,14 @@ export const Tasks: React.FC = () => {
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
       }
-      await createActionItem(payload);
+      if (editingId) {
+        await updateActionItem(editingId, payload);
+      } else {
+        await createActionItem(payload);
+      }
       setDialogOpen(false);
       setFormData(emptyForm);
+      setEditingId(null);
       loadItems();
     } catch (err) {
       console.error("Failed to save action item:", err);
@@ -205,14 +229,12 @@ export const Tasks: React.FC = () => {
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
-          <DialogTrigger disableButtonEnhancement>
-            <Button appearance="primary" icon={<Add24Regular />}>
-              New Action Item
-            </Button>
-          </DialogTrigger>
+          <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
+            New Action Item
+          </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>New Action Item</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Action Item" : "New Action Item"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -261,9 +283,9 @@ export const Tasks: React.FC = () => {
                 </div>
               </DialogContent>
               <DialogActions>
-                <DialogTrigger disableButtonEnhancement>
-                  <Button appearance="secondary">Cancel</Button>
-                </DialogTrigger>
+                <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button appearance="primary" onClick={handleSave}>
                   Save
                 </Button>
@@ -302,7 +324,7 @@ export const Tasks: React.FC = () => {
                         <Caption1
                           style={{ color: tokens.colorNeutralForeground3 }}
                         >
-                          {item.tdvsp_date}
+                          {formatDate(item.tdvsp_date)}
                         </Caption1>
                       </div>
                     )}
@@ -315,16 +337,25 @@ export const Tasks: React.FC = () => {
                     )}
                   </div>
                 </div>
-                <Button
-                  appearance="subtle"
-                  icon={<Delete24Regular />}
-                  size="small"
-                  title="Delete"
-                  onClick={() =>
-                    item.tdvsp_actionitemid &&
-                    handleDelete(item.tdvsp_actionitemid)
-                  }
-                />
+                <div style={{ display: "flex", gap: 4 }}>
+                  <Button
+                    appearance="subtle"
+                    icon={<Edit24Regular />}
+                    size="small"
+                    title="Edit"
+                    onClick={() => openEdit(item)}
+                  />
+                  <Button
+                    appearance="subtle"
+                    icon={<Delete24Regular />}
+                    size="small"
+                    title="Delete"
+                    onClick={() =>
+                      item.tdvsp_actionitemid &&
+                      handleDelete(item.tdvsp_actionitemid)
+                    }
+                  />
+                </div>
               </div>
             </React.Fragment>
           ))

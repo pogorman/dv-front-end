@@ -11,7 +11,6 @@ import {
   Subtitle1,
   Caption1,
   Dialog,
-  DialogTrigger,
   DialogSurface,
   DialogBody,
   DialogTitle,
@@ -30,12 +29,14 @@ import {
 import {
   Add24Regular,
   Search24Regular,
+  Edit24Regular,
   Delete24Regular,
 } from "@fluentui/react-icons";
 import { Account } from "../types";
 import {
   getAccounts,
   createAccount,
+  updateAccount,
   deleteAccount,
 } from "../services/dataverseService";
 
@@ -79,6 +80,7 @@ export const Accounts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
 
   const loadAccounts = useCallback(async () => {
@@ -97,11 +99,28 @@ export const Accounts: React.FC = () => {
     loadAccounts();
   }, [loadAccounts]);
 
+  const openNew = () => {
+    setEditingId(null);
+    setName("");
+    setDialogOpen(true);
+  };
+
+  const openEdit = (account: Account) => {
+    setEditingId(account.accountid ?? null);
+    setName(account.name);
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     try {
-      await createAccount({ name });
+      if (editingId) {
+        await updateAccount(editingId, { name });
+      } else {
+        await createAccount({ name });
+      }
       setDialogOpen(false);
       setName("");
+      setEditingId(null);
       loadAccounts();
     } catch (err) {
       console.error("Failed to save account:", err);
@@ -134,13 +153,22 @@ export const Accounts: React.FC = () => {
       columnId: "actions",
       renderHeaderCell: () => "Actions",
       renderCell: (item) => (
-        <Button
-          appearance="subtle"
-          icon={<Delete24Regular />}
-          size="small"
-          title="Delete"
-          onClick={() => item.accountid && handleDelete(item.accountid)}
-        />
+        <div style={{ display: "flex", gap: 4 }}>
+          <Button
+            appearance="subtle"
+            icon={<Edit24Regular />}
+            size="small"
+            title="Edit"
+            onClick={() => openEdit(item)}
+          />
+          <Button
+            appearance="subtle"
+            icon={<Delete24Regular />}
+            size="small"
+            title="Delete"
+            onClick={() => item.accountid && handleDelete(item.accountid)}
+          />
+        </div>
       ),
     }),
   ];
@@ -156,14 +184,12 @@ export const Accounts: React.FC = () => {
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
-          <DialogTrigger disableButtonEnhancement>
-            <Button appearance="primary" icon={<Add24Regular />}>
-              Add Account
-            </Button>
-          </DialogTrigger>
+          <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
+            Add Account
+          </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>New Account</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Account" : "New Account"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formField}>
                   <Label htmlFor="accountname" required>
@@ -177,9 +203,9 @@ export const Accounts: React.FC = () => {
                 </div>
               </DialogContent>
               <DialogActions>
-                <DialogTrigger disableButtonEnhancement>
-                  <Button appearance="secondary">Cancel</Button>
-                </DialogTrigger>
+                <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button appearance="primary" onClick={handleSave}>
                   Save
                 </Button>

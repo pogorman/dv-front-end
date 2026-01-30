@@ -59,6 +59,13 @@ export async function createAccount(
   return apiRequest("/accounts", "POST", account);
 }
 
+export async function updateAccount(
+  id: string,
+  account: Partial<Account>
+): Promise<Account> {
+  return apiRequest(`/accounts(${id})`, "PATCH", account);
+}
+
 export async function deleteAccount(id: string): Promise<void> {
   await apiRequest(`/accounts(${id})`, "DELETE");
 }
@@ -110,6 +117,18 @@ export async function createActivity(
   return apiRequest("/tdvsp_hvas", "POST", activity);
 }
 
+export async function updateActivity(
+  id: string,
+  activity: {
+    tdvsp_name?: string;
+    tdvsp_description?: string;
+    tdvsp_date?: string;
+    "tdvsp_Customer@odata.bind"?: string;
+  }
+): Promise<HighValueActivity> {
+  return apiRequest(`/tdvsp_hvas(${id})`, "PATCH", activity);
+}
+
 export async function deleteActivity(id: string): Promise<void> {
   await apiRequest(`/tdvsp_hvas(${id})`, "DELETE");
 }
@@ -131,6 +150,17 @@ export async function createActionItem(
   }
 ): Promise<ActionItem> {
   return apiRequest("/tdvsp_actionitems", "POST", item);
+}
+
+export async function updateActionItem(
+  id: string,
+  item: {
+    tdvsp_name?: string;
+    tdvsp_date?: string;
+    "tdvsp_Customer@odata.bind"?: string;
+  }
+): Promise<ActionItem> {
+  return apiRequest(`/tdvsp_actionitems(${id})`, "PATCH", item);
 }
 
 export async function deleteActionItem(id: string): Promise<void> {
@@ -155,6 +185,18 @@ export async function createImpact(
   }
 ): Promise<Impact> {
   return apiRequest("/tdvsp_impacts", "POST", impact);
+}
+
+export async function updateImpact(
+  id: string,
+  impact: {
+    tdvsp_name?: string;
+    tdvsp_date?: string;
+    tdvsp_description?: string;
+    "tdvsp_Customer@odata.bind"?: string;
+  }
+): Promise<Impact> {
+  return apiRequest(`/tdvsp_impacts(${id})`, "PATCH", impact);
 }
 
 export async function deleteImpact(id: string): Promise<void> {

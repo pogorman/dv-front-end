@@ -12,7 +12,6 @@ import {
   Caption1,
   Divider,
   Dialog,
-  DialogTrigger,
   DialogSurface,
   DialogBody,
   DialogTitle,
@@ -28,12 +27,15 @@ import {
   Search24Regular,
   Trophy24Filled,
   CalendarLtr24Regular,
+  Edit24Regular,
   Delete24Regular,
 } from "@fluentui/react-icons";
 import { Impact, Account } from "../types";
+import { formatDate } from "../utils/formatDate";
 import {
   getImpacts,
   createImpact,
+  updateImpact,
   deleteImpact,
   getAccounts,
 } from "../services/dataverseService";
@@ -132,6 +134,7 @@ export const Impacts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
 
   const loadImpacts = useCallback(async () => {
@@ -160,6 +163,23 @@ export const Impacts: React.FC = () => {
     loadAccounts();
   }, [loadImpacts, loadAccounts]);
 
+  const openNew = () => {
+    setEditingId(null);
+    setFormData(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (impact: Impact) => {
+    setEditingId(impact.tdvsp_impactid ?? null);
+    setFormData({
+      tdvsp_name: impact.tdvsp_name,
+      tdvsp_description: impact.tdvsp_description,
+      tdvsp_date: impact.tdvsp_date ? impact.tdvsp_date.split("T")[0] : "",
+      customerAccountId: impact.tdvsp_Customer?.accountid ?? "",
+    });
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     try {
       const payload: {
@@ -175,9 +195,14 @@ export const Impacts: React.FC = () => {
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
       }
-      await createImpact(payload);
+      if (editingId) {
+        await updateImpact(editingId, payload);
+      } else {
+        await createImpact(payload);
+      }
       setDialogOpen(false);
       setFormData(emptyForm);
+      setEditingId(null);
       loadImpacts();
     } catch (err) {
       console.error("Failed to save impact:", err);
@@ -213,14 +238,12 @@ export const Impacts: React.FC = () => {
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
-          <DialogTrigger disableButtonEnhancement>
-            <Button appearance="primary" icon={<Add24Regular />}>
-              New Impact
-            </Button>
-          </DialogTrigger>
+          <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
+            New Impact
+          </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>New Impact</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Impact" : "New Impact"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -280,9 +303,9 @@ export const Impacts: React.FC = () => {
                 </div>
               </DialogContent>
               <DialogActions>
-                <DialogTrigger disableButtonEnhancement>
-                  <Button appearance="secondary">Cancel</Button>
-                </DialogTrigger>
+                <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button appearance="primary" onClick={handleSave}>
                   Save
                 </Button>
@@ -310,15 +333,24 @@ export const Impacts: React.FC = () => {
             <Card key={impact.tdvsp_impactid} className={styles.impactCard}>
               <div className={styles.cardHeader}>
                 <Subtitle1 block>{impact.tdvsp_name}</Subtitle1>
-                <Button
-                  appearance="subtle"
-                  icon={<Delete24Regular />}
-                  size="small"
-                  title="Delete"
-                  onClick={() =>
-                    impact.tdvsp_impactid && handleDelete(impact.tdvsp_impactid)
-                  }
-                />
+                <div style={{ display: "flex", gap: 4 }}>
+                  <Button
+                    appearance="subtle"
+                    icon={<Edit24Regular />}
+                    size="small"
+                    title="Edit"
+                    onClick={() => openEdit(impact)}
+                  />
+                  <Button
+                    appearance="subtle"
+                    icon={<Delete24Regular />}
+                    size="small"
+                    title="Delete"
+                    onClick={() =>
+                      impact.tdvsp_impactid && handleDelete(impact.tdvsp_impactid)
+                    }
+                  />
+                </div>
               </div>
               {impact.tdvsp_description && (
                 <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
@@ -330,7 +362,7 @@ export const Impacts: React.FC = () => {
                 {impact.tdvsp_date && (
                   <div className={styles.metaItem}>
                     <CalendarLtr24Regular style={{ fontSize: 16 }} />
-                    <Caption1>{impact.tdvsp_date}</Caption1>
+                    <Caption1>{formatDate(impact.tdvsp_date)}</Caption1>
                   </div>
                 )}
                 {impact.tdvsp_Customer?.name && (
