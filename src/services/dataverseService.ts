@@ -1,5 +1,5 @@
 import { dataverseConfig } from "../auth/msalConfig";
-import { Customer, HighValueActivity, TaskItem } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact } from "../types";
 
 let getAccessToken: (() => Promise<string>) | null = null;
 
@@ -44,6 +44,25 @@ async function apiRequest(
   return response.json();
 }
 
+// ─── Accounts (Account entity) ───────────────────────────────────────────────
+
+export async function getAccounts(): Promise<Account[]> {
+  const result = await apiRequest(
+    "/accounts?$select=accountid,name&$orderby=name asc&$top=100"
+  );
+  return result?.value ?? [];
+}
+
+export async function createAccount(
+  account: Omit<Account, "accountid">
+): Promise<Account> {
+  return apiRequest("/accounts", "POST", account);
+}
+
+export async function deleteAccount(id: string): Promise<void> {
+  await apiRequest(`/accounts(${id})`, "DELETE");
+}
+
 // ─── Customers (Contact entity) ──────────────────────────────────────────────
 
 export async function getCustomers(): Promise<Customer[]> {
@@ -71,132 +90,73 @@ export async function deleteCustomer(id: string): Promise<void> {
   await apiRequest(`/contacts(${id})`, "DELETE");
 }
 
-// ─── High-Value Activities ───────────────────────────────────────────────────
-// TODO: Replace with actual Dataverse entity name and field mappings
+// ─── High-Value Activities (tdvsp_hva table) ────────────────────────────────
 
 export async function getActivities(): Promise<HighValueActivity[]> {
-  // STUB: Replace endpoint and fields with actual Dataverse entity
-  // Example: /cr_highvalueactivities?$select=...
-  console.warn("getActivities: Using stub data — wire up Dataverse entity");
-  return STUB_ACTIVITIES;
+  const result = await apiRequest(
+    "/tdvsp_hvas?$select=tdvsp_hvaid,tdvsp_name,tdvsp_description,tdvsp_date,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
+  );
+  return result?.value ?? [];
 }
 
 export async function createActivity(
-  activity: Omit<HighValueActivity, "id">
+  activity: {
+    tdvsp_name: string;
+    tdvsp_description: string;
+    tdvsp_date: string;
+    "tdvsp_Customer@odata.bind"?: string;
+  }
 ): Promise<HighValueActivity> {
-  // STUB: Replace with actual API call
-  console.warn("createActivity: Using stub — wire up Dataverse entity");
-  return { ...activity, id: crypto.randomUUID() };
-}
-
-export async function updateActivity(
-  id: string,
-  activity: Partial<HighValueActivity>
-): Promise<HighValueActivity> {
-  console.warn("updateActivity: Using stub — wire up Dataverse entity");
-  return { id, ...activity } as HighValueActivity;
+  return apiRequest("/tdvsp_hvas", "POST", activity);
 }
 
 export async function deleteActivity(id: string): Promise<void> {
-  console.warn("deleteActivity: Using stub — wire up Dataverse entity");
+  await apiRequest(`/tdvsp_hvas(${id})`, "DELETE");
 }
 
-// ─── Tasks / Action Items ────────────────────────────────────────────────────
-// TODO: Replace with actual Dataverse entity name and field mappings
+// ─── Action Items (tdvsp_actionitem table) ──────────────────────────────────
 
-export async function getTasks(): Promise<TaskItem[]> {
-  console.warn("getTasks: Using stub data — wire up Dataverse entity");
-  return STUB_TASKS;
+export async function getActionItems(): Promise<ActionItem[]> {
+  const result = await apiRequest(
+    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
+  );
+  return result?.value ?? [];
 }
 
-export async function createTask(
-  task: Omit<TaskItem, "id">
-): Promise<TaskItem> {
-  console.warn("createTask: Using stub — wire up Dataverse entity");
-  return { ...task, id: crypto.randomUUID() };
+export async function createActionItem(
+  item: {
+    tdvsp_name: string;
+    tdvsp_date: string;
+    "tdvsp_Customer@odata.bind"?: string;
+  }
+): Promise<ActionItem> {
+  return apiRequest("/tdvsp_actionitems", "POST", item);
 }
 
-export async function updateTask(
-  id: string,
-  task: Partial<TaskItem>
-): Promise<TaskItem> {
-  console.warn("updateTask: Using stub — wire up Dataverse entity");
-  return { id, ...task } as TaskItem;
+export async function deleteActionItem(id: string): Promise<void> {
+  await apiRequest(`/tdvsp_actionitems(${id})`, "DELETE");
 }
 
-export async function deleteTask(id: string): Promise<void> {
-  console.warn("deleteTask: Using stub — wire up Dataverse entity");
+// ─── Impacts (tdvsp_impact table) ───────────────────────────────────────────
+
+export async function getImpacts(): Promise<Impact[]> {
+  const result = await apiRequest(
+    "/tdvsp_impacts?$select=tdvsp_impactid,tdvsp_name,tdvsp_date,tdvsp_description,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
+  );
+  return result?.value ?? [];
 }
 
-// ─── Stub data for development ───────────────────────────────────────────────
+export async function createImpact(
+  impact: {
+    tdvsp_name: string;
+    tdvsp_date: string;
+    tdvsp_description: string;
+    "tdvsp_Customer@odata.bind"?: string;
+  }
+): Promise<Impact> {
+  return apiRequest("/tdvsp_impacts", "POST", impact);
+}
 
-const STUB_ACTIVITIES: HighValueActivity[] = [
-  {
-    id: "1",
-    activitytype: "Demo",
-    subject: "Product Demo for Contoso",
-    description: "Full platform demo including analytics module",
-    customername: "Jane Smith",
-    scheduleddate: "2026-02-15",
-    status: "Scheduled",
-  },
-  {
-    id: "2",
-    activitytype: "Presentation",
-    subject: "Q1 Strategy Presentation",
-    description: "Executive briefing on Q1 roadmap",
-    customername: "John Doe",
-    scheduleddate: "2026-02-10",
-    status: "Completed",
-  },
-  {
-    id: "3",
-    activitytype: "Workshop",
-    subject: "Integration Workshop",
-    description: "Hands-on workshop for API integrations",
-    customername: "Acme Corp",
-    scheduleddate: "2026-02-20",
-    status: "Scheduled",
-  },
-];
-
-const STUB_TASKS: TaskItem[] = [
-  {
-    id: "1",
-    title: "Follow up with Contoso",
-    description: "Send proposal after demo",
-    duedate: "2026-02-05",
-    priority: "High",
-    status: "In Progress",
-    assignedto: "Me",
-    relatedcustomer: "Jane Smith",
-  },
-  {
-    id: "2",
-    title: "Prepare workshop materials",
-    description: "Create hands-on lab guide for integration workshop",
-    duedate: "2026-02-18",
-    priority: "Medium",
-    status: "Not Started",
-    assignedto: "Me",
-  },
-  {
-    id: "3",
-    title: "Update CRM records",
-    description: "Ensure all Q1 contacts are up to date",
-    duedate: "2026-02-01",
-    priority: "Low",
-    status: "Not Started",
-    assignedto: "Me",
-  },
-  {
-    id: "4",
-    title: "Schedule executive briefing",
-    description: "Coordinate with leadership for Fabrikam briefing",
-    duedate: "2026-02-12",
-    priority: "High",
-    status: "Not Started",
-    assignedto: "Me",
-    relatedcustomer: "John Doe",
-  },
-];
+export async function deleteImpact(id: string): Promise<void> {
+  await apiRequest(`/tdvsp_impacts(${id})`, "DELETE");
+}

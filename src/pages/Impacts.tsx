@@ -7,8 +7,8 @@ import {
   Button,
   Input,
   Label,
-  Text,
   Subtitle1,
+  Body1,
   Caption1,
   Divider,
   Dialog,
@@ -21,19 +21,20 @@ import {
   Spinner,
   Dropdown,
   Option,
+  Textarea,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
   Search24Regular,
-  TaskListSquareLtr24Filled,
+  Trophy24Filled,
   CalendarLtr24Regular,
   Delete24Regular,
 } from "@fluentui/react-icons";
-import { ActionItem, Account } from "../types";
+import { Impact, Account } from "../types";
 import {
-  getActionItems,
-  createActionItem,
-  deleteActionItem,
+  getImpacts,
+  createImpact,
+  deleteImpact,
   getAccounts,
 } from "../services/dataverseService";
 
@@ -53,30 +54,32 @@ const useStyles = makeStyles({
   searchBox: {
     minWidth: "280px",
   },
-  card: {
-    ...shorthands.padding("0px"),
-    ...shorthands.borderRadius("12px"),
-    overflow: "hidden",
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+    ...shorthands.gap("16px"),
   },
-  taskRow: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.padding("14px", "20px"),
-    ...shorthands.gap("12px"),
-    transition: "background-color 0.1s ease",
+  impactCard: {
+    ...shorthands.padding("20px"),
+    ...shorthands.borderRadius("12px"),
+    transition: "box-shadow 0.15s ease, transform 0.15s ease",
     ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
+      boxShadow: tokens.shadow8,
+      transform: "translateY(-2px)",
     },
   },
-  taskContent: {
-    flexGrow: 1,
-    minWidth: 0,
+  cardHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: "12px",
   },
-  taskMeta: {
+  cardMeta: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("12px"),
-    marginTop: "4px",
+    ...shorthands.gap("16px"),
+    marginTop: "12px",
+    color: tokens.colorNeutralForeground3,
   },
   metaItem: {
     display: "flex",
@@ -110,32 +113,34 @@ const useStyles = makeStyles({
 
 interface FormData {
   tdvsp_name: string;
+  tdvsp_description: string;
   tdvsp_date: string;
   customerAccountId: string;
 }
 
 const emptyForm: FormData = {
   tdvsp_name: "",
+  tdvsp_description: "",
   tdvsp_date: "",
   customerAccountId: "",
 };
 
-export const Tasks: React.FC = () => {
+export const Impacts: React.FC = () => {
   const styles = useStyles();
-  const [items, setItems] = useState<ActionItem[]>([]);
+  const [impacts, setImpacts] = useState<Impact[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>(emptyForm);
 
-  const loadItems = useCallback(async () => {
+  const loadImpacts = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getActionItems();
-      setItems(data);
+      const data = await getImpacts();
+      setImpacts(data);
     } catch (err) {
-      console.error("Failed to load action items:", err);
+      console.error("Failed to load impacts:", err);
     } finally {
       setLoading(false);
     }
@@ -151,46 +156,49 @@ export const Tasks: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadItems();
+    loadImpacts();
     loadAccounts();
-  }, [loadItems, loadAccounts]);
+  }, [loadImpacts, loadAccounts]);
 
   const handleSave = async () => {
     try {
       const payload: {
         tdvsp_name: string;
+        tdvsp_description: string;
         tdvsp_date: string;
         "tdvsp_Customer@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
+        tdvsp_description: formData.tdvsp_description,
         tdvsp_date: formData.tdvsp_date,
       };
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
       }
-      await createActionItem(payload);
+      await createImpact(payload);
       setDialogOpen(false);
       setFormData(emptyForm);
-      loadItems();
+      loadImpacts();
     } catch (err) {
-      console.error("Failed to save action item:", err);
+      console.error("Failed to save impact:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteActionItem(id);
-      loadItems();
+      await deleteImpact(id);
+      loadImpacts();
     } catch (err) {
-      console.error("Failed to delete action item:", err);
+      console.error("Failed to delete impact:", err);
     }
   };
 
-  const filtered = items.filter((t) => {
+  const filtered = impacts.filter((imp) => {
     const q = searchQuery.toLowerCase();
     return (
-      t.tdvsp_name?.toLowerCase().includes(q) ||
-      t.tdvsp_Customer?.name?.toLowerCase().includes(q)
+      imp.tdvsp_name?.toLowerCase().includes(q) ||
+      imp.tdvsp_description?.toLowerCase().includes(q) ||
+      imp.tdvsp_Customer?.name?.toLowerCase().includes(q)
     );
   });
 
@@ -200,19 +208,19 @@ export const Tasks: React.FC = () => {
         <Input
           className={styles.searchBox}
           contentBefore={<Search24Regular />}
-          placeholder="Search action items..."
+          placeholder="Search impacts..."
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <DialogTrigger disableButtonEnhancement>
             <Button appearance="primary" icon={<Add24Regular />}>
-              New Action Item
+              New Impact
             </Button>
           </DialogTrigger>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>New Action Item</DialogTitle>
+              <DialogTitle>New Impact</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -222,7 +230,18 @@ export const Tasks: React.FC = () => {
                       onChange={(_, d) =>
                         setFormData({ ...formData, tdvsp_name: d.value })
                       }
-                      placeholder="What needs to be done?"
+                      placeholder="Brief title for this impact"
+                    />
+                  </div>
+                  <div className={styles.formFieldFull}>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={formData.tdvsp_description}
+                      onChange={(_, d) =>
+                        setFormData({ ...formData, tdvsp_description: d.value })
+                      }
+                      placeholder="Describe the impact..."
+                      rows={4}
                     />
                   </div>
                   <div className={styles.formField}>
@@ -273,63 +292,55 @@ export const Tasks: React.FC = () => {
         </Dialog>
       </div>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-            <Spinner label="Loading action items..." />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <TaskListSquareLtr24Filled
-              style={{ fontSize: 48, color: "#107c10", marginBottom: 16 }}
-            />
-            <Subtitle1>No action items found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>
-              Create your first action item to start tracking.
-            </Caption1>
-          </div>
-        ) : (
-          filtered.map((item, i) => (
-            <React.Fragment key={item.tdvsp_actionitemid}>
-              {i > 0 && <Divider />}
-              <div className={styles.taskRow}>
-                <div className={styles.taskContent}>
-                  <Text weight="semibold">{item.tdvsp_name}</Text>
-                  <div className={styles.taskMeta}>
-                    {item.tdvsp_date && (
-                      <div className={styles.metaItem}>
-                        <CalendarLtr24Regular style={{ fontSize: 14 }} />
-                        <Caption1
-                          style={{ color: tokens.colorNeutralForeground3 }}
-                        >
-                          {item.tdvsp_date}
-                        </Caption1>
-                      </div>
-                    )}
-                    {item.tdvsp_Customer?.name && (
-                      <Caption1
-                        style={{ color: tokens.colorNeutralForeground3 }}
-                      >
-                        {item.tdvsp_Customer.name}
-                      </Caption1>
-                    )}
-                  </div>
-                </div>
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+          <Spinner label="Loading impacts..." />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Trophy24Filled style={{ fontSize: 48, color: "#8764b8", marginBottom: 16 }} />
+          <Subtitle1>No impacts found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>
+            Create your first impact to start tracking.
+          </Caption1>
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {filtered.map((impact) => (
+            <Card key={impact.tdvsp_impactid} className={styles.impactCard}>
+              <div className={styles.cardHeader}>
+                <Subtitle1 block>{impact.tdvsp_name}</Subtitle1>
                 <Button
                   appearance="subtle"
                   icon={<Delete24Regular />}
                   size="small"
                   title="Delete"
                   onClick={() =>
-                    item.tdvsp_actionitemid &&
-                    handleDelete(item.tdvsp_actionitemid)
+                    impact.tdvsp_impactid && handleDelete(impact.tdvsp_impactid)
                   }
                 />
               </div>
-            </React.Fragment>
-          ))
-        )}
-      </Card>
+              {impact.tdvsp_description && (
+                <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
+                  {impact.tdvsp_description}
+                </Body1>
+              )}
+              <Divider style={{ margin: "12px 0" }} />
+              <div className={styles.cardMeta}>
+                {impact.tdvsp_date && (
+                  <div className={styles.metaItem}>
+                    <CalendarLtr24Regular style={{ fontSize: 16 }} />
+                    <Caption1>{impact.tdvsp_date}</Caption1>
+                  </div>
+                )}
+                {impact.tdvsp_Customer?.name && (
+                  <Caption1>{impact.tdvsp_Customer.name}</Caption1>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

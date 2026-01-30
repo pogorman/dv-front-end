@@ -1,3 +1,9 @@
+// Account entity
+export interface Account {
+  accountid?: string;
+  name: string;
+}
+
 // Contact / Customer entity
 export interface Customer {
   contactid?: string;
@@ -9,46 +15,32 @@ export interface Customer {
   // Add more Dataverse contact fields as needed
 }
 
-// High-Value Activity entity
-// TODO: Map to actual Dataverse entity/fields once confirmed
+// High-Value Activity entity (tdvsp_hva table)
 export interface HighValueActivity {
-  id?: string;
-  activitytype: string;
-  subject: string;
-  description: string;
-  customername: string;
-  customerid?: string;
-  scheduleddate: string;
-  status: string;
+  tdvsp_hvaid?: string;
+  tdvsp_name: string;
+  tdvsp_description: string;
+  tdvsp_date: string;
+  // Lookup to account table
+  _tdvsp_customer_value?: string;
+  tdvsp_Customer?: { accountid: string; name: string };
 }
 
-// Task / Action Item entity
-// TODO: Map to actual Dataverse entity/fields once confirmed
-export interface TaskItem {
-  id?: string;
-  title: string;
-  description: string;
-  duedate: string;
-  priority: "High" | "Medium" | "Low";
-  status: "Not Started" | "In Progress" | "Completed";
-  assignedto: string;
-  relatedcustomer?: string;
+// Action Item entity (tdvsp_actionitem table)
+export interface ActionItem {
+  tdvsp_actionitemid?: string;
+  tdvsp_name: string;
+  tdvsp_date: string;
+  _tdvsp_customer_value?: string;
+  tdvsp_Customer?: { accountid: string; name: string };
 }
 
-export const ACTIVITY_TYPES = [
-  "Demo",
-  "Presentation",
-  "Workshop",
-  "Executive Briefing",
-  "Proof of Concept",
-  "Architecture Review",
-  "Training",
-  "Other",
-];
-
-export const TASK_PRIORITIES = ["High", "Medium", "Low"] as const;
-export const TASK_STATUSES = [
-  "Not Started",
-  "In Progress",
-  "Completed",
-] as const;
+// Impact entity (tdvsp_impact table)
+export interface Impact {
+  tdvsp_impactid?: string;
+  tdvsp_name: string;
+  tdvsp_date: string;
+  tdvsp_description: string;
+  _tdvsp_customer_value?: string;
+  tdvsp_Customer?: { accountid: string; name: string };
+}

@@ -7,11 +7,9 @@ import {
   Button,
   Input,
   Label,
-  Text,
   Subtitle1,
   Body1,
   Caption1,
-  Badge,
   Divider,
   Dialog,
   DialogTrigger,
@@ -30,13 +28,14 @@ import {
   Search24Regular,
   Star24Filled,
   CalendarLtr24Regular,
-  Edit24Regular,
   Delete24Regular,
 } from "@fluentui/react-icons";
-import { HighValueActivity, ACTIVITY_TYPES } from "../types";
+import { HighValueActivity, Account } from "../types";
 import {
   getActivities,
   createActivity,
+  deleteActivity,
+  getAccounts,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -110,28 +109,30 @@ const useStyles = makeStyles({
     ...shorthands.padding("48px"),
     color: tokens.colorNeutralForeground3,
   },
-  actions: {
-    display: "flex",
-    ...shorthands.gap("4px"),
-  },
 });
 
-const emptyActivity: Omit<HighValueActivity, "id"> = {
-  activitytype: "",
-  subject: "",
-  description: "",
-  customername: "",
-  scheduleddate: "",
-  status: "Scheduled",
+interface FormData {
+  tdvsp_name: string;
+  tdvsp_description: string;
+  tdvsp_date: string;
+  customerAccountId: string;
+}
+
+const emptyForm: FormData = {
+  tdvsp_name: "",
+  tdvsp_description: "",
+  tdvsp_date: "",
+  customerAccountId: "",
 };
 
 export const Activities: React.FC = () => {
   const styles = useStyles();
   const [activities, setActivities] = useState<HighValueActivity[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState(emptyActivity);
+  const [formData, setFormData] = useState<FormData>(emptyForm);
 
   const loadActivities = useCallback(async () => {
     setLoading(true);
@@ -145,40 +146,61 @@ export const Activities: React.FC = () => {
     }
   }, []);
 
+  const loadAccounts = useCallback(async () => {
+    try {
+      const data = await getAccounts();
+      setAccounts(data);
+    } catch (err) {
+      console.error("Failed to load accounts:", err);
+    }
+  }, []);
+
   useEffect(() => {
     loadActivities();
-  }, [loadActivities]);
+    loadAccounts();
+  }, [loadActivities, loadAccounts]);
 
   const handleSave = async () => {
     try {
-      await createActivity(formData);
+      const payload: {
+        tdvsp_name: string;
+        tdvsp_description: string;
+        tdvsp_date: string;
+        "tdvsp_Customer@odata.bind"?: string;
+      } = {
+        tdvsp_name: formData.tdvsp_name,
+        tdvsp_description: formData.tdvsp_description,
+        tdvsp_date: formData.tdvsp_date,
+      };
+      if (formData.customerAccountId) {
+        payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
+      }
+      await createActivity(payload);
       setDialogOpen(false);
-      setFormData(emptyActivity);
+      setFormData(emptyForm);
       loadActivities();
     } catch (err) {
       console.error("Failed to save activity:", err);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteActivity(id);
+      loadActivities();
+    } catch (err) {
+      console.error("Failed to delete activity:", err);
+    }
+  };
+
   const filtered = activities.filter((a) => {
     const q = searchQuery.toLowerCase();
     return (
-      a.subject.toLowerCase().includes(q) ||
-      a.customername.toLowerCase().includes(q) ||
-      a.activitytype.toLowerCase().includes(q)
+      a.tdvsp_name?.toLowerCase().includes(q) ||
+      a.tdvsp_description?.toLowerCase().includes(q) ||
+      a.tdvsp_Customer?.name?.toLowerCase().includes(q)
     );
   });
-
-  const statusColor = (status: string) => {
-    switch (status) {
-      case "Completed":
-        return "success" as const;
-      case "Cancelled":
-        return "danger" as const;
-      default:
-        return "informative" as const;
-    }
-  };
 
   return (
     <div className={styles.container}>
@@ -201,41 +223,12 @@ export const Activities: React.FC = () => {
               <DialogTitle>New High-Value Activity</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
-                  <div className={styles.formField}>
-                    <Label required>Activity Type</Label>
-                    <Dropdown
-                      placeholder="Select type"
-                      value={formData.activitytype}
-                      onOptionSelect={(_, d) =>
-                        setFormData({
-                          ...formData,
-                          activitytype: d.optionValue ?? "",
-                        })
-                      }
-                    >
-                      {ACTIVITY_TYPES.map((t) => (
-                        <Option key={t} value={t}>
-                          {t}
-                        </Option>
-                      ))}
-                    </Dropdown>
-                  </div>
-                  <div className={styles.formField}>
-                    <Label required>Customer Name</Label>
-                    <Input
-                      value={formData.customername}
-                      onChange={(_, d) =>
-                        setFormData({ ...formData, customername: d.value })
-                      }
-                      placeholder="e.g. Contoso Ltd"
-                    />
-                  </div>
                   <div className={styles.formFieldFull}>
-                    <Label required>Subject</Label>
+                    <Label required>Name</Label>
                     <Input
-                      value={formData.subject}
+                      value={formData.tdvsp_name}
                       onChange={(_, d) =>
-                        setFormData({ ...formData, subject: d.value })
+                        setFormData({ ...formData, tdvsp_name: d.value })
                       }
                       placeholder="Brief title for this activity"
                     />
@@ -243,38 +236,45 @@ export const Activities: React.FC = () => {
                   <div className={styles.formFieldFull}>
                     <Label>Description</Label>
                     <Textarea
-                      value={formData.description}
+                      value={formData.tdvsp_description}
                       onChange={(_, d) =>
-                        setFormData({ ...formData, description: d.value })
+                        setFormData({ ...formData, tdvsp_description: d.value })
                       }
                       placeholder="Details about the activity..."
                       rows={3}
                     />
                   </div>
                   <div className={styles.formField}>
-                    <Label required>Scheduled Date</Label>
+                    <Label required>Date</Label>
                     <Input
                       type="date"
-                      value={formData.scheduleddate}
+                      value={formData.tdvsp_date}
                       onChange={(_, d) =>
-                        setFormData({ ...formData, scheduleddate: d.value })
+                        setFormData({ ...formData, tdvsp_date: d.value })
                       }
                     />
                   </div>
                   <div className={styles.formField}>
-                    <Label>Status</Label>
+                    <Label>Customer (Account)</Label>
                     <Dropdown
-                      value={formData.status}
+                      placeholder="Select account"
+                      value={
+                        accounts.find(
+                          (a) => a.accountid === formData.customerAccountId
+                        )?.name ?? ""
+                      }
                       onOptionSelect={(_, d) =>
                         setFormData({
                           ...formData,
-                          status: d.optionValue ?? "Scheduled",
+                          customerAccountId: d.optionValue ?? "",
                         })
                       }
                     >
-                      <Option value="Scheduled">Scheduled</Option>
-                      <Option value="Completed">Completed</Option>
-                      <Option value="Cancelled">Cancelled</Option>
+                      {accounts.map((a) => (
+                        <Option key={a.accountid} value={a.accountid!}>
+                          {a.name}
+                        </Option>
+                      ))}
                     </Dropdown>
                   </div>
                 </div>
@@ -307,52 +307,35 @@ export const Activities: React.FC = () => {
       ) : (
         <div className={styles.grid}>
           {filtered.map((activity) => (
-            <Card key={activity.id} className={styles.activityCard}>
+            <Card key={activity.tdvsp_hvaid} className={styles.activityCard}>
               <div className={styles.cardHeader}>
-                <div>
-                  <Badge
-                    appearance="tint"
-                    color="brand"
-                    style={{ marginBottom: 8 }}
-                  >
-                    {activity.activitytype}
-                  </Badge>
-                  <Subtitle1 block>{activity.subject}</Subtitle1>
-                </div>
-                <Badge appearance="filled" color={statusColor(activity.status)}>
-                  {activity.status}
-                </Badge>
+                <Subtitle1 block>{activity.tdvsp_name}</Subtitle1>
+                <Button
+                  appearance="subtle"
+                  icon={<Delete24Regular />}
+                  size="small"
+                  title="Delete"
+                  onClick={() =>
+                    activity.tdvsp_hvaid && handleDelete(activity.tdvsp_hvaid)
+                  }
+                />
               </div>
-              <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
-                {activity.description}
-              </Body1>
+              {activity.tdvsp_description && (
+                <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
+                  {activity.tdvsp_description}
+                </Body1>
+              )}
               <Divider style={{ margin: "12px 0" }} />
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div className={styles.cardMeta}>
+              <div className={styles.cardMeta}>
+                {activity.tdvsp_date && (
                   <div className={styles.metaItem}>
                     <CalendarLtr24Regular style={{ fontSize: 16 }} />
-                    <Caption1>{activity.scheduleddate}</Caption1>
+                    <Caption1>{activity.tdvsp_date}</Caption1>
                   </div>
-                  <Caption1>{activity.customername}</Caption1>
-                </div>
-                <div className={styles.actions}>
-                  <Button
-                    appearance="subtle"
-                    icon={<Edit24Regular />}
-                    size="small"
-                  />
-                  <Button
-                    appearance="subtle"
-                    icon={<Delete24Regular />}
-                    size="small"
-                  />
-                </div>
+                )}
+                {activity.tdvsp_Customer?.name && (
+                  <Caption1>{activity.tdvsp_Customer.name}</Caption1>
+                )}
               </div>
             </Card>
           ))}

@@ -4,7 +4,6 @@ import {
   tokens,
   shorthands,
   Card,
-  CardHeader,
   Text,
   Badge,
   Subtitle1,
@@ -13,14 +12,14 @@ import {
   Divider,
 } from "@fluentui/react-components";
 import {
-  People24Filled,
+  Building24Filled,
   Star24Filled,
   TaskListSquareLtr24Filled,
   Warning24Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { HighValueActivity, TaskItem } from "../types";
-import { getActivities, getTasks } from "../services/dataverseService";
+import { HighValueActivity, ActionItem } from "../types";
+import { getActivities, getActionItems } from "../services/dataverseService";
 
 const useStyles = makeStyles({
   container: {
@@ -94,20 +93,17 @@ export const Dashboard: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
   const [activities, setActivities] = useState<HighValueActivity[]>([]);
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
   useEffect(() => {
     getActivities().then(setActivities);
-    getTasks().then(setTasks);
+    getActionItems().then(setActionItems);
   }, []);
 
-  const upcomingActivities = activities
-    .filter((a) => a.status !== "Completed")
-    .slice(0, 4);
-  const overdueTasks = tasks.filter(
-    (t) => t.status !== "Completed" && new Date(t.duedate) < new Date()
+  const upcomingActivities = activities.slice(0, 4);
+  const overdueTasks = actionItems.filter(
+    (t) => t.tdvsp_date && new Date(t.tdvsp_date) < new Date()
   );
-  const pendingTasks = tasks.filter((t) => t.status !== "Completed");
 
   return (
     <div className={styles.container}>
@@ -127,14 +123,14 @@ export const Dashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <div className={styles.statsGrid}>
-        <Card className={styles.statCard} onClick={() => navigate("/customers")}>
+        <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
           <div className={styles.statHeader}>
-            <Caption1>Customers</Caption1>
+            <Caption1>Accounts</Caption1>
             <div
               className={styles.statIconWrap}
               style={{ backgroundColor: "#e8f0fe" }}
             >
-              <People24Filled style={{ color: "#0078d4" }} />
+              <Building24Filled style={{ color: "#0078d4" }} />
             </div>
           </div>
           <div className={styles.statNumber} style={{ color: "#0078d4" }}>
@@ -174,7 +170,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className={styles.statNumber} style={{ color: "#107c10" }}>
-            {pendingTasks.length}
+            {actionItems.length}
           </div>
           <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
             Action items pending
@@ -212,22 +208,26 @@ export const Dashboard: React.FC = () => {
             </Body1>
           ) : (
             upcomingActivities.map((a, i) => (
-              <React.Fragment key={a.id}>
+              <React.Fragment key={a.tdvsp_hvaid}>
                 {i > 0 && <Divider />}
                 <div className={styles.listItem}>
                   <div>
                     <Text weight="semibold" block>
-                      {a.subject}
+                      {a.tdvsp_name}
                     </Text>
-                    <Caption1
-                      style={{ color: tokens.colorNeutralForeground3 }}
-                    >
-                      {a.activitytype} &middot; {a.customername}
-                    </Caption1>
+                    {a.tdvsp_Customer?.name && (
+                      <Caption1
+                        style={{ color: tokens.colorNeutralForeground3 }}
+                      >
+                        {a.tdvsp_Customer.name}
+                      </Caption1>
+                    )}
                   </div>
-                  <Badge appearance="outline" color="informative">
-                    {a.scheduleddate}
-                  </Badge>
+                  {a.tdvsp_date && (
+                    <Badge appearance="outline" color="informative">
+                      {a.tdvsp_date}
+                    </Badge>
+                  )}
                 </div>
               </React.Fragment>
             ))
@@ -235,39 +235,39 @@ export const Dashboard: React.FC = () => {
         </Card>
 
         <Card className={styles.sectionCard}>
-          <Subtitle1 style={{ marginBottom: 16 }}>Priority Tasks</Subtitle1>
-          {pendingTasks.length === 0 ? (
+          <Subtitle1 style={{ marginBottom: 16 }}>Action Items</Subtitle1>
+          {actionItems.length === 0 ? (
             <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
-              No open tasks
+              No action items
             </Body1>
           ) : (
-            pendingTasks.slice(0, 4).map((t, i) => (
-              <React.Fragment key={t.id}>
+            actionItems.slice(0, 4).map((t, i) => (
+              <React.Fragment key={t.tdvsp_actionitemid}>
                 {i > 0 && <Divider />}
                 <div className={styles.listItem}>
                   <div>
                     <Text weight="semibold" block>
-                      {t.title}
+                      {t.tdvsp_name}
                     </Text>
                     <Caption1
                       style={{ color: tokens.colorNeutralForeground3 }}
                     >
-                      Due: {t.duedate}
-                      {t.relatedcustomer && ` · ${t.relatedcustomer}`}
+                      {t.tdvsp_date && `Due: ${t.tdvsp_date}`}
+                      {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                     </Caption1>
                   </div>
-                  <Badge
-                    appearance="filled"
-                    color={
-                      t.priority === "High"
-                        ? "danger"
-                        : t.priority === "Medium"
-                          ? "warning"
-                          : "success"
-                    }
-                  >
-                    {t.priority}
-                  </Badge>
+                  {t.tdvsp_date && (
+                    <Badge
+                      appearance="filled"
+                      color={
+                        new Date(t.tdvsp_date) < new Date()
+                          ? "danger"
+                          : "informative"
+                      }
+                    >
+                      {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                    </Badge>
+                  )}
                 </div>
               </React.Fragment>
             ))

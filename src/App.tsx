@@ -22,9 +22,11 @@ import { msalConfig, loginRequest } from "./auth/msalConfig";
 import { setTokenProvider } from "./services/dataverseService";
 import { AppShell } from "./components/AppShell";
 import { Dashboard } from "./pages/Dashboard";
-import { Customers } from "./pages/Customers";
+import { Accounts } from "./pages/Accounts";
+import { Contacts } from "./pages/Contacts";
 import { Activities } from "./pages/Activities";
 import { Tasks } from "./pages/Tasks";
+import { Impacts } from "./pages/Impacts";
 import { LoginPage } from "./pages/Login";
 
 // Microsoft-themed brand colors
@@ -93,9 +95,11 @@ const App: React.FC = () => {
               <Routes>
                 <Route element={<AppShell />}>
                   <Route path="/" element={<Dashboard />} />
-                  <Route path="/customers" element={<Customers />} />
+                  <Route path="/accounts" element={<Accounts />} />
+                  <Route path="/contacts" element={<Contacts />} />
                   <Route path="/activities" element={<Activities />} />
                   <Route path="/tasks" element={<Tasks />} />
+                  <Route path="/impacts" element={<Impacts />} />
                 </Route>
               </Routes>
             </TokenProviderSetup>

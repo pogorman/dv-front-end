@@ -13,12 +13,16 @@ import {
 import {
   Home24Regular,
   Home24Filled,
-  People24Regular,
-  People24Filled,
+  Building24Regular,
+  Building24Filled,
+  ContactCard24Regular,
+  ContactCard24Filled,
   Star24Regular,
   Star24Filled,
   TaskListSquareLtr24Regular,
   TaskListSquareLtr24Filled,
+  Trophy24Regular,
+  Trophy24Filled,
   SignOut24Regular,
   Navigation24Regular,
   ChevronLeft24Regular,
@@ -172,11 +176,18 @@ const navItems: NavItem[] = [
     iconActive: <Home24Filled />,
   },
   {
-    key: "customers",
-    label: "Customers",
-    path: "/customers",
-    icon: <People24Regular />,
-    iconActive: <People24Filled />,
+    key: "accounts",
+    label: "Accounts",
+    path: "/accounts",
+    icon: <Building24Regular />,
+    iconActive: <Building24Filled />,
+  },
+  {
+    key: "contacts",
+    label: "Contacts",
+    path: "/contacts",
+    icon: <ContactCard24Regular />,
+    iconActive: <ContactCard24Filled />,
   },
   {
     key: "activities",
@@ -192,13 +203,22 @@ const navItems: NavItem[] = [
     icon: <TaskListSquareLtr24Regular />,
     iconActive: <TaskListSquareLtr24Filled />,
   },
+  {
+    key: "impacts",
+    label: "Impacts",
+    path: "/impacts",
+    icon: <Trophy24Regular />,
+    iconActive: <Trophy24Filled />,
+  },
 ];
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
-  "/customers": "Customers",
+  "/accounts": "Accounts",
+  "/contacts": "Contacts",
   "/activities": "High-Value Activities",
   "/tasks": "Tasks & Action Items",
+  "/impacts": "Impacts",
 };
 
 export const AppShell: React.FC = () => {
