@@ -1,0 +1,112 @@
+import React, { useEffect } from "react";
+import {
+  FluentProvider,
+  webLightTheme,
+  createLightTheme,
+  BrandVariants,
+} from "@fluentui/react-components";
+import {
+  MsalProvider,
+  AuthenticatedTemplate,
+  UnauthenticatedTemplate,
+  useMsal,
+} from "@azure/msal-react";
+import {
+  PublicClientApplication,
+  InteractionStatus,
+  InteractionRequiredAuthError,
+} from "@azure/msal-browser";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import { msalConfig, loginRequest } from "./auth/msalConfig";
+import { setTokenProvider } from "./services/dataverseService";
+import { AppShell } from "./components/AppShell";
+import { Dashboard } from "./pages/Dashboard";
+import { Customers } from "./pages/Customers";
+import { Activities } from "./pages/Activities";
+import { Tasks } from "./pages/Tasks";
+import { LoginPage } from "./pages/Login";
+
+// Microsoft-themed brand colors
+const microsoftBrand: BrandVariants = {
+  10: "#020305",
+  20: "#111723",
+  30: "#16263D",
+  40: "#193253",
+  50: "#1B3F6A",
+  60: "#1B4C82",
+  70: "#18599B",
+  80: "#0F6CBD",
+  90: "#2886DE",
+  100: "#479FEF",
+  110: "#62B4F6",
+  120: "#77C5FA",
+  130: "#96D6FF",
+  140: "#B4E0FC",
+  150: "#CFE9FC",
+  160: "#E6F2FC",
+};
+
+const microsoftTheme = {
+  ...webLightTheme,
+  ...createLightTheme(microsoftBrand),
+};
+
+const msalInstance = new PublicClientApplication(msalConfig);
+
+// Token provider setup component
+const TokenProviderSetup: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { instance, accounts, inProgress } = useMsal();
+
+  useEffect(() => {
+    if (accounts.length > 0 && inProgress === InteractionStatus.None) {
+      setTokenProvider(async () => {
+        try {
+          const response = await instance.acquireTokenSilent({
+            ...loginRequest,
+            account: accounts[0],
+          });
+          return response.accessToken;
+        } catch (error) {
+          if (error instanceof InteractionRequiredAuthError) {
+            const response = await instance.acquireTokenPopup(loginRequest);
+            return response.accessToken;
+          }
+          throw error;
+        }
+      });
+    }
+  }, [instance, accounts, inProgress]);
+
+  return <>{children}</>;
+};
+
+const App: React.FC = () => {
+  return (
+    <MsalProvider instance={msalInstance}>
+      <FluentProvider theme={microsoftTheme}>
+        <BrowserRouter>
+          <AuthenticatedTemplate>
+            <TokenProviderSetup>
+              <Routes>
+                <Route element={<AppShell />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/customers" element={<Customers />} />
+                  <Route path="/activities" element={<Activities />} />
+                  <Route path="/tasks" element={<Tasks />} />
+                </Route>
+              </Routes>
+            </TokenProviderSetup>
+          </AuthenticatedTemplate>
+          <UnauthenticatedTemplate>
+            <LoginPage />
+          </UnauthenticatedTemplate>
+        </BrowserRouter>
+      </FluentProvider>
+    </MsalProvider>
+  );
+};
+
+export default App;
