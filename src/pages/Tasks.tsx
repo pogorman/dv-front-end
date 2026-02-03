@@ -28,6 +28,7 @@ import {
   CalendarLtr24Regular,
   Edit24Regular,
   Delete24Regular,
+  Dismiss24Regular,
 } from "@fluentui/react-icons";
 import { ActionItem, Account } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -108,6 +109,21 @@ const useStyles = makeStyles({
     ...shorthands.padding("48px"),
     color: tokens.colorNeutralForeground3,
   },
+  nameLink: {
+    cursor: "pointer",
+    color: tokens.colorBrandForeground1,
+    ":hover": {
+      textDecoration: "underline",
+    },
+  },
+  viewField: {
+    marginBottom: "16px",
+  },
+  viewGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("16px"),
+  },
 });
 
 interface FormData {
@@ -131,6 +147,8 @@ export const Tasks: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingItem, setViewingItem] = useState<ActionItem | null>(null);
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -164,7 +182,14 @@ export const Tasks: React.FC = () => {
     setDialogOpen(true);
   };
 
+  const openView = (item: ActionItem) => {
+    setViewingItem(item);
+    setViewDialogOpen(true);
+  };
+
   const openEdit = (item: ActionItem) => {
+    setViewDialogOpen(false);
+    setViewingItem(null);
     setEditingId(item.tdvsp_actionitemid ?? null);
     setFormData({
       tdvsp_name: item.tdvsp_name,
@@ -316,7 +341,13 @@ export const Tasks: React.FC = () => {
               {i > 0 && <Divider />}
               <div className={styles.taskRow}>
                 <div className={styles.taskContent}>
-                  <Text weight="semibold">{item.tdvsp_name}</Text>
+                  <Text
+                    weight="semibold"
+                    className={styles.nameLink}
+                    onClick={() => openView(item)}
+                  >
+                    {item.tdvsp_name}
+                  </Text>
                   <div className={styles.taskMeta}>
                     {item.tdvsp_date && (
                       <div className={styles.metaItem}>
@@ -361,6 +392,60 @@ export const Tasks: React.FC = () => {
           ))
         )}
       </Card>
+
+      {/* View Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle
+              action={
+                <Button
+                  appearance="subtle"
+                  icon={<Dismiss24Regular />}
+                  onClick={() => setViewDialogOpen(false)}
+                />
+              }
+            >
+              Action Item Details
+            </DialogTitle>
+            <DialogContent>
+              {viewingItem && (
+                <>
+                  <div className={styles.viewField}>
+                    <Label>Name</Label>
+                    <Text block size={400} weight="semibold">
+                      {viewingItem.tdvsp_name}
+                    </Text>
+                  </div>
+                  <div className={styles.viewGrid}>
+                    <div className={styles.viewField}>
+                      <Label>Date</Label>
+                      <Text block size={400}>
+                        {viewingItem.tdvsp_date ? formatDate(viewingItem.tdvsp_date) : "--"}
+                      </Text>
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Customer</Label>
+                      <Text block size={400}>
+                        {viewingItem.tdvsp_Customer?.name || "--"}
+                      </Text>
+                    </div>
+                  </div>
+                </>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                appearance="primary"
+                icon={<Edit24Regular />}
+                onClick={() => viewingItem && openEdit(viewingItem)}
+              >
+                Edit
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
     </div>
   );
 };

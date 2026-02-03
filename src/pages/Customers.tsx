@@ -34,11 +34,13 @@ import {
   Search24Regular,
   Edit24Regular,
   Delete24Regular,
+  Dismiss24Regular,
 } from "@fluentui/react-icons";
 import { Customer } from "../types";
 import {
   getCustomers,
   createCustomer,
+  updateCustomer,
   deleteCustomer,
 } from "../services/dataverseService";
 
@@ -82,6 +84,26 @@ const useStyles = makeStyles({
     ...shorthands.padding("48px"),
     color: tokens.colorNeutralForeground3,
   },
+  nameLink: {
+    cursor: "pointer",
+    color: tokens.colorBrandForeground1,
+    ":hover": {
+      textDecoration: "underline",
+    },
+  },
+  viewHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  viewField: {
+    marginBottom: "16px",
+  },
+  viewGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("16px"),
+  },
 });
 
 const emptyCustomer: Omit<Customer, "contactid"> = {
@@ -99,6 +121,9 @@ export const Customers: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState(emptyCustomer);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const loadCustomers = useCallback(async () => {
     setLoading(true);
@@ -116,11 +141,35 @@ export const Customers: React.FC = () => {
     loadCustomers();
   }, [loadCustomers]);
 
+  const openView = (customer: Customer) => {
+    setViewingCustomer(customer);
+    setViewDialogOpen(true);
+  };
+
+  const openEdit = (customer: Customer) => {
+    setViewDialogOpen(false);
+    setViewingCustomer(null);
+    setEditingId(customer.contactid ?? null);
+    setFormData({
+      firstname: customer.firstname,
+      lastname: customer.lastname,
+      emailaddress1: customer.emailaddress1,
+      telephone1: customer.telephone1,
+      jobtitle: customer.jobtitle,
+    });
+    setDialogOpen(true);
+  };
+
   const handleSave = async () => {
     try {
-      await createCustomer(formData);
+      if (editingId) {
+        await updateCustomer(editingId, formData);
+      } else {
+        await createCustomer(formData);
+      }
       setDialogOpen(false);
       setFormData(emptyCustomer);
+      setEditingId(null);
       loadCustomers();
     } catch (err) {
       console.error("Failed to save customer:", err);
@@ -153,7 +202,11 @@ export const Customers: React.FC = () => {
         (a.lastname ?? "").localeCompare(b.lastname ?? ""),
       renderHeaderCell: () => "Name",
       renderCell: (item) => (
-        <Text weight="semibold">
+        <Text
+          weight="semibold"
+          className={styles.nameLink}
+          onClick={() => openView(item)}
+        >
           {item.firstname} {item.lastname}
         </Text>
       ),
@@ -183,6 +236,7 @@ export const Customers: React.FC = () => {
             icon={<Edit24Regular />}
             size="small"
             title="Edit"
+            onClick={() => openEdit(item)}
           />
           <Button
             appearance="subtle"
@@ -214,7 +268,7 @@ export const Customers: React.FC = () => {
           </DialogTrigger>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>New Customer</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Customer" : "New Customer"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formField}>
@@ -287,6 +341,70 @@ export const Customers: React.FC = () => {
           </DialogSurface>
         </Dialog>
       </div>
+
+      {/* View Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle
+              action={
+                <Button
+                  appearance="subtle"
+                  icon={<Dismiss24Regular />}
+                  onClick={() => setViewDialogOpen(false)}
+                />
+              }
+            >
+              Customer Details
+            </DialogTitle>
+            <DialogContent>
+              {viewingCustomer && (
+                <div className={styles.viewGrid}>
+                  <div className={styles.viewField}>
+                    <Label>First Name</Label>
+                    <Text block size={400} weight="semibold">
+                      {viewingCustomer.firstname || "--"}
+                    </Text>
+                  </div>
+                  <div className={styles.viewField}>
+                    <Label>Last Name</Label>
+                    <Text block size={400} weight="semibold">
+                      {viewingCustomer.lastname || "--"}
+                    </Text>
+                  </div>
+                  <div className={styles.viewField}>
+                    <Label>Email</Label>
+                    <Text block size={400}>
+                      {viewingCustomer.emailaddress1 || "--"}
+                    </Text>
+                  </div>
+                  <div className={styles.viewField}>
+                    <Label>Phone</Label>
+                    <Text block size={400}>
+                      {viewingCustomer.telephone1 || "--"}
+                    </Text>
+                  </div>
+                  <div className={styles.viewField}>
+                    <Label>Job Title</Label>
+                    <Text block size={400}>
+                      {viewingCustomer.jobtitle || "--"}
+                    </Text>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                appearance="primary"
+                icon={<Edit24Regular />}
+                onClick={() => viewingCustomer && openEdit(viewingCustomer)}
+              >
+                Edit
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
 
       <Card className={styles.card}>
         {loading ? (

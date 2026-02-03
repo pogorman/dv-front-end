@@ -7,6 +7,7 @@ import {
   Button,
   Input,
   Label,
+  Text,
   Subtitle1,
   Body1,
   Caption1,
@@ -29,6 +30,7 @@ import {
   CalendarLtr24Regular,
   Edit24Regular,
   Delete24Regular,
+  Dismiss24Regular,
 } from "@fluentui/react-icons";
 import { Impact, Account } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -111,6 +113,21 @@ const useStyles = makeStyles({
     ...shorthands.padding("48px"),
     color: tokens.colorNeutralForeground3,
   },
+  nameLink: {
+    cursor: "pointer",
+    color: tokens.colorBrandForeground1,
+    ":hover": {
+      textDecoration: "underline",
+    },
+  },
+  viewField: {
+    marginBottom: "16px",
+  },
+  viewGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("16px"),
+  },
 });
 
 interface FormData {
@@ -136,6 +153,8 @@ export const Impacts: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingImpact, setViewingImpact] = useState<Impact | null>(null);
 
   const loadImpacts = useCallback(async () => {
     setLoading(true);
@@ -169,7 +188,14 @@ export const Impacts: React.FC = () => {
     setDialogOpen(true);
   };
 
+  const openView = (impact: Impact) => {
+    setViewingImpact(impact);
+    setViewDialogOpen(true);
+  };
+
   const openEdit = (impact: Impact) => {
+    setViewDialogOpen(false);
+    setViewingImpact(null);
     setEditingId(impact.tdvsp_impactid ?? null);
     setFormData({
       tdvsp_name: impact.tdvsp_name,
@@ -332,7 +358,13 @@ export const Impacts: React.FC = () => {
           {filtered.map((impact) => (
             <Card key={impact.tdvsp_impactid} className={styles.impactCard}>
               <div className={styles.cardHeader}>
-                <Subtitle1 block>{impact.tdvsp_name}</Subtitle1>
+                <Subtitle1
+                  block
+                  className={styles.nameLink}
+                  onClick={() => openView(impact)}
+                >
+                  {impact.tdvsp_name}
+                </Subtitle1>
                 <div style={{ display: "flex", gap: 4 }}>
                   <Button
                     appearance="subtle"
@@ -373,6 +405,66 @@ export const Impacts: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* View Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle
+              action={
+                <Button
+                  appearance="subtle"
+                  icon={<Dismiss24Regular />}
+                  onClick={() => setViewDialogOpen(false)}
+                />
+              }
+            >
+              Impact Details
+            </DialogTitle>
+            <DialogContent>
+              {viewingImpact && (
+                <>
+                  <div className={styles.viewField}>
+                    <Label>Name</Label>
+                    <Text block size={400} weight="semibold">
+                      {viewingImpact.tdvsp_name}
+                    </Text>
+                  </div>
+                  <div className={styles.viewField}>
+                    <Label>Description</Label>
+                    <Text block size={400}>
+                      {viewingImpact.tdvsp_description || "--"}
+                    </Text>
+                  </div>
+                  <div className={styles.viewGrid}>
+                    <div className={styles.viewField}>
+                      <Label>Date</Label>
+                      <Text block size={400}>
+                        {viewingImpact.tdvsp_date ? formatDate(viewingImpact.tdvsp_date) : "--"}
+                      </Text>
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Customer</Label>
+                      <Text block size={400}>
+                        {viewingImpact.tdvsp_Customer?.name || "--"}
+                      </Text>
+                    </div>
+                  </div>
+                </>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                appearance="primary"
+                icon={<Edit24Regular />}
+                onClick={() => viewingImpact && openEdit(viewingImpact)}
+              >
+                Edit
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
     </div>
   );
 };

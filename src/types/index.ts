@@ -12,7 +12,9 @@ export interface Customer {
   emailaddress1: string;
   telephone1: string;
   jobtitle: string;
-  // Add more Dataverse contact fields as needed
+  // Lookup to account table (parentcustomerid)
+  _parentcustomerid_value?: string;
+  parentcustomerid_account?: { accountid: string; name: string };
 }
 
 // High-Value Activity entity (tdvsp_hva table)
@@ -43,4 +45,13 @@ export interface Impact {
   tdvsp_description: string;
   _tdvsp_customer_value?: string;
   tdvsp_Customer?: { accountid: string; name: string };
+}
+
+// Annotation entity (notes table)
+export interface Annotation {
+  annotationid?: string;
+  subject?: string;
+  notetext: string;
+  createdon?: string;
+  _objectid_value?: string;
 }

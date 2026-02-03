@@ -1,5 +1,5 @@
 import { dataverseConfig } from "../auth/msalConfig";
-import { Account, Customer, HighValueActivity, ActionItem, Impact } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation } from "../types";
 
 let getAccessToken: (() => Promise<string>) | null = null;
 
@@ -73,22 +73,35 @@ export async function deleteAccount(id: string): Promise<void> {
 // ─── Customers (Contact entity) ──────────────────────────────────────────────
 
 export async function getCustomers(): Promise<Customer[]> {
-  // TODO: Adjust $select fields to match actual Dataverse schema
   const result = await apiRequest(
-    "/contacts?$select=contactid,firstname,lastname,emailaddress1,telephone1,jobtitle&$orderby=lastname asc&$top=100"
+    "/contacts?$select=contactid,firstname,lastname,emailaddress1,telephone1,jobtitle,_parentcustomerid_value&$expand=parentcustomerid_account($select=accountid,name)&$orderby=lastname asc&$top=100"
   );
   return result?.value ?? [];
 }
 
 export async function createCustomer(
-  customer: Omit<Customer, "contactid">
+  customer: {
+    firstname: string;
+    lastname: string;
+    emailaddress1: string;
+    telephone1: string;
+    jobtitle: string;
+    "parentcustomerid_account@odata.bind"?: string;
+  }
 ): Promise<Customer> {
   return apiRequest("/contacts", "POST", customer);
 }
 
 export async function updateCustomer(
   id: string,
-  customer: Partial<Customer>
+  customer: {
+    firstname?: string;
+    lastname?: string;
+    emailaddress1?: string;
+    telephone1?: string;
+    jobtitle?: string;
+    "parentcustomerid_account@odata.bind"?: string;
+  }
 ): Promise<Customer> {
   return apiRequest(`/contacts(${id})`, "PATCH", customer);
 }
@@ -201,4 +214,27 @@ export async function updateImpact(
 
 export async function deleteImpact(id: string): Promise<void> {
   await apiRequest(`/tdvsp_impacts(${id})`, "DELETE");
+}
+
+// ─── Annotations (Notes) ─────────────────────────────────────────────────────
+
+export async function getAccountAnnotations(accountId: string): Promise<Annotation[]> {
+  const result = await apiRequest(
+    `/annotations?$select=annotationid,subject,notetext,createdon&$filter=_objectid_value eq ${accountId}&$orderby=createdon desc&$top=50`
+  );
+  return result?.value ?? [];
+}
+
+export async function createAnnotation(
+  annotation: {
+    subject?: string;
+    notetext: string;
+    "objectid_account@odata.bind": string;
+  }
+): Promise<Annotation> {
+  return apiRequest("/annotations", "POST", annotation);
+}
+
+export async function deleteAnnotation(id: string): Promise<void> {
+  await apiRequest(`/annotations(${id})`, "DELETE");
 }

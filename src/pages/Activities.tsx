@@ -7,6 +7,7 @@ import {
   Button,
   Input,
   Label,
+  Text,
   Subtitle1,
   Body1,
   Caption1,
@@ -29,6 +30,7 @@ import {
   CalendarLtr24Regular,
   Edit24Regular,
   Delete24Regular,
+  Dismiss24Regular,
 } from "@fluentui/react-icons";
 import { HighValueActivity, Account } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -111,6 +113,21 @@ const useStyles = makeStyles({
     ...shorthands.padding("48px"),
     color: tokens.colorNeutralForeground3,
   },
+  nameLink: {
+    cursor: "pointer",
+    color: tokens.colorBrandForeground1,
+    ":hover": {
+      textDecoration: "underline",
+    },
+  },
+  viewField: {
+    marginBottom: "16px",
+  },
+  viewGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("16px"),
+  },
 });
 
 interface FormData {
@@ -136,6 +153,8 @@ export const Activities: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingActivity, setViewingActivity] = useState<HighValueActivity | null>(null);
 
   const loadActivities = useCallback(async () => {
     setLoading(true);
@@ -169,7 +188,14 @@ export const Activities: React.FC = () => {
     setDialogOpen(true);
   };
 
+  const openView = (activity: HighValueActivity) => {
+    setViewingActivity(activity);
+    setViewDialogOpen(true);
+  };
+
   const openEdit = (activity: HighValueActivity) => {
+    setViewDialogOpen(false);
+    setViewingActivity(null);
     setEditingId(activity.tdvsp_hvaid ?? null);
     setFormData({
       tdvsp_name: activity.tdvsp_name,
@@ -332,7 +358,13 @@ export const Activities: React.FC = () => {
           {filtered.map((activity) => (
             <Card key={activity.tdvsp_hvaid} className={styles.activityCard}>
               <div className={styles.cardHeader}>
-                <Subtitle1 block>{activity.tdvsp_name}</Subtitle1>
+                <Subtitle1
+                  block
+                  className={styles.nameLink}
+                  onClick={() => openView(activity)}
+                >
+                  {activity.tdvsp_name}
+                </Subtitle1>
                 <div style={{ display: "flex", gap: 4 }}>
                   <Button
                     appearance="subtle"
@@ -373,6 +405,66 @@ export const Activities: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* View Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle
+              action={
+                <Button
+                  appearance="subtle"
+                  icon={<Dismiss24Regular />}
+                  onClick={() => setViewDialogOpen(false)}
+                />
+              }
+            >
+              Activity Details
+            </DialogTitle>
+            <DialogContent>
+              {viewingActivity && (
+                <>
+                  <div className={styles.viewField}>
+                    <Label>Name</Label>
+                    <Text block size={400} weight="semibold">
+                      {viewingActivity.tdvsp_name}
+                    </Text>
+                  </div>
+                  <div className={styles.viewField}>
+                    <Label>Description</Label>
+                    <Text block size={400}>
+                      {viewingActivity.tdvsp_description || "--"}
+                    </Text>
+                  </div>
+                  <div className={styles.viewGrid}>
+                    <div className={styles.viewField}>
+                      <Label>Date</Label>
+                      <Text block size={400}>
+                        {viewingActivity.tdvsp_date ? formatDate(viewingActivity.tdvsp_date) : "--"}
+                      </Text>
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Customer</Label>
+                      <Text block size={400}>
+                        {viewingActivity.tdvsp_Customer?.name || "--"}
+                      </Text>
+                    </div>
+                  </div>
+                </>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                appearance="primary"
+                icon={<Edit24Regular />}
+                onClick={() => viewingActivity && openEdit(viewingActivity)}
+              >
+                Edit
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
     </div>
   );
 };

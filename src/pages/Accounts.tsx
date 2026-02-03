@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogActions,
   Spinner,
+  Textarea,
   DataGrid,
   DataGridHeader,
   DataGridHeaderCell,
@@ -31,13 +32,17 @@ import {
   Search24Regular,
   Edit24Regular,
   Delete24Regular,
+  Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Account } from "../types";
+import { Account, Annotation } from "../types";
+import { formatDate } from "../utils/formatDate";
 import {
   getAccounts,
   createAccount,
   updateAccount,
   deleteAccount,
+  getAccountAnnotations,
+  createAnnotation,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -72,6 +77,64 @@ const useStyles = makeStyles({
     ...shorthands.padding("48px"),
     color: tokens.colorNeutralForeground3,
   },
+  nameLink: {
+    cursor: "pointer",
+    color: tokens.colorBrandForeground1,
+    ":hover": {
+      textDecoration: "underline",
+    },
+  },
+  viewHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  viewField: {
+    marginBottom: "16px",
+  },
+  viewDialogContent: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("24px"),
+    minHeight: "400px",
+  },
+  detailsPanel: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  timelinePanel: {
+    display: "flex",
+    flexDirection: "column",
+    borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
+    paddingLeft: "24px",
+  },
+  timelineHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "16px",
+  },
+  timelineList: {
+    flexGrow: 1,
+    overflowY: "auto",
+    maxHeight: "300px",
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("12px"),
+  },
+  noteItem: {
+    ...shorthands.padding("12px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("8px"),
+  },
+  noteDate: {
+    fontSize: "12px",
+    color: tokens.colorNeutralForeground3,
+    marginBottom: "4px",
+  },
+  noteInput: {
+    marginTop: "12px",
+  },
 });
 
 export const Accounts: React.FC = () => {
@@ -82,6 +145,11 @@ export const Accounts: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [newNote, setNewNote] = useState("");
+  const [loadingNotes, setLoadingNotes] = useState(false);
 
   const loadAccounts = useCallback(async () => {
     setLoading(true);
@@ -105,7 +173,14 @@ export const Accounts: React.FC = () => {
     setDialogOpen(true);
   };
 
+  const openView = (account: Account) => {
+    setViewingAccount(account);
+    setViewDialogOpen(true);
+  };
+
   const openEdit = (account: Account) => {
+    setViewDialogOpen(false);
+    setViewingAccount(null);
     setEditingId(account.accountid ?? null);
     setName(account.name);
     setDialogOpen(true);
@@ -136,6 +211,40 @@ export const Accounts: React.FC = () => {
     }
   };
 
+  const loadAnnotations = useCallback(async (accountId: string) => {
+    setLoadingNotes(true);
+    try {
+      const data = await getAccountAnnotations(accountId);
+      setAnnotations(data);
+    } catch (err) {
+      console.error("Failed to load notes:", err);
+    } finally {
+      setLoadingNotes(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (viewingAccount?.accountid) {
+      loadAnnotations(viewingAccount.accountid);
+    } else {
+      setAnnotations([]);
+    }
+  }, [viewingAccount, loadAnnotations]);
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !viewingAccount?.accountid) return;
+    try {
+      await createAnnotation({
+        notetext: newNote,
+        "objectid_account@odata.bind": `/accounts(${viewingAccount.accountid})`,
+      });
+      setNewNote("");
+      loadAnnotations(viewingAccount.accountid);
+    } catch (err) {
+      console.error("Failed to add note:", err);
+    }
+  };
+
   const filteredAccounts = accounts.filter((a) =>
     a.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -146,7 +255,13 @@ export const Accounts: React.FC = () => {
       compare: (a, b) => (a.name ?? "").localeCompare(b.name ?? ""),
       renderHeaderCell: () => "Account Name",
       renderCell: (item) => (
-        <Text weight="semibold">{item.name}</Text>
+        <Text
+          weight="semibold"
+          className={styles.nameLink}
+          onClick={() => openView(item)}
+        >
+          {item.name}
+        </Text>
       ),
     }),
     createTableColumn({
@@ -214,6 +329,95 @@ export const Accounts: React.FC = () => {
           </DialogSurface>
         </Dialog>
       </div>
+
+      {/* View Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle
+              action={
+                <Button
+                  appearance="subtle"
+                  icon={<Dismiss24Regular />}
+                  onClick={() => setViewDialogOpen(false)}
+                />
+              }
+            >
+              <div className={styles.viewHeader}>
+                <span>Account Details</span>
+              </div>
+            </DialogTitle>
+            <DialogContent>
+              {viewingAccount && (
+                <div className={styles.viewDialogContent}>
+                  {/* Left Panel - Account Details */}
+                  <div className={styles.detailsPanel}>
+                    <div className={styles.viewField}>
+                      <Label>Account Name</Label>
+                      <Text block size={400} weight="semibold">
+                        {viewingAccount.name}
+                      </Text>
+                    </div>
+                  </div>
+
+                  {/* Right Panel - Timeline */}
+                  <div className={styles.timelinePanel}>
+                    <div className={styles.timelineHeader}>
+                      <Subtitle1>Notes</Subtitle1>
+                    </div>
+
+                    <div className={styles.timelineList}>
+                      {loadingNotes ? (
+                        <Spinner size="small" />
+                      ) : annotations.length === 0 ? (
+                        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                          No notes yet
+                        </Caption1>
+                      ) : (
+                        annotations.map((note) => (
+                          <div key={note.annotationid} className={styles.noteItem}>
+                            <div className={styles.noteDate}>
+                              {note.createdon ? formatDate(note.createdon) : ""}
+                            </div>
+                            <Text size={300}>{note.notetext}</Text>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className={styles.noteInput}>
+                      <Textarea
+                        placeholder="Add a note..."
+                        value={newNote}
+                        onChange={(_, d) => setNewNote(d.value)}
+                        rows={2}
+                      />
+                      <Button
+                        appearance="primary"
+                        size="small"
+                        style={{ marginTop: 8 }}
+                        onClick={handleAddNote}
+                        disabled={!newNote.trim()}
+                      >
+                        Add Note
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                appearance="primary"
+                icon={<Edit24Regular />}
+                onClick={() => viewingAccount && openEdit(viewingAccount)}
+              >
+                Edit
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
 
       <Card className={styles.card}>
         {loading ? (
