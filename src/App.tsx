@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import {
   FluentProvider,
   webLightTheme,
+  webDarkTheme,
   createLightTheme,
+  createDarkTheme,
   BrandVariants,
 } from "@fluentui/react-components";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import {
   MsalProvider,
   AuthenticatedTemplate,
@@ -49,9 +52,14 @@ const microsoftBrand: BrandVariants = {
   160: "#E6F2FC",
 };
 
-const microsoftTheme = {
+const microsoftLightTheme = {
   ...webLightTheme,
   ...createLightTheme(microsoftBrand),
+};
+
+const microsoftDarkTheme = {
+  ...webDarkTheme,
+  ...createDarkTheme(microsoftBrand),
 };
 
 const msalInstance = new PublicClientApplication(msalConfig);
@@ -88,30 +96,41 @@ const TokenProviderSetup: React.FC<{ children: React.ReactNode }> = ({
   return <>{children}</>;
 };
 
+const ThemedApp: React.FC = () => {
+  const { isDark } = useTheme();
+  const theme = isDark ? microsoftDarkTheme : microsoftLightTheme;
+
+  return (
+    <FluentProvider theme={theme}>
+      <BrowserRouter>
+        <AuthenticatedTemplate>
+          <TokenProviderSetup>
+            <Routes>
+              <Route element={<AppShell />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/accounts" element={<Accounts />} />
+                <Route path="/contacts" element={<Contacts />} />
+                <Route path="/activities" element={<Activities />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/impacts" element={<Impacts />} />
+              </Route>
+            </Routes>
+          </TokenProviderSetup>
+        </AuthenticatedTemplate>
+        <UnauthenticatedTemplate>
+          <LoginPage />
+        </UnauthenticatedTemplate>
+      </BrowserRouter>
+    </FluentProvider>
+  );
+};
+
 const App: React.FC = () => {
   return (
     <MsalProvider instance={msalInstance}>
-      <FluentProvider theme={microsoftTheme}>
-        <BrowserRouter>
-          <AuthenticatedTemplate>
-            <TokenProviderSetup>
-              <Routes>
-                <Route element={<AppShell />}>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/accounts" element={<Accounts />} />
-                  <Route path="/contacts" element={<Contacts />} />
-                  <Route path="/activities" element={<Activities />} />
-                  <Route path="/tasks" element={<Tasks />} />
-                  <Route path="/impacts" element={<Impacts />} />
-                </Route>
-              </Routes>
-            </TokenProviderSetup>
-          </AuthenticatedTemplate>
-          <UnauthenticatedTemplate>
-            <LoginPage />
-          </UnauthenticatedTemplate>
-        </BrowserRouter>
-      </FluentProvider>
+      <ThemeProvider>
+        <ThemedApp />
+      </ThemeProvider>
     </MsalProvider>
   );
 };

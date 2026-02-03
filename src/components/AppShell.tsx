@@ -9,6 +9,7 @@ import {
   Avatar,
   Divider,
   Tooltip,
+  Switch,
 } from "@fluentui/react-components";
 import {
   Home24Regular,
@@ -26,8 +27,11 @@ import {
   SignOut24Regular,
   Navigation24Regular,
   ChevronLeft24Regular,
+  WeatherMoon24Regular,
+  WeatherSunny24Regular,
 } from "@fluentui/react-icons";
 import { useMsal } from "@azure/msal-react";
+import { useTheme } from "../context/ThemeContext";
 
 const SIDEBAR_WIDTH = 260;
 const SIDEBAR_COLLAPSED = 56;
@@ -111,12 +115,12 @@ const useStyles = makeStyles({
     },
   },
   navItemActive: {
-    backgroundColor: "#e8f0fe",
-    color: "#0078d4",
+    backgroundColor: tokens.colorBrandBackground2,
+    color: tokens.colorBrandForeground1,
     fontWeight: "600",
     ":hover": {
-      backgroundColor: "#dce8fc",
-      color: "#0078d4",
+      backgroundColor: tokens.colorBrandBackground2Hover,
+      color: tokens.colorBrandForeground1,
     },
   },
   navIcon: {
@@ -156,6 +160,11 @@ const useStyles = makeStyles({
     flexGrow: 1,
     ...shorthands.padding("24px"),
     overflow: "auto",
+  },
+  themeToggle: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
   },
 });
 
@@ -226,6 +235,7 @@ export const AppShell: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { instance, accounts } = useMsal();
+  const { isDark, toggleTheme } = useTheme();
   const [expanded, setExpanded] = useState(true);
 
   const currentAccount = accounts[0];
@@ -331,6 +341,15 @@ export const AppShell: React.FC = () => {
           <Text size={500} weight="semibold">
             {pageTitle}
           </Text>
+          <div className={styles.themeToggle}>
+            <WeatherSunny24Regular />
+            <Switch
+              checked={isDark}
+              onChange={toggleTheme}
+              aria-label="Toggle dark mode"
+            />
+            <WeatherMoon24Regular />
+          </div>
         </header>
         <main className={styles.pageContent}>
           <Outlet />
