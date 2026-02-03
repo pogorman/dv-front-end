@@ -21,8 +21,8 @@ import {
   Star24Filled,
   TaskListSquareLtr24Regular,
   TaskListSquareLtr24Filled,
-  Trophy24Regular,
-  Trophy24Filled,
+  Flash24Regular,
+  Flash24Filled,
   SignOut24Regular,
   Navigation24Regular,
   ChevronLeft24Regular,
@@ -80,7 +80,7 @@ const useStyles = makeStyles({
     flexShrink: 0,
     color: "white",
     fontWeight: "bold",
-    fontSize: "14px",
+    fontSize: "11px",
   },
   navSection: {
     display: "flex",
@@ -207,8 +207,8 @@ const navItems: NavItem[] = [
     key: "impacts",
     label: "Impacts",
     path: "/impacts",
-    icon: <Trophy24Regular />,
-    iconActive: <Trophy24Filled />,
+    icon: <Flash24Regular />,
+    iconActive: <Flash24Filled />,
   },
 ];
 
@@ -252,10 +252,10 @@ export const AppShell: React.FC = () => {
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.brandArea}>
-            <div className={styles.brandIcon}>DV</div>
+            <div className={styles.brandIcon}>O'G</div>
             {expanded && (
               <Text weight="semibold" size={400}>
-                Dataverse App
+                O'G Central
               </Text>
             )}
           </div>

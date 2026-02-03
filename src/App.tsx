@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FluentProvider,
   webLightTheme,
@@ -56,11 +56,12 @@ const microsoftTheme = {
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
-// Token provider setup component
+// Token provider setup component — gates children until token provider is ready
 const TokenProviderSetup: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { instance, accounts, inProgress } = useMsal();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (accounts.length > 0 && inProgress === InteractionStatus.None) {
@@ -79,9 +80,11 @@ const TokenProviderSetup: React.FC<{ children: React.ReactNode }> = ({
           throw error;
         }
       });
+      setReady(true);
     }
   }, [instance, accounts, inProgress]);
 
+  if (!ready) return null;
   return <>{children}</>;
 };
 

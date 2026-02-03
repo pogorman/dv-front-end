@@ -98,9 +98,9 @@ export const Dashboard: React.FC = () => {
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
   useEffect(() => {
-    getAccounts().then(setAccounts);
-    getActivities().then(setActivities);
-    getActionItems().then(setActionItems);
+    getAccounts().then(setAccounts).catch(console.error);
+    getActivities().then(setActivities).catch(console.error);
+    getActionItems().then(setActionItems).catch(console.error);
   }, []);
 
   const upcomingActivities = activities.slice(0, 4);
