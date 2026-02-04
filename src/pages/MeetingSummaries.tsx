@@ -20,6 +20,8 @@ import {
   DialogActions,
   Spinner,
   Textarea,
+  Dropdown,
+  Option,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
@@ -30,13 +32,14 @@ import {
   Dismiss24Regular,
   Notebook24Filled,
 } from "@fluentui/react-icons";
-import { MeetingSummary } from "../types";
+import { MeetingSummary, Account } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getMeetingSummaries,
   createMeetingSummary,
   updateMeetingSummary,
   deleteMeetingSummary,
+  getAccounts,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -139,17 +142,20 @@ interface FormData {
   tdvsp_name: string;
   tdvsp_date: string;
   tdvsp_summary: string;
+  accountId: string;
 }
 
 const emptyForm: FormData = {
   tdvsp_name: "",
   tdvsp_date: "",
   tdvsp_summary: "",
+  accountId: "",
 };
 
 export const MeetingSummaries: React.FC = () => {
   const styles = useStyles();
   const [summaries, setSummaries] = useState<MeetingSummary[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -170,9 +176,19 @@ export const MeetingSummaries: React.FC = () => {
     }
   }, []);
 
+  const loadAccounts = useCallback(async () => {
+    try {
+      const data = await getAccounts();
+      setAccounts(data);
+    } catch (err) {
+      console.error("Failed to load accounts:", err);
+    }
+  }, []);
+
   useEffect(() => {
     loadSummaries();
-  }, [loadSummaries]);
+    loadAccounts();
+  }, [loadSummaries, loadAccounts]);
 
   const openNew = () => {
     setEditingId(null);
@@ -193,6 +209,7 @@ export const MeetingSummaries: React.FC = () => {
       tdvsp_name: summary.tdvsp_name,
       tdvsp_date: summary.tdvsp_date ? summary.tdvsp_date.split("T")[0] : "",
       tdvsp_summary: summary.tdvsp_summary ?? "",
+      accountId: summary.tdvsp_Account?.accountid ?? "",
     });
     setDialogOpen(true);
   };
@@ -203,6 +220,7 @@ export const MeetingSummaries: React.FC = () => {
         tdvsp_name: string;
         tdvsp_date?: string;
         tdvsp_summary?: string;
+        "tdvsp_Account@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
       };
@@ -211,6 +229,9 @@ export const MeetingSummaries: React.FC = () => {
       }
       if (formData.tdvsp_summary) {
         payload.tdvsp_summary = formData.tdvsp_summary;
+      }
+      if (formData.accountId) {
+        payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
       }
       if (editingId) {
         await updateMeetingSummary(editingId, payload);
@@ -239,7 +260,8 @@ export const MeetingSummaries: React.FC = () => {
     const q = searchQuery.toLowerCase();
     return (
       s.tdvsp_name?.toLowerCase().includes(q) ||
-      s.tdvsp_summary?.toLowerCase().includes(q)
+      s.tdvsp_summary?.toLowerCase().includes(q) ||
+      s.tdvsp_Account?.name?.toLowerCase().includes(q)
     );
   });
 
@@ -282,7 +304,27 @@ export const MeetingSummaries: React.FC = () => {
                       }
                     />
                   </div>
-                  <div style={{ gridColumn: "2 / 3" }} />
+                  <div className={styles.formField}>
+                    <Label>Account</Label>
+                    <Dropdown
+                      placeholder="Select account"
+                      value={
+                        accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""
+                      }
+                      onOptionSelect={(_, d) =>
+                        setFormData({
+                          ...formData,
+                          accountId: d.optionValue ?? "",
+                        })
+                      }
+                    >
+                      {accounts.map((a) => (
+                        <Option key={a.accountid} value={a.accountid!} text={a.name}>
+                          {a.name}
+                        </Option>
+                      ))}
+                    </Dropdown>
+                  </div>
                   <div className={styles.formFieldFull}>
                     <Label>Summary</Label>
                     <Textarea
@@ -372,6 +414,9 @@ export const MeetingSummaries: React.FC = () => {
                     <Caption1>{formatDate(summary.tdvsp_date)}</Caption1>
                   </div>
                 )}
+                {summary.tdvsp_Account?.name && (
+                  <Caption1>{summary.tdvsp_Account.name}</Caption1>
+                )}
               </div>
             </Card>
           ))}
@@ -402,11 +447,19 @@ export const MeetingSummaries: React.FC = () => {
                       {viewingSummary.tdvsp_name}
                     </Text>
                   </div>
-                  <div className={styles.viewField}>
-                    <Label>Date</Label>
-                    <Text block size={400}>
-                      {viewingSummary.tdvsp_date ? formatDate(viewingSummary.tdvsp_date) : "--"}
-                    </Text>
+                  <div className={styles.viewGrid}>
+                    <div className={styles.viewField}>
+                      <Label>Date</Label>
+                      <Text block size={400}>
+                        {viewingSummary.tdvsp_date ? formatDate(viewingSummary.tdvsp_date) : "--"}
+                      </Text>
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Account</Label>
+                      <Text block size={400}>
+                        {viewingSummary.tdvsp_Account?.name || "--"}
+                      </Text>
+                    </div>
                   </div>
                   <div className={styles.viewField}>
                     <Label>Summary</Label>

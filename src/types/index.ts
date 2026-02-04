@@ -99,4 +99,7 @@ export interface MeetingSummary {
   tdvsp_name: string;
   tdvsp_date?: string;
   tdvsp_summary?: string;
+  // Lookup to account table
+  _tdvsp_account_value?: string;
+  tdvsp_Account?: { accountid: string; name: string };
 }

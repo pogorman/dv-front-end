@@ -348,7 +348,7 @@ export async function getIdeasByContact(contactId: string): Promise<Idea[]> {
 
 export async function getMeetingSummaries(): Promise<MeetingSummary[]> {
   const result = await apiRequest(
-    "/tdvsp_meetingsummaries?$select=tdvsp_meetingsummaryid,tdvsp_name,tdvsp_date,tdvsp_summary&$orderby=tdvsp_date desc&$top=100"
+    "/tdvsp_meetingsummaries?$select=tdvsp_meetingsummaryid,tdvsp_name,tdvsp_date,tdvsp_summary,_tdvsp_account_value&$expand=tdvsp_Account($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
   );
   return result?.value ?? [];
 }
@@ -358,6 +358,7 @@ export async function createMeetingSummary(
     tdvsp_name: string;
     tdvsp_date?: string;
     tdvsp_summary?: string;
+    "tdvsp_Account@odata.bind"?: string;
   }
 ): Promise<MeetingSummary> {
   return apiRequest("/tdvsp_meetingsummaries", "POST", summary);
@@ -369,6 +370,7 @@ export async function updateMeetingSummary(
     tdvsp_name?: string;
     tdvsp_date?: string;
     tdvsp_summary?: string;
+    "tdvsp_Account@odata.bind"?: string;
   }
 ): Promise<MeetingSummary> {
   return apiRequest(`/tdvsp_meetingsummaries(${id})`, "PATCH", summary);
