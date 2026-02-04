@@ -452,10 +452,10 @@ export const Accounts: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Tasks & Action Items */}
+                        {/* Action Items */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
-                            <Subtitle1>Tasks & Action Items</Subtitle1>
+                            <Subtitle1>Action Items</Subtitle1>
                             <span className={styles.badge}>{relatedTasks.length}</span>
                           </div>
                           {relatedTasks.length === 0 ? (

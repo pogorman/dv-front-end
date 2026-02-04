@@ -201,25 +201,11 @@ const navItems: NavItem[] = [
     iconActive: <ContactCard24Filled />,
   },
   {
-    key: "activities",
-    label: "High-Value Activities",
-    path: "/activities",
-    icon: <Star24Regular />,
-    iconActive: <Star24Filled />,
-  },
-  {
     key: "tasks",
-    label: "Tasks & Action Items",
+    label: "Action Items",
     path: "/tasks",
     icon: <TaskListSquareLtr24Regular />,
     iconActive: <TaskListSquareLtr24Filled />,
-  },
-  {
-    key: "impacts",
-    label: "Impacts",
-    path: "/impacts",
-    icon: <Flash24Regular />,
-    iconActive: <Flash24Filled />,
   },
   {
     key: "ideas",
@@ -228,16 +214,30 @@ const navItems: NavItem[] = [
     icon: <Lightbulb24Regular />,
     iconActive: <Lightbulb24Filled />,
   },
+  {
+    key: "activities",
+    label: "High-Value Activities",
+    path: "/activities",
+    icon: <Star24Regular />,
+    iconActive: <Star24Filled />,
+  },
+  {
+    key: "impacts",
+    label: "Impacts",
+    path: "/impacts",
+    icon: <Flash24Regular />,
+    iconActive: <Flash24Filled />,
+  },
 ];
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
   "/accounts": "Accounts",
   "/contacts": "Contacts",
-  "/activities": "High-Value Activities",
-  "/tasks": "Tasks & Action Items",
-  "/impacts": "Impacts",
+  "/tasks": "Action Items",
   "/ideas": "Ideas",
+  "/activities": "High-Value Activities",
+  "/impacts": "Impacts",
 };
 
 export const AppShell: React.FC = () => {
