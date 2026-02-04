@@ -35,13 +35,14 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Customer, Account } from "../types";
+import { Customer, Account, Idea, ideaCategoryLabels } from "../types";
 import {
   getCustomers,
   createCustomer,
   updateCustomer,
   deleteCustomer,
   getAccounts,
+  getIdeasByContact,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -99,6 +100,35 @@ const useStyles = makeStyles({
     gridTemplateColumns: "1fr 1fr",
     ...shorthands.gap("16px"),
   },
+  relatedSection: {
+    marginTop: "20px",
+    gridColumn: "1 / -1",
+  },
+  relatedHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
+    marginBottom: "8px",
+  },
+  relatedList: {
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("8px"),
+    maxHeight: "200px",
+    overflowY: "auto",
+  },
+  relatedItem: {
+    ...shorthands.padding("8px", "12px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("6px"),
+  },
+  badge: {
+    ...shorthands.padding("2px", "8px"),
+    ...shorthands.borderRadius("4px"),
+    backgroundColor: tokens.colorBrandBackground2,
+    color: tokens.colorBrandForeground2,
+    fontSize: "12px",
+  },
 });
 
 interface FormData {
@@ -130,6 +160,8 @@ export const Contacts: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingContact, setViewingContact] = useState<Customer | null>(null);
+  const [relatedIdeas, setRelatedIdeas] = useState<Idea[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   const loadContacts = useCallback(async () => {
     setLoading(true);
@@ -156,6 +188,26 @@ export const Contacts: React.FC = () => {
     loadContacts();
     loadAccounts();
   }, [loadContacts, loadAccounts]);
+
+  const loadRelatedRecords = useCallback(async (contactId: string) => {
+    setLoadingRelated(true);
+    try {
+      const ideas = await getIdeasByContact(contactId);
+      setRelatedIdeas(ideas);
+    } catch (err) {
+      console.error("Failed to load related records:", err);
+    } finally {
+      setLoadingRelated(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (viewingContact?.contactid) {
+      loadRelatedRecords(viewingContact.contactid);
+    } else {
+      setRelatedIdeas([]);
+    }
+  }, [viewingContact, loadRelatedRecords]);
 
   const openNew = () => {
     setEditingId(null);
@@ -461,6 +513,30 @@ export const Contacts: React.FC = () => {
                     <Text block size={400}>
                       {viewingContact.parentcustomerid_account?.name || "--"}
                     </Text>
+                  </div>
+
+                  {/* Related Ideas */}
+                  <div className={styles.relatedSection}>
+                    <div className={styles.relatedHeader}>
+                      <Subtitle1>Ideas</Subtitle1>
+                      <span className={styles.badge}>{relatedIdeas.length}</span>
+                    </div>
+                    {loadingRelated ? (
+                      <Spinner size="small" />
+                    ) : relatedIdeas.length === 0 ? (
+                      <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas</Caption1>
+                    ) : (
+                      <div className={styles.relatedList}>
+                        {relatedIdeas.map((idea) => (
+                          <div key={idea.tdvsp_ideaid} className={styles.relatedItem}>
+                            <Text weight="semibold">{idea.tdvsp_name}</Text>
+                            {idea.tdvsp_category && (
+                              <Caption1 style={{ marginLeft: 8 }}>{ideaCategoryLabels[idea.tdvsp_category]}</Caption1>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

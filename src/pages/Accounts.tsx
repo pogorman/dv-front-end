@@ -34,7 +34,7 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Account, Annotation } from "../types";
+import { Account, Annotation, Customer, HighValueActivity, ActionItem, Impact, Idea, ideaCategoryLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getAccounts,
@@ -43,6 +43,11 @@ import {
   deleteAccount,
   getAccountAnnotations,
   createAnnotation,
+  getContactsByAccount,
+  getActivitiesByAccount,
+  getActionItemsByAccount,
+  getImpactsByAccount,
+  getIdeasByAccount,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -135,6 +140,37 @@ const useStyles = makeStyles({
   noteInput: {
     marginTop: "12px",
   },
+  relatedSection: {
+    marginTop: "20px",
+  },
+  relatedHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
+    marginBottom: "8px",
+  },
+  relatedList: {
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("8px"),
+    maxHeight: "200px",
+    overflowY: "auto",
+  },
+  relatedItem: {
+    ...shorthands.padding("8px", "12px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("6px"),
+  },
+  badge: {
+    ...shorthands.padding("2px", "8px"),
+    ...shorthands.borderRadius("4px"),
+    backgroundColor: tokens.colorBrandBackground2,
+    color: tokens.colorBrandForeground2,
+    fontSize: "12px",
+  },
+  tabList: {
+    marginBottom: "16px",
+  },
 });
 
 export const Accounts: React.FC = () => {
@@ -150,6 +186,12 @@ export const Accounts: React.FC = () => {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [newNote, setNewNote] = useState("");
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [relatedContacts, setRelatedContacts] = useState<Customer[]>([]);
+  const [relatedActivities, setRelatedActivities] = useState<HighValueActivity[]>([]);
+  const [relatedTasks, setRelatedTasks] = useState<ActionItem[]>([]);
+  const [relatedImpacts, setRelatedImpacts] = useState<Impact[]>([]);
+  const [relatedIdeas, setRelatedIdeas] = useState<Idea[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   const loadAccounts = useCallback(async () => {
     setLoading(true);
@@ -223,13 +265,41 @@ export const Accounts: React.FC = () => {
     }
   }, []);
 
+  const loadRelatedRecords = useCallback(async (accountId: string) => {
+    setLoadingRelated(true);
+    try {
+      const [contacts, activities, tasks, impacts, ideas] = await Promise.all([
+        getContactsByAccount(accountId),
+        getActivitiesByAccount(accountId),
+        getActionItemsByAccount(accountId),
+        getImpactsByAccount(accountId),
+        getIdeasByAccount(accountId),
+      ]);
+      setRelatedContacts(contacts);
+      setRelatedActivities(activities);
+      setRelatedTasks(tasks);
+      setRelatedImpacts(impacts);
+      setRelatedIdeas(ideas);
+    } catch (err) {
+      console.error("Failed to load related records:", err);
+    } finally {
+      setLoadingRelated(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (viewingAccount?.accountid) {
       loadAnnotations(viewingAccount.accountid);
+      loadRelatedRecords(viewingAccount.accountid);
     } else {
       setAnnotations([]);
+      setRelatedContacts([]);
+      setRelatedActivities([]);
+      setRelatedTasks([]);
+      setRelatedImpacts([]);
+      setRelatedIdeas([]);
     }
-  }, [viewingAccount, loadAnnotations]);
+  }, [viewingAccount, loadAnnotations, loadRelatedRecords]);
 
   const handleAddNote = async () => {
     if (!newNote.trim() || !viewingAccount?.accountid) return;
@@ -349,60 +419,163 @@ export const Accounts: React.FC = () => {
             </DialogTitle>
             <DialogContent>
               {viewingAccount && (
-                <div className={styles.viewDialogContent}>
-                  {/* Left Panel - Account Details */}
-                  <div className={styles.detailsPanel}>
-                    <div className={styles.viewField}>
-                      <Label>Account Name</Label>
-                      <Text block size={400} weight="semibold">
-                        {viewingAccount.name}
-                      </Text>
-                    </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px", minWidth: "600px" }}>
+                  {/* Account Name */}
+                  <div className={styles.viewField}>
+                    <Label>Account Name</Label>
+                    <Text block size={500} weight="semibold">
+                      {viewingAccount.name}
+                    </Text>
                   </div>
 
-                  {/* Right Panel - Timeline */}
-                  <div className={styles.timelinePanel}>
-                    <div className={styles.timelineHeader}>
-                      <Subtitle1>Notes</Subtitle1>
-                    </div>
-
-                    <div className={styles.timelineList}>
-                      {loadingNotes ? (
-                        <Spinner size="small" />
-                      ) : annotations.length === 0 ? (
-                        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                          No notes yet
-                        </Caption1>
-                      ) : (
-                        annotations.map((note) => (
-                          <div key={note.annotationid} className={styles.noteItem}>
-                            <div className={styles.noteDate}>
-                              {note.createdon ? formatDate(note.createdon) : ""}
-                            </div>
-                            <Text size={300}>{note.notetext}</Text>
+                  {loadingRelated ? (
+                    <Spinner size="small" label="Loading related records..." />
+                  ) : (
+                    <>
+                      {/* Contacts */}
+                      <div className={styles.relatedSection}>
+                        <div className={styles.relatedHeader}>
+                          <Subtitle1>Contacts</Subtitle1>
+                          <span className={styles.badge}>{relatedContacts.length}</span>
+                        </div>
+                        {relatedContacts.length === 0 ? (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No contacts</Caption1>
+                        ) : (
+                          <div className={styles.relatedList}>
+                            {relatedContacts.map((c) => (
+                              <div key={c.contactid} className={styles.relatedItem}>
+                                <Text weight="semibold">{c.firstname} {c.lastname}</Text>
+                                {c.jobtitle && <Caption1 style={{ marginLeft: 8 }}>{c.jobtitle}</Caption1>}
+                              </div>
+                            ))}
                           </div>
-                        ))
-                      )}
-                    </div>
+                        )}
+                      </div>
 
-                    <div className={styles.noteInput}>
-                      <Textarea
-                        placeholder="Add a note..."
-                        value={newNote}
-                        onChange={(_, d) => setNewNote(d.value)}
-                        rows={2}
-                      />
-                      <Button
-                        appearance="primary"
-                        size="small"
-                        style={{ marginTop: 8 }}
-                        onClick={handleAddNote}
-                        disabled={!newNote.trim()}
-                      >
-                        Add Note
-                      </Button>
-                    </div>
-                  </div>
+                      {/* High-Value Activities */}
+                      <div className={styles.relatedSection}>
+                        <div className={styles.relatedHeader}>
+                          <Subtitle1>High-Value Activities</Subtitle1>
+                          <span className={styles.badge}>{relatedActivities.length}</span>
+                        </div>
+                        {relatedActivities.length === 0 ? (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No activities</Caption1>
+                        ) : (
+                          <div className={styles.relatedList}>
+                            {relatedActivities.map((a) => (
+                              <div key={a.tdvsp_hvaid} className={styles.relatedItem}>
+                                <Text weight="semibold">{a.tdvsp_name}</Text>
+                                {a.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(a.tdvsp_date)}</Caption1>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tasks & Action Items */}
+                      <div className={styles.relatedSection}>
+                        <div className={styles.relatedHeader}>
+                          <Subtitle1>Tasks & Action Items</Subtitle1>
+                          <span className={styles.badge}>{relatedTasks.length}</span>
+                        </div>
+                        {relatedTasks.length === 0 ? (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No tasks</Caption1>
+                        ) : (
+                          <div className={styles.relatedList}>
+                            {relatedTasks.map((t) => (
+                              <div key={t.tdvsp_actionitemid} className={styles.relatedItem}>
+                                <Text weight="semibold">{t.tdvsp_name}</Text>
+                                {t.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(t.tdvsp_date)}</Caption1>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Impacts */}
+                      <div className={styles.relatedSection}>
+                        <div className={styles.relatedHeader}>
+                          <Subtitle1>Impacts</Subtitle1>
+                          <span className={styles.badge}>{relatedImpacts.length}</span>
+                        </div>
+                        {relatedImpacts.length === 0 ? (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No impacts</Caption1>
+                        ) : (
+                          <div className={styles.relatedList}>
+                            {relatedImpacts.map((i) => (
+                              <div key={i.tdvsp_impactid} className={styles.relatedItem}>
+                                <Text weight="semibold">{i.tdvsp_name}</Text>
+                                {i.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(i.tdvsp_date)}</Caption1>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Ideas */}
+                      <div className={styles.relatedSection}>
+                        <div className={styles.relatedHeader}>
+                          <Subtitle1>Ideas</Subtitle1>
+                          <span className={styles.badge}>{relatedIdeas.length}</span>
+                        </div>
+                        {relatedIdeas.length === 0 ? (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas</Caption1>
+                        ) : (
+                          <div className={styles.relatedList}>
+                            {relatedIdeas.map((idea) => (
+                              <div key={idea.tdvsp_ideaid} className={styles.relatedItem}>
+                                <Text weight="semibold">{idea.tdvsp_name}</Text>
+                                {idea.tdvsp_category && (
+                                  <Caption1 style={{ marginLeft: 8 }}>{ideaCategoryLabels[idea.tdvsp_category]}</Caption1>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Notes */}
+                      <div className={styles.relatedSection}>
+                        <div className={styles.relatedHeader}>
+                          <Subtitle1>Notes</Subtitle1>
+                          <span className={styles.badge}>{annotations.length}</span>
+                        </div>
+                        {loadingNotes ? (
+                          <Spinner size="small" />
+                        ) : annotations.length === 0 ? (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No notes yet</Caption1>
+                        ) : (
+                          <div className={styles.relatedList}>
+                            {annotations.map((note) => (
+                              <div key={note.annotationid} className={styles.relatedItem}>
+                                <div className={styles.noteDate}>
+                                  {note.createdon ? formatDate(note.createdon) : ""}
+                                </div>
+                                <Text size={300}>{note.notetext}</Text>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className={styles.noteInput}>
+                          <Textarea
+                            placeholder="Add a note..."
+                            value={newNote}
+                            onChange={(_, d) => setNewNote(d.value)}
+                            rows={2}
+                          />
+                          <Button
+                            appearance="primary"
+                            size="small"
+                            style={{ marginTop: 8 }}
+                            onClick={handleAddNote}
+                            disabled={!newNote.trim()}
+                          >
+                            Add Note
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </DialogContent>

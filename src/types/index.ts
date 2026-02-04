@@ -55,3 +55,40 @@ export interface Annotation {
   createdon?: string;
   _objectid_value?: string;
 }
+
+// Idea entity (tdvsp_idea table)
+export type IdeaCategory =
+  | 468510000 // Copilot Studio
+  | 468510001 // Canvas Apps
+  | 468510002 // Model-Driven Apps
+  | 468510003 // Power Automate
+  | 468510004 // Power Pages
+  | 468510005 // Azure
+  | 468510006 // AI General
+  | 468510007 // App General
+  | 468510008; // Other
+
+export const ideaCategoryLabels: Record<IdeaCategory, string> = {
+  468510000: "Copilot Studio",
+  468510001: "Canvas Apps",
+  468510002: "Model-Driven Apps",
+  468510003: "Power Automate",
+  468510004: "Power Pages",
+  468510005: "Azure",
+  468510006: "AI General",
+  468510007: "App General",
+  468510008: "Other",
+};
+
+export interface Idea {
+  tdvsp_ideaid?: string;
+  tdvsp_name: string;
+  tdvsp_description?: string;
+  tdvsp_category?: IdeaCategory;
+  // Lookup to account table
+  _tdvsp_account_value?: string;
+  tdvsp_Account?: { accountid: string; name: string };
+  // Lookup to contact table
+  _tdvsp_contact_value?: string;
+  tdvsp_Contact?: { contactid: string; firstname: string; lastname: string };
+}

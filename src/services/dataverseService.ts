@@ -1,5 +1,5 @@
 import { dataverseConfig } from "../auth/msalConfig";
-import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation, Idea, IdeaCategory } from "../types";
 
 let getAccessToken: (() => Promise<string>) | null = null;
 
@@ -237,4 +237,109 @@ export async function createAnnotation(
 
 export async function deleteAnnotation(id: string): Promise<void> {
   await apiRequest(`/annotations(${id})`, "DELETE");
+}
+
+// ─── Ideas (tdvsp_idea table) ─────────────────────────────────────────────────
+
+export async function getIdeas(): Promise<Idea[]> {
+  const result = await apiRequest(
+    "/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category,_tdvsp_account_value,_tdvsp_contact_value&$expand=tdvsp_Account($select=accountid,name),tdvsp_Contact($select=contactid,firstname,lastname)&$orderby=tdvsp_name asc&$top=100"
+  );
+  return result?.value ?? [];
+}
+
+export async function createIdea(
+  idea: {
+    tdvsp_name: string;
+    tdvsp_description?: string;
+    tdvsp_category?: IdeaCategory;
+    "tdvsp_Account@odata.bind"?: string;
+    "tdvsp_Contact@odata.bind"?: string;
+  }
+): Promise<Idea> {
+  return apiRequest("/tdvsp_ideas", "POST", idea);
+}
+
+export async function updateIdea(
+  id: string,
+  idea: {
+    tdvsp_name?: string;
+    tdvsp_description?: string;
+    tdvsp_category?: IdeaCategory;
+    "tdvsp_Account@odata.bind"?: string;
+    "tdvsp_Contact@odata.bind"?: string;
+  }
+): Promise<Idea> {
+  return apiRequest(`/tdvsp_ideas(${id})`, "PATCH", idea);
+}
+
+export async function deleteIdea(id: string): Promise<void> {
+  await apiRequest(`/tdvsp_ideas(${id})`, "DELETE");
+}
+
+// ─── Related Records for Account ──────────────────────────────────────────────
+
+export async function getContactsByAccount(accountId: string): Promise<Customer[]> {
+  const result = await apiRequest(
+    `/contacts?$select=contactid,firstname,lastname,emailaddress1,telephone1,jobtitle&$filter=_parentcustomerid_value eq ${accountId}&$orderby=lastname asc`
+  );
+  return result?.value ?? [];
+}
+
+export async function getActivitiesByAccount(accountId: string): Promise<HighValueActivity[]> {
+  const result = await apiRequest(
+    `/tdvsp_hvas?$select=tdvsp_hvaid,tdvsp_name,tdvsp_description,tdvsp_date&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
+  );
+  return result?.value ?? [];
+}
+
+export async function getActionItemsByAccount(accountId: string): Promise<ActionItem[]> {
+  const result = await apiRequest(
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
+  );
+  return result?.value ?? [];
+}
+
+export async function getImpactsByAccount(accountId: string): Promise<Impact[]> {
+  const result = await apiRequest(
+    `/tdvsp_impacts?$select=tdvsp_impactid,tdvsp_name,tdvsp_date,tdvsp_description&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
+  );
+  return result?.value ?? [];
+}
+
+export async function getIdeasByAccount(accountId: string): Promise<Idea[]> {
+  const result = await apiRequest(
+    `/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category&$filter=_tdvsp_account_value eq ${accountId}&$orderby=tdvsp_name asc`
+  );
+  return result?.value ?? [];
+}
+
+// ─── Related Records for Contact ──────────────────────────────────────────────
+
+export async function getActivitiesByContact(contactId: string): Promise<HighValueActivity[]> {
+  const result = await apiRequest(
+    `/tdvsp_hvas?$select=tdvsp_hvaid,tdvsp_name,tdvsp_description,tdvsp_date&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_date desc`
+  );
+  return result?.value ?? [];
+}
+
+export async function getActionItemsByContact(contactId: string): Promise<ActionItem[]> {
+  const result = await apiRequest(
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_date desc`
+  );
+  return result?.value ?? [];
+}
+
+export async function getImpactsByContact(contactId: string): Promise<Impact[]> {
+  const result = await apiRequest(
+    `/tdvsp_impacts?$select=tdvsp_impactid,tdvsp_name,tdvsp_date,tdvsp_description&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_date desc`
+  );
+  return result?.value ?? [];
+}
+
+export async function getIdeasByContact(contactId: string): Promise<Idea[]> {
+  const result = await apiRequest(
+    `/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_name asc`
+  );
+  return result?.value ?? [];
 }
