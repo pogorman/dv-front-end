@@ -1,5 +1,5 @@
 import { dataverseConfig } from "../auth/msalConfig";
-import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation, Idea, IdeaCategory } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation, Idea, IdeaCategory, MeetingSummary } from "../types";
 
 let getAccessToken: (() => Promise<string>) | null = null;
 
@@ -342,4 +342,38 @@ export async function getIdeasByContact(contactId: string): Promise<Idea[]> {
     `/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_name asc`
   );
   return result?.value ?? [];
+}
+
+// ─── Meeting Summaries (tdvsp_meetingsummary table) ───────────────────────────
+
+export async function getMeetingSummaries(): Promise<MeetingSummary[]> {
+  const result = await apiRequest(
+    "/tdvsp_meetingsummaries?$select=tdvsp_meetingsummaryid,tdvsp_name,tdvsp_date,tdvsp_summary&$orderby=tdvsp_date desc&$top=100"
+  );
+  return result?.value ?? [];
+}
+
+export async function createMeetingSummary(
+  summary: {
+    tdvsp_name: string;
+    tdvsp_date?: string;
+    tdvsp_summary?: string;
+  }
+): Promise<MeetingSummary> {
+  return apiRequest("/tdvsp_meetingsummaries", "POST", summary);
+}
+
+export async function updateMeetingSummary(
+  id: string,
+  summary: {
+    tdvsp_name?: string;
+    tdvsp_date?: string;
+    tdvsp_summary?: string;
+  }
+): Promise<MeetingSummary> {
+  return apiRequest(`/tdvsp_meetingsummaries(${id})`, "PATCH", summary);
+}
+
+export async function deleteMeetingSummary(id: string): Promise<void> {
+  await apiRequest(`/tdvsp_meetingsummaries(${id})`, "DELETE");
 }

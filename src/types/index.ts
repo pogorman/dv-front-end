@@ -92,3 +92,11 @@ export interface Idea {
   _tdvsp_contact_value?: string;
   tdvsp_Contact?: { contactid: string; firstname: string; lastname: string };
 }
+
+// Meeting Summary entity (tdvsp_meetingsummary table)
+export interface MeetingSummary {
+  tdvsp_meetingsummaryid?: string;
+  tdvsp_name: string;
+  tdvsp_date?: string;
+  tdvsp_summary?: string;
+}

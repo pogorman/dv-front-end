@@ -26,6 +26,8 @@ import {
   Flash24Filled,
   Lightbulb24Regular,
   Lightbulb24Filled,
+  Notebook24Regular,
+  Notebook24Filled,
   SignOut24Regular,
   Navigation24Regular,
   ChevronLeft24Regular,
@@ -228,6 +230,13 @@ const navItems: NavItem[] = [
     icon: <Flash24Regular />,
     iconActive: <Flash24Filled />,
   },
+  {
+    key: "summaries",
+    label: "Meeting Summaries",
+    path: "/summaries",
+    icon: <Notebook24Regular />,
+    iconActive: <Notebook24Filled />,
+  },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -238,6 +247,7 @@ const pageTitles: Record<string, string> = {
   "/ideas": "Ideas",
   "/activities": "High-Value Activities",
   "/impacts": "Impacts",
+  "/summaries": "Meeting Summaries",
 };
 
 export const AppShell: React.FC = () => {

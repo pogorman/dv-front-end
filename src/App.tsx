@@ -31,6 +31,7 @@ import { Activities } from "./pages/Activities";
 import { Tasks } from "./pages/Tasks";
 import { Impacts } from "./pages/Impacts";
 import { Ideas } from "./pages/Ideas";
+import { MeetingSummaries } from "./pages/MeetingSummaries";
 import { LoginPage } from "./pages/Login";
 
 // Microsoft-themed brand colors
@@ -115,6 +116,7 @@ const ThemedApp: React.FC = () => {
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/impacts" element={<Impacts />} />
                 <Route path="/ideas" element={<Ideas />} />
+                <Route path="/summaries" element={<MeetingSummaries />} />
               </Route>
             </Routes>
           </TokenProviderSetup>
