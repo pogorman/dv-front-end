@@ -314,6 +314,13 @@ export async function getIdeasByAccount(accountId: string): Promise<Idea[]> {
   return result?.value ?? [];
 }
 
+export async function getMeetingSummariesByAccount(accountId: string): Promise<MeetingSummary[]> {
+  const result = await apiRequest(
+    `/tdvsp_meetingsummaries?$select=tdvsp_meetingsummaryid,tdvsp_name,tdvsp_date&$filter=_tdvsp_account_value eq ${accountId}&$orderby=tdvsp_date desc`
+  );
+  return result?.value ?? [];
+}
+
 // ─── Related Records for Contact ──────────────────────────────────────────────
 
 export async function getActivitiesByContact(contactId: string): Promise<HighValueActivity[]> {

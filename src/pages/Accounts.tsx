@@ -34,7 +34,7 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Account, Annotation, Customer, HighValueActivity, ActionItem, Impact, Idea, ideaCategoryLabels } from "../types";
+import { Account, Annotation, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getAccounts,
@@ -48,6 +48,7 @@ import {
   getActionItemsByAccount,
   getImpactsByAccount,
   getIdeasByAccount,
+  getMeetingSummariesByAccount,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -189,6 +190,7 @@ export const Accounts: React.FC = () => {
   const [relatedTasks, setRelatedTasks] = useState<ActionItem[]>([]);
   const [relatedImpacts, setRelatedImpacts] = useState<Impact[]>([]);
   const [relatedIdeas, setRelatedIdeas] = useState<Idea[]>([]);
+  const [relatedSummaries, setRelatedSummaries] = useState<MeetingSummary[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
 
   const loadAccounts = useCallback(async () => {
@@ -266,18 +268,20 @@ export const Accounts: React.FC = () => {
   const loadRelatedRecords = useCallback(async (accountId: string) => {
     setLoadingRelated(true);
     try {
-      const [contacts, activities, tasks, impacts, ideas] = await Promise.all([
+      const [contacts, activities, tasks, impacts, ideas, summaries] = await Promise.all([
         getContactsByAccount(accountId),
         getActivitiesByAccount(accountId),
         getActionItemsByAccount(accountId),
         getImpactsByAccount(accountId),
         getIdeasByAccount(accountId),
+        getMeetingSummariesByAccount(accountId),
       ]);
       setRelatedContacts(contacts);
       setRelatedActivities(activities);
       setRelatedTasks(tasks);
       setRelatedImpacts(impacts);
       setRelatedIdeas(ideas);
+      setRelatedSummaries(summaries);
     } catch (err) {
       console.error("Failed to load related records:", err);
     } finally {
@@ -296,6 +300,7 @@ export const Accounts: React.FC = () => {
       setRelatedTasks([]);
       setRelatedImpacts([]);
       setRelatedIdeas([]);
+      setRelatedSummaries([]);
     }
   }, [viewingAccount, loadAnnotations, loadRelatedRecords]);
 
@@ -531,6 +536,26 @@ export const Accounts: React.FC = () => {
                                 <div key={i.tdvsp_impactid} className={styles.relatedItem}>
                                   <Text weight="semibold">{i.tdvsp_name}</Text>
                                   {i.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(i.tdvsp_date)}</Caption1>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Meeting Summaries */}
+                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
+                          <div className={styles.relatedHeader}>
+                            <Subtitle1>Meeting Summaries</Subtitle1>
+                            <span className={styles.badge}>{relatedSummaries.length}</span>
+                          </div>
+                          {relatedSummaries.length === 0 ? (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No meeting summaries</Caption1>
+                          ) : (
+                            <div className={styles.relatedList}>
+                              {relatedSummaries.map((s) => (
+                                <div key={s.tdvsp_meetingsummaryid} className={styles.relatedItem}>
+                                  <Text weight="semibold">{s.tdvsp_name}</Text>
+                                  {s.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(s.tdvsp_date)}</Caption1>}
                                 </div>
                               ))}
                             </div>
