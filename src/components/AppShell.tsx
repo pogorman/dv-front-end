@@ -24,6 +24,8 @@ import {
   TaskListSquareLtr24Filled,
   Flash24Regular,
   Flash24Filled,
+  Lightbulb24Regular,
+  Lightbulb24Filled,
   SignOut24Regular,
   Navigation24Regular,
   ChevronLeft24Regular,
@@ -219,6 +221,13 @@ const navItems: NavItem[] = [
     icon: <Flash24Regular />,
     iconActive: <Flash24Filled />,
   },
+  {
+    key: "ideas",
+    label: "Ideas",
+    path: "/ideas",
+    icon: <Lightbulb24Regular />,
+    iconActive: <Lightbulb24Filled />,
+  },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -228,6 +237,7 @@ const pageTitles: Record<string, string> = {
   "/activities": "High-Value Activities",
   "/tasks": "Tasks & Action Items",
   "/impacts": "Impacts",
+  "/ideas": "Ideas",
 };
 
 export const AppShell: React.FC = () => {

@@ -153,8 +153,6 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     ...shorthands.gap("8px"),
-    maxHeight: "200px",
-    overflowY: "auto",
   },
   relatedItem: {
     ...shorthands.padding("8px", "12px"),
@@ -402,7 +400,7 @@ export const Accounts: React.FC = () => {
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
-        <DialogSurface>
+        <DialogSurface style={{ maxWidth: "80vw", width: "80vw" }}>
           <DialogBody>
             <DialogTitle
               action={
@@ -419,7 +417,7 @@ export const Accounts: React.FC = () => {
             </DialogTitle>
             <DialogContent>
               {viewingAccount && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "24px", minWidth: "600px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   {/* Account Name */}
                   <div className={styles.viewField}>
                     <Label>Account Name</Label>
@@ -431,150 +429,158 @@ export const Accounts: React.FC = () => {
                   {loadingRelated ? (
                     <Spinner size="small" label="Loading related records..." />
                   ) : (
-                    <>
-                      {/* Contacts */}
-                      <div className={styles.relatedSection}>
-                        <div className={styles.relatedHeader}>
-                          <Subtitle1>Contacts</Subtitle1>
-                          <span className={styles.badge}>{relatedContacts.length}</span>
-                        </div>
-                        {relatedContacts.length === 0 ? (
-                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No contacts</Caption1>
-                        ) : (
-                          <div className={styles.relatedList}>
-                            {relatedContacts.map((c) => (
-                              <div key={c.contactid} className={styles.relatedItem}>
-                                <Text weight="semibold">{c.firstname} {c.lastname}</Text>
-                                {c.jobtitle && <Caption1 style={{ marginLeft: 8 }}>{c.jobtitle}</Caption1>}
-                              </div>
-                            ))}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
+                      {/* Column 1: Contacts, Tasks, Ideas */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                        {/* Contacts */}
+                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
+                          <div className={styles.relatedHeader}>
+                            <Subtitle1>Contacts</Subtitle1>
+                            <span className={styles.badge}>{relatedContacts.length}</span>
                           </div>
-                        )}
-                      </div>
-
-                      {/* High-Value Activities */}
-                      <div className={styles.relatedSection}>
-                        <div className={styles.relatedHeader}>
-                          <Subtitle1>High-Value Activities</Subtitle1>
-                          <span className={styles.badge}>{relatedActivities.length}</span>
-                        </div>
-                        {relatedActivities.length === 0 ? (
-                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No activities</Caption1>
-                        ) : (
-                          <div className={styles.relatedList}>
-                            {relatedActivities.map((a) => (
-                              <div key={a.tdvsp_hvaid} className={styles.relatedItem}>
-                                <Text weight="semibold">{a.tdvsp_name}</Text>
-                                {a.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(a.tdvsp_date)}</Caption1>}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Tasks & Action Items */}
-                      <div className={styles.relatedSection}>
-                        <div className={styles.relatedHeader}>
-                          <Subtitle1>Tasks & Action Items</Subtitle1>
-                          <span className={styles.badge}>{relatedTasks.length}</span>
-                        </div>
-                        {relatedTasks.length === 0 ? (
-                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No tasks</Caption1>
-                        ) : (
-                          <div className={styles.relatedList}>
-                            {relatedTasks.map((t) => (
-                              <div key={t.tdvsp_actionitemid} className={styles.relatedItem}>
-                                <Text weight="semibold">{t.tdvsp_name}</Text>
-                                {t.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(t.tdvsp_date)}</Caption1>}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Impacts */}
-                      <div className={styles.relatedSection}>
-                        <div className={styles.relatedHeader}>
-                          <Subtitle1>Impacts</Subtitle1>
-                          <span className={styles.badge}>{relatedImpacts.length}</span>
-                        </div>
-                        {relatedImpacts.length === 0 ? (
-                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No impacts</Caption1>
-                        ) : (
-                          <div className={styles.relatedList}>
-                            {relatedImpacts.map((i) => (
-                              <div key={i.tdvsp_impactid} className={styles.relatedItem}>
-                                <Text weight="semibold">{i.tdvsp_name}</Text>
-                                {i.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(i.tdvsp_date)}</Caption1>}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Ideas */}
-                      <div className={styles.relatedSection}>
-                        <div className={styles.relatedHeader}>
-                          <Subtitle1>Ideas</Subtitle1>
-                          <span className={styles.badge}>{relatedIdeas.length}</span>
-                        </div>
-                        {relatedIdeas.length === 0 ? (
-                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas</Caption1>
-                        ) : (
-                          <div className={styles.relatedList}>
-                            {relatedIdeas.map((idea) => (
-                              <div key={idea.tdvsp_ideaid} className={styles.relatedItem}>
-                                <Text weight="semibold">{idea.tdvsp_name}</Text>
-                                {idea.tdvsp_category && (
-                                  <Caption1 style={{ marginLeft: 8 }}>{ideaCategoryLabels[idea.tdvsp_category]}</Caption1>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Notes */}
-                      <div className={styles.relatedSection}>
-                        <div className={styles.relatedHeader}>
-                          <Subtitle1>Notes</Subtitle1>
-                          <span className={styles.badge}>{annotations.length}</span>
-                        </div>
-                        {loadingNotes ? (
-                          <Spinner size="small" />
-                        ) : annotations.length === 0 ? (
-                          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No notes yet</Caption1>
-                        ) : (
-                          <div className={styles.relatedList}>
-                            {annotations.map((note) => (
-                              <div key={note.annotationid} className={styles.relatedItem}>
-                                <div className={styles.noteDate}>
-                                  {note.createdon ? formatDate(note.createdon) : ""}
+                          {relatedContacts.length === 0 ? (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No contacts</Caption1>
+                          ) : (
+                            <div className={styles.relatedList}>
+                              {relatedContacts.map((c) => (
+                                <div key={c.contactid} className={styles.relatedItem}>
+                                  <Text weight="semibold">{c.firstname} {c.lastname}</Text>
+                                  {c.jobtitle && <Caption1 style={{ marginLeft: 8 }}>{c.jobtitle}</Caption1>}
                                 </div>
-                                <Text size={300}>{note.notetext}</Text>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Tasks & Action Items */}
+                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
+                          <div className={styles.relatedHeader}>
+                            <Subtitle1>Tasks & Action Items</Subtitle1>
+                            <span className={styles.badge}>{relatedTasks.length}</span>
                           </div>
-                        )}
-                        <div className={styles.noteInput}>
-                          <Textarea
-                            placeholder="Add a note..."
-                            value={newNote}
-                            onChange={(_, d) => setNewNote(d.value)}
-                            rows={2}
-                          />
-                          <Button
-                            appearance="primary"
-                            size="small"
-                            style={{ marginTop: 8 }}
-                            onClick={handleAddNote}
-                            disabled={!newNote.trim()}
-                          >
-                            Add Note
-                          </Button>
+                          {relatedTasks.length === 0 ? (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No tasks</Caption1>
+                          ) : (
+                            <div className={styles.relatedList}>
+                              {relatedTasks.map((t) => (
+                                <div key={t.tdvsp_actionitemid} className={styles.relatedItem}>
+                                  <Text weight="semibold">{t.tdvsp_name}</Text>
+                                  {t.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(t.tdvsp_date)}</Caption1>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Ideas */}
+                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
+                          <div className={styles.relatedHeader}>
+                            <Subtitle1>Ideas</Subtitle1>
+                            <span className={styles.badge}>{relatedIdeas.length}</span>
+                          </div>
+                          {relatedIdeas.length === 0 ? (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas</Caption1>
+                          ) : (
+                            <div className={styles.relatedList}>
+                              {relatedIdeas.map((idea) => (
+                                <div key={idea.tdvsp_ideaid} className={styles.relatedItem}>
+                                  <Text weight="semibold">{idea.tdvsp_name}</Text>
+                                  {idea.tdvsp_category && (
+                                    <Caption1 style={{ marginLeft: 8 }}>{ideaCategoryLabels[idea.tdvsp_category]}</Caption1>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </>
+
+                      {/* Column 2: High-Value Activities, Impacts */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                        {/* High-Value Activities */}
+                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
+                          <div className={styles.relatedHeader}>
+                            <Subtitle1>High-Value Activities</Subtitle1>
+                            <span className={styles.badge}>{relatedActivities.length}</span>
+                          </div>
+                          {relatedActivities.length === 0 ? (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No activities</Caption1>
+                          ) : (
+                            <div className={styles.relatedList}>
+                              {relatedActivities.map((a) => (
+                                <div key={a.tdvsp_hvaid} className={styles.relatedItem}>
+                                  <Text weight="semibold">{a.tdvsp_name}</Text>
+                                  {a.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(a.tdvsp_date)}</Caption1>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Impacts */}
+                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
+                          <div className={styles.relatedHeader}>
+                            <Subtitle1>Impacts</Subtitle1>
+                            <span className={styles.badge}>{relatedImpacts.length}</span>
+                          </div>
+                          {relatedImpacts.length === 0 ? (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No impacts</Caption1>
+                          ) : (
+                            <div className={styles.relatedList}>
+                              {relatedImpacts.map((i) => (
+                                <div key={i.tdvsp_impactid} className={styles.relatedItem}>
+                                  <Text weight="semibold">{i.tdvsp_name}</Text>
+                                  {i.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(i.tdvsp_date)}</Caption1>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Column 3: Notes */}
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
+                          <div className={styles.relatedHeader}>
+                            <Subtitle1>Notes</Subtitle1>
+                            <span className={styles.badge}>{annotations.length}</span>
+                          </div>
+                          {loadingNotes ? (
+                            <Spinner size="small" />
+                          ) : annotations.length === 0 ? (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No notes yet</Caption1>
+                          ) : (
+                            <div className={styles.relatedList}>
+                              {annotations.map((note) => (
+                                <div key={note.annotationid} className={styles.relatedItem}>
+                                  <div className={styles.noteDate}>
+                                    {note.createdon ? formatDate(note.createdon) : ""}
+                                  </div>
+                                  <Text size={300}>{note.notetext}</Text>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div className={styles.noteInput}>
+                            <Textarea
+                              placeholder="Add a note..."
+                              value={newNote}
+                              onChange={(_, d) => setNewNote(d.value)}
+                              rows={2}
+                            />
+                            <Button
+                              appearance="primary"
+                              size="small"
+                              style={{ marginTop: 8 }}
+                              onClick={handleAddNote}
+                              disabled={!newNote.trim()}
+                            >
+                              Add Note
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
