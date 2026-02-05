@@ -18,8 +18,9 @@ Internal business tool - React SPA that interfaces with Microsoft Dataverse via 
 src/
 ├── auth/           # MSAL configuration (msalConfig.ts)
 ├── components/     # Shared components
-│   ├── AppShell.tsx         # Sidebar nav + theme toggle
+│   ├── AppShell.tsx         # Sidebar nav (sectioned) + theme toggle
 │   └── NotesTimeline.tsx    # Shared notes component with file attachments
+├── public/images/  # Static images (banner-bg.png for dashboard)
 ├── context/        # React context providers (ThemeContext for dark/light mode)
 ├── pages/          # Route pages
 │   ├── Dashboard.tsx        # Stats tiles (Accounts, Contacts, Ideas, Tasks, Overdue) + recent lists + pinned notes sidebar
@@ -69,11 +70,16 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
 
 ## Key Features
 
+- **Sidebar Navigation** - Organized into sections with subtle dividers:
+  - Dashboard (top)
+  - O'G's Data: Action Items, Projects, Meeting Summaries, Ideas
+  - Impact: High-Value Activities, Impacts
+  - Core: Accounts, Contacts
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (HVAs, Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Stat tiles for Accounts, Contacts, Ideas, Open Tasks, Overdue. Section cards for Recent Ideas and Action Items with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Dashboard** - Custom banner background image. Stat tiles for Accounts, Contacts, Projects, Open Tasks, Overdue. Section cards for Recent Projects and Action Items with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
   - Add notes with optional file attachments (stored as base64 in Dataverse)
   - Pin notes to dashboard
