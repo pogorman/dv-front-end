@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   makeStyles,
   tokens,
@@ -10,6 +10,13 @@ import {
   Body1,
   Caption1,
   Divider,
+  Button,
+  Dialog,
+  DialogSurface,
+  DialogBody,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@fluentui/react-components";
 import {
   Building24Filled,
@@ -17,11 +24,16 @@ import {
   Lightbulb24Filled,
   TaskListSquareLtr24Filled,
   Warning24Filled,
+  Pin24Regular,
+  PinOff16Regular,
+  Dismiss24Regular,
+  Add16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Idea, ideaCategoryLabels } from "../types";
-import { getActionItems, getAccounts, getCustomers, getIdeas } from "../services/dataverseService";
+import { ActionItem, Account, Customer, Idea, Annotation, ideaCategoryLabels } from "../types";
+import { getActionItems, getAccounts, getCustomers, getIdeas, getAnnotationsByIds } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
+import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
 
 const useStyles = makeStyles({
   container: {
@@ -35,13 +47,25 @@ const useStyles = makeStyles({
     color: "white",
     ...shorthands.borderRadius("12px"),
   },
+  dashboardBody: {
+    display: "flex",
+    ...shorthands.gap("24px"),
+    alignItems: "flex-start",
+  },
+  dashboardMain: {
+    flexGrow: 1,
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("24px"),
+  },
   statsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    ...shorthands.gap("16px"),
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    ...shorthands.gap("12px"),
   },
   statCard: {
-    ...shorthands.padding("20px"),
+    ...shorthands.padding("16px"),
     ...shorthands.borderRadius("12px"),
     cursor: "pointer",
     transition: "box-shadow 0.2s ease, transform 0.2s ease",
@@ -54,19 +78,19 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "12px",
+    marginBottom: "8px",
   },
   statIconWrap: {
-    width: "40px",
-    height: "40px",
-    ...shorthands.borderRadius("10px"),
+    width: "36px",
+    height: "36px",
+    ...shorthands.borderRadius("8px"),
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   statNumber: {
-    fontSize: "32px",
+    fontSize: "28px",
     fontWeight: "700",
     lineHeight: "1",
     marginBottom: "4px",
@@ -83,11 +107,79 @@ const useStyles = makeStyles({
     ...shorthands.padding("20px"),
     ...shorthands.borderRadius("12px"),
   },
+  sectionHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "16px",
+  },
   listItem: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     ...shorthands.padding("10px", "0px"),
+    cursor: "pointer",
+    ...shorthands.borderRadius("6px"),
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  nameLink: {
+    color: tokens.colorBrandForeground1,
+    cursor: "pointer",
+    ":hover": {
+      textDecoration: "underline",
+    },
+  },
+  pinnedPanel: {
+    width: "280px",
+    minWidth: "280px",
+    ...shorthands.padding("20px"),
+    ...shorthands.borderRadius("12px"),
+    display: "flex",
+    flexDirection: "column",
+    alignSelf: "stretch",
+  },
+  pinnedHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
+    marginBottom: "16px",
+  },
+  pinnedList: {
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("10px"),
+    overflowY: "auto",
+    flexGrow: 1,
+  },
+  pinnedNoteItem: {
+    ...shorthands.padding("12px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("8px"),
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
+  },
+  pinnedNotePreview: {
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    lineHeight: "1.4",
+  },
+  pinnedNoteDate: {
+    fontSize: "11px",
+    color: tokens.colorNeutralForeground3,
+    marginBottom: "4px",
+  },
+  pinnedNoteAccount: {
+    fontSize: "11px",
+    color: tokens.colorBrandForeground1,
+    marginBottom: "2px",
+    fontWeight: "600",
   },
 });
 
@@ -99,6 +191,12 @@ export const Dashboard: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
+  // Pinned notes state
+  const [pinnedRefs, setPinnedRefs] = useState<PinnedNoteRef[]>(() => getPinnedNoteRefs());
+  const [pinnedAnnotations, setPinnedAnnotations] = useState<Annotation[]>([]);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<{ annotation: Annotation; accountName: string } | null>(null);
+
   useEffect(() => {
     getAccounts().then(setAccounts).catch(console.error);
     getCustomers().then(setContacts).catch(console.error);
@@ -106,9 +204,41 @@ export const Dashboard: React.FC = () => {
     getActionItems().then(setActionItems).catch(console.error);
   }, []);
 
+  const loadPinnedAnnotations = useCallback(async () => {
+    if (pinnedRefs.length === 0) {
+      setPinnedAnnotations([]);
+      return;
+    }
+    try {
+      const ids = pinnedRefs.map((r) => r.annotationid);
+      const data = await getAnnotationsByIds(ids);
+      setPinnedAnnotations(data);
+    } catch (err) {
+      console.error("Failed to load pinned notes:", err);
+    }
+  }, [pinnedRefs]);
+
+  useEffect(() => {
+    loadPinnedAnnotations();
+  }, [loadPinnedAnnotations]);
+
   const overdueTasks = actionItems.filter(
     (t) => t.tdvsp_date && new Date(t.tdvsp_date) < new Date()
   );
+
+  const handleUnpin = (annotationid: string) => {
+    unpinNote(annotationid);
+    setPinnedRefs((prev) => prev.filter((r) => r.annotationid !== annotationid));
+    if (selectedNote?.annotation.annotationid === annotationid) {
+      setNoteDialogOpen(false);
+      setSelectedNote(null);
+    }
+  };
+
+  const getAccountName = (annotationid: string): string => {
+    const ref = pinnedRefs.find((r) => r.annotationid === annotationid);
+    return ref?.accountName ?? "";
+  };
 
   return (
     <div className={styles.container}>
@@ -126,177 +256,305 @@ export const Dashboard: React.FC = () => {
         </Text>
       </div>
 
-      {/* Stats Cards */}
-      <div className={styles.statsGrid}>
-        <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
-          <div className={styles.statHeader}>
-            <Caption1>Accounts</Caption1>
-            <div
-              className={styles.statIconWrap}
-              style={{ backgroundColor: "#e8f0fe" }}
-            >
-              <Building24Filled style={{ color: "#0078d4" }} />
-            </div>
-          </div>
-          <div className={styles.statNumber} style={{ color: "#0078d4" }}>
-            {accounts.length}
-          </div>
-          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-            Total accounts
-          </Caption1>
-        </Card>
+      {/* Main body with optional pinned notes sidebar */}
+      <div className={styles.dashboardBody}>
+        <div className={styles.dashboardMain}>
+          {/* Stats Cards */}
+          <div className={styles.statsGrid}>
+            <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
+              <div className={styles.statHeader}>
+                <Caption1>Accounts</Caption1>
+                <div
+                  className={styles.statIconWrap}
+                  style={{ backgroundColor: "#e8f0fe" }}
+                >
+                  <Building24Filled style={{ color: "#0078d4" }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#0078d4" }}>
+                {accounts.length}
+              </div>
+              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                Total accounts
+              </Caption1>
+            </Card>
 
-        <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
-          <div className={styles.statHeader}>
-            <Caption1>Contacts</Caption1>
-            <div
-              className={styles.statIconWrap}
-              style={{ backgroundColor: "#e8e0f0" }}
-            >
-              <ContactCard24Filled style={{ color: "#7c3aed" }} />
-            </div>
-          </div>
-          <div className={styles.statNumber} style={{ color: "#7c3aed" }}>
-            {contacts.length}
-          </div>
-          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-            Total contacts
-          </Caption1>
-        </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
+              <div className={styles.statHeader}>
+                <Caption1>Contacts</Caption1>
+                <div
+                  className={styles.statIconWrap}
+                  style={{ backgroundColor: "#e8e0f0" }}
+                >
+                  <ContactCard24Filled style={{ color: "#7c3aed" }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#7c3aed" }}>
+                {contacts.length}
+              </div>
+              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                Total contacts
+              </Caption1>
+            </Card>
 
-        <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
-          <div className={styles.statHeader}>
-            <Caption1>Ideas</Caption1>
-            <div
-              className={styles.statIconWrap}
-              style={{ backgroundColor: "#fef3e2" }}
-            >
-              <Lightbulb24Filled style={{ color: "#d48000" }} />
-            </div>
-          </div>
-          <div className={styles.statNumber} style={{ color: "#d48000" }}>
-            {ideas.length}
-          </div>
-          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-            Total ideas
-          </Caption1>
-        </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
+              <div className={styles.statHeader}>
+                <Caption1>Ideas</Caption1>
+                <div
+                  className={styles.statIconWrap}
+                  style={{ backgroundColor: "#fef3e2" }}
+                >
+                  <Lightbulb24Filled style={{ color: "#d48000" }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#d48000" }}>
+                {ideas.length}
+              </div>
+              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                Total ideas
+              </Caption1>
+            </Card>
 
-        <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
-          <div className={styles.statHeader}>
-            <Caption1>Open Tasks</Caption1>
-            <div
-              className={styles.statIconWrap}
-              style={{ backgroundColor: "#e6f4ea" }}
-            >
-              <TaskListSquareLtr24Filled style={{ color: "#107c10" }} />
-            </div>
-          </div>
-          <div className={styles.statNumber} style={{ color: "#107c10" }}>
-            {actionItems.length}
-          </div>
-          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-            Action items pending
-          </Caption1>
-        </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
+              <div className={styles.statHeader}>
+                <Caption1>Open Tasks</Caption1>
+                <div
+                  className={styles.statIconWrap}
+                  style={{ backgroundColor: "#e6f4ea" }}
+                >
+                  <TaskListSquareLtr24Filled style={{ color: "#107c10" }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#107c10" }}>
+                {actionItems.length}
+              </div>
+              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                Action items pending
+              </Caption1>
+            </Card>
 
-        <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
-          <div className={styles.statHeader}>
-            <Caption1>Overdue</Caption1>
-            <div
-              className={styles.statIconWrap}
-              style={{ backgroundColor: "#fde7e9" }}
-            >
-              <Warning24Filled style={{ color: "#d13438" }} />
+            <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
+              <div className={styles.statHeader}>
+                <Caption1>Overdue</Caption1>
+                <div
+                  className={styles.statIconWrap}
+                  style={{ backgroundColor: "#fde7e9" }}
+                >
+                  <Warning24Filled style={{ color: "#d13438" }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#d13438" }}>
+                {overdueTasks.length}
+              </div>
+              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                Need attention
+              </Caption1>
+            </Card>
+          </div>
+
+          {/* Detail Sections */}
+          <div className={styles.sectionGrid}>
+            <Card className={styles.sectionCard}>
+              <div className={styles.sectionHeader}>
+                <Subtitle1>Recent Ideas</Subtitle1>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<Add16Regular />}
+                  onClick={() => navigate("/ideas")}
+                >
+                  New
+                </Button>
+              </div>
+              {ideas.length === 0 ? (
+                <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
+                  No ideas yet
+                </Body1>
+              ) : (
+                ideas.slice(0, 4).map((idea, i) => (
+                  <React.Fragment key={idea.tdvsp_ideaid}>
+                    {i > 0 && <Divider />}
+                    <div className={styles.listItem} onClick={() => navigate("/ideas")}>
+                      <div>
+                        <Text weight="semibold" block className={styles.nameLink}>
+                          {idea.tdvsp_name}
+                        </Text>
+                        <Caption1
+                          style={{ color: tokens.colorNeutralForeground3 }}
+                        >
+                          {idea.tdvsp_category
+                            ? ideaCategoryLabels[idea.tdvsp_category]
+                            : ""}
+                          {idea.tdvsp_Account?.name &&
+                            `${idea.tdvsp_category ? " · " : ""}${idea.tdvsp_Account.name}`}
+                        </Caption1>
+                      </div>
+                      {idea.tdvsp_category && (
+                        <Badge appearance="outline" color="informative">
+                          {ideaCategoryLabels[idea.tdvsp_category]}
+                        </Badge>
+                      )}
+                    </div>
+                  </React.Fragment>
+                ))
+              )}
+            </Card>
+
+            <Card className={styles.sectionCard}>
+              <div className={styles.sectionHeader}>
+                <Subtitle1>Action Items</Subtitle1>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<Add16Regular />}
+                  onClick={() => navigate("/tasks")}
+                >
+                  New
+                </Button>
+              </div>
+              {actionItems.length === 0 ? (
+                <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
+                  No action items
+                </Body1>
+              ) : (
+                actionItems.slice(0, 4).map((t, i) => (
+                  <React.Fragment key={t.tdvsp_actionitemid}>
+                    {i > 0 && <Divider />}
+                    <div className={styles.listItem} onClick={() => navigate("/tasks")}>
+                      <div>
+                        <Text weight="semibold" block className={styles.nameLink}>
+                          {t.tdvsp_name}
+                        </Text>
+                        <Caption1
+                          style={{ color: tokens.colorNeutralForeground3 }}
+                        >
+                          {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
+                          {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                        </Caption1>
+                      </div>
+                      {t.tdvsp_date && (
+                        <Badge
+                          appearance="filled"
+                          color={
+                            new Date(t.tdvsp_date) < new Date()
+                              ? "danger"
+                              : "informative"
+                          }
+                        >
+                          {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                        </Badge>
+                      )}
+                    </div>
+                  </React.Fragment>
+                ))
+              )}
+            </Card>
+          </div>
+        </div>
+
+        {/* Pinned Notes Panel */}
+        {pinnedRefs.length > 0 && (
+          <Card className={styles.pinnedPanel}>
+            <div className={styles.pinnedHeader}>
+              <Pin24Regular />
+              <Subtitle1 style={{ flexGrow: 1 }}>Pinned Notes</Subtitle1>
+              <Button
+                appearance="subtle"
+                size="small"
+                icon={<Add16Regular />}
+                onClick={() => navigate("/accounts")}
+                title="Add notes from an account"
+              />
             </div>
-          </div>
-          <div className={styles.statNumber} style={{ color: "#d13438" }}>
-            {overdueTasks.length}
-          </div>
-          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-            Need attention
-          </Caption1>
-        </Card>
+            <div className={styles.pinnedList}>
+              {pinnedAnnotations.map((note) => (
+                <div
+                  key={note.annotationid}
+                  className={styles.pinnedNoteItem}
+                  onClick={() => {
+                    setSelectedNote({
+                      annotation: note,
+                      accountName: getAccountName(note.annotationid!),
+                    });
+                    setNoteDialogOpen(true);
+                  }}
+                >
+                  <div className={styles.pinnedNoteAccount}>
+                    {getAccountName(note.annotationid!)}
+                  </div>
+                  {note.createdon && (
+                    <div className={styles.pinnedNoteDate}>
+                      {formatDate(note.createdon)}
+                    </div>
+                  )}
+                  {note.subject && (
+                    <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
+                      {note.subject}
+                    </Text>
+                  )}
+                  <div className={styles.pinnedNotePreview}>
+                    <Text size={200}>{note.notetext}</Text>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
 
-      {/* Detail Sections */}
-      <div className={styles.sectionGrid}>
-        <Card className={styles.sectionCard}>
-          <Subtitle1 style={{ marginBottom: 16 }}>Recent Ideas</Subtitle1>
-          {ideas.length === 0 ? (
-            <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
-              No ideas yet
-            </Body1>
-          ) : (
-            ideas.slice(0, 4).map((idea, i) => (
-              <React.Fragment key={idea.tdvsp_ideaid}>
-                {i > 0 && <Divider />}
-                <div className={styles.listItem}>
-                  <div>
-                    <Text weight="semibold" block>
-                      {idea.tdvsp_name}
-                    </Text>
-                    <Caption1
-                      style={{ color: tokens.colorNeutralForeground3 }}
-                    >
-                      {idea.tdvsp_category
-                        ? ideaCategoryLabels[idea.tdvsp_category]
-                        : ""}
-                      {idea.tdvsp_Account?.name &&
-                        `${idea.tdvsp_category ? " · " : ""}${idea.tdvsp_Account.name}`}
-                    </Caption1>
-                  </div>
-                  {idea.tdvsp_category && (
-                    <Badge appearance="outline" color="informative">
-                      {ideaCategoryLabels[idea.tdvsp_category]}
-                    </Badge>
-                  )}
-                </div>
-              </React.Fragment>
-            ))
-          )}
-        </Card>
-
-        <Card className={styles.sectionCard}>
-          <Subtitle1 style={{ marginBottom: 16 }}>Action Items</Subtitle1>
-          {actionItems.length === 0 ? (
-            <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
-              No action items
-            </Body1>
-          ) : (
-            actionItems.slice(0, 4).map((t, i) => (
-              <React.Fragment key={t.tdvsp_actionitemid}>
-                {i > 0 && <Divider />}
-                <div className={styles.listItem}>
-                  <div>
-                    <Text weight="semibold" block>
-                      {t.tdvsp_name}
-                    </Text>
-                    <Caption1
-                      style={{ color: tokens.colorNeutralForeground3 }}
-                    >
-                      {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
-                      {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                    </Caption1>
-                  </div>
-                  {t.tdvsp_date && (
-                    <Badge
-                      appearance="filled"
-                      color={
-                        new Date(t.tdvsp_date) < new Date()
-                          ? "danger"
-                          : "informative"
-                      }
-                    >
-                      {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                    </Badge>
-                  )}
-                </div>
-              </React.Fragment>
-            ))
-          )}
-        </Card>
-      </div>
+      {/* Note Detail Dialog */}
+      <Dialog open={noteDialogOpen} onOpenChange={(_, d) => setNoteDialogOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle
+              action={
+                <Button
+                  appearance="subtle"
+                  icon={<Dismiss24Regular />}
+                  onClick={() => setNoteDialogOpen(false)}
+                />
+              }
+            >
+              {selectedNote?.accountName && (
+                <Caption1
+                  style={{ color: tokens.colorBrandForeground1, display: "block", marginBottom: 4 }}
+                >
+                  {selectedNote.accountName}
+                </Caption1>
+              )}
+              {selectedNote?.annotation.subject || "Note"}
+              {selectedNote?.annotation.createdon && (
+                <Caption1
+                  style={{ color: tokens.colorNeutralForeground3, display: "block", marginTop: 4 }}
+                >
+                  {formatDate(selectedNote.annotation.createdon)}
+                </Caption1>
+              )}
+            </DialogTitle>
+            <DialogContent>
+              <Text style={{ whiteSpace: "pre-wrap" }}>
+                {selectedNote?.annotation.notetext}
+              </Text>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                appearance="secondary"
+                icon={<PinOff16Regular />}
+                onClick={() => {
+                  if (selectedNote) {
+                    handleUnpin(selectedNote.annotation.annotationid!);
+                  }
+                }}
+              >
+                Unpin
+              </Button>
+              <Button appearance="primary" onClick={() => setNoteDialogOpen(false)}>
+                Close
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
     </div>
   );
 };

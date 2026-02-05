@@ -28,6 +28,7 @@ import {
   createTableColumn,
   Dropdown,
   Option,
+  Tooltip,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
@@ -36,9 +37,12 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
+  Pin16Regular,
+  PinOff16Regular,
 } from "@fluentui/react-icons";
 import { Account, Annotation, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory } from "../types";
 import { formatDate } from "../utils/formatDate";
+import { pinNote, unpinNote, getPinnedNoteRefs } from "../utils/pinnedNotes";
 import {
   getAccounts,
   createAccount,
@@ -195,6 +199,7 @@ export const Accounts: React.FC = () => {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [newNote, setNewNote] = useState("");
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(() => new Set(getPinnedNoteRefs().map((r) => r.annotationid)));
   const [relatedContacts, setRelatedContacts] = useState<Customer[]>([]);
   const [relatedActivities, setRelatedActivities] = useState<HighValueActivity[]>([]);
   const [relatedTasks, setRelatedTasks] = useState<ActionItem[]>([]);
@@ -774,8 +779,34 @@ export const Accounts: React.FC = () => {
                             <div className={styles.relatedList}>
                               {annotations.map((note) => (
                                 <div key={note.annotationid} className={styles.relatedItem}>
-                                  <div className={styles.noteDate}>
-                                    {note.createdon ? formatDate(note.createdon) : ""}
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                    <div className={styles.noteDate}>
+                                      {note.createdon ? formatDate(note.createdon) : ""}
+                                    </div>
+                                    <Tooltip
+                                      content={pinnedIds.has(note.annotationid!) ? "Unpin from dashboard" : "Pin to dashboard"}
+                                      relationship="label"
+                                    >
+                                      <Button
+                                        appearance="subtle"
+                                        size="small"
+                                        icon={pinnedIds.has(note.annotationid!) ? <PinOff16Regular /> : <Pin16Regular />}
+                                        onClick={() => {
+                                          if (pinnedIds.has(note.annotationid!)) {
+                                            unpinNote(note.annotationid!);
+                                            setPinnedIds((prev) => {
+                                              const next = new Set(prev);
+                                              next.delete(note.annotationid!);
+                                              return next;
+                                            });
+                                          } else {
+                                            pinNote(note.annotationid!, viewingAccount?.name ?? "");
+                                            setPinnedIds((prev) => new Set(prev).add(note.annotationid!));
+                                          }
+                                        }}
+                                        style={{ minWidth: "auto", padding: "2px" }}
+                                      />
+                                    </Tooltip>
                                   </div>
                                   <Text size={300}>{note.notetext}</Text>
                                 </div>

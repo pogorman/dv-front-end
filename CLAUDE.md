@@ -31,7 +31,7 @@ src/
 │   └── Login.tsx            # Unauthenticated login page
 ├── services/       # API layer (dataverseService.ts)
 ├── types/          # TypeScript interfaces (index.ts)
-└── utils/          # Helper functions (formatDate.ts)
+└── utils/          # Helper functions (formatDate.ts, pinnedNotes.ts)
 ```
 
 ## Commands
@@ -51,7 +51,7 @@ The app works with these Dataverse tables:
 | Accounts | `accounts` | accountid, name, parentaccountid (self-lookup) |
 | Contacts | `contacts` | contactid, firstname, lastname, emailaddress1, telephone1, jobtitle, parentcustomerid (account lookup) |
 | High-Value Activities | `tdvsp_hvas` | tdvsp_hvaid, tdvsp_name, tdvsp_description, tdvsp_date, tdvsp_Customer (account lookup) |
-| Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_Customer (account lookup) |
+| Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_Customer (account lookup) |
 | Impacts | `tdvsp_impacts` | tdvsp_impactid, tdvsp_name, tdvsp_date, tdvsp_description, tdvsp_Customer (account lookup) |
 | Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup) |
 | Meeting Summaries | `tdvsp_meetingsummaries` | tdvsp_meetingsummaryid, tdvsp_name, tdvsp_date, tdvsp_summary, tdvsp_Account (account lookup) |
@@ -69,7 +69,8 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Stat tiles for Accounts, Contacts, Ideas, Open Tasks, Overdue. Section cards for Recent Ideas and Action Items.
+- **Dashboard** - Stat tiles for Accounts, Contacts, Ideas, Open Tasks, Overdue. Section cards for Recent Ideas and Action Items with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Pinned Notes** - Notes from the Account view can be pinned to the Dashboard via localStorage (`pinnedNotes.ts`). Pinned notes show 3-line preview, click to expand in dialog, unpin from dashboard or from account view.
 
 ## Coding Conventions
 

@@ -36,6 +36,7 @@ export interface ActionItem {
   tdvsp_actionitemid?: string;
   tdvsp_name: string;
   tdvsp_date: string;
+  tdvsp_description?: string;
   _tdvsp_customer_value?: string;
   tdvsp_Customer?: { accountid: string; name: string };
 }

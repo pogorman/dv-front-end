@@ -20,6 +20,7 @@ import {
   Spinner,
   Dropdown,
   Option,
+  Textarea,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
@@ -129,12 +130,14 @@ const useStyles = makeStyles({
 interface FormData {
   tdvsp_name: string;
   tdvsp_date: string;
+  tdvsp_description: string;
   customerAccountId: string;
 }
 
 const emptyForm: FormData = {
   tdvsp_name: "",
   tdvsp_date: "",
+  tdvsp_description: "",
   customerAccountId: "",
 };
 
@@ -194,6 +197,7 @@ export const Tasks: React.FC = () => {
     setFormData({
       tdvsp_name: item.tdvsp_name,
       tdvsp_date: item.tdvsp_date ? item.tdvsp_date.split("T")[0] : "",
+      tdvsp_description: item.tdvsp_description ?? "",
       customerAccountId: item.tdvsp_Customer?.accountid ?? "",
     });
     setDialogOpen(true);
@@ -204,10 +208,12 @@ export const Tasks: React.FC = () => {
       const payload: {
         tdvsp_name: string;
         tdvsp_date: string;
+        tdvsp_description?: string;
         "tdvsp_Customer@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
         tdvsp_date: formData.tdvsp_date,
+        tdvsp_description: formData.tdvsp_description || undefined,
       };
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
@@ -270,6 +276,18 @@ export const Tasks: React.FC = () => {
                         setFormData({ ...formData, tdvsp_name: d.value })
                       }
                       placeholder="What needs to be done?"
+                    />
+                  </div>
+                  <div className={styles.formFieldFull}>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={formData.tdvsp_description}
+                      onChange={(_, d) =>
+                        setFormData({ ...formData, tdvsp_description: d.value })
+                      }
+                      placeholder="Add details about this action item..."
+                      rows={4}
+                      resize="vertical"
                     />
                   </div>
                   <div className={styles.formField}>
@@ -417,6 +435,14 @@ export const Tasks: React.FC = () => {
                       {viewingItem.tdvsp_name}
                     </Text>
                   </div>
+                  {viewingItem.tdvsp_description && (
+                    <div className={styles.viewField}>
+                      <Label>Description</Label>
+                      <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
+                        {viewingItem.tdvsp_description}
+                      </Text>
+                    </div>
+                  )}
                   <div className={styles.viewGrid}>
                     <div className={styles.viewField}>
                       <Label>Date</Label>

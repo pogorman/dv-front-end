@@ -156,7 +156,7 @@ export async function deleteActivity(id: string): Promise<void> {
 
 export async function getActionItems(): Promise<ActionItem[]> {
   const result = await apiRequest(
-    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
+    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
   );
   return result?.value ?? [];
 }
@@ -165,6 +165,7 @@ export async function createActionItem(
   item: {
     tdvsp_name: string;
     tdvsp_date: string;
+    tdvsp_description?: string;
     "tdvsp_Customer@odata.bind"?: string;
   }
 ): Promise<ActionItem> {
@@ -176,6 +177,7 @@ export async function updateActionItem(
   item: {
     tdvsp_name?: string;
     tdvsp_date?: string;
+    tdvsp_description?: string;
     "tdvsp_Customer@odata.bind"?: string;
   }
 ): Promise<ActionItem> {
@@ -245,6 +247,15 @@ export async function deleteAnnotation(id: string): Promise<void> {
   await apiRequest(`/annotations(${id})`, "DELETE");
 }
 
+export async function getAnnotationsByIds(ids: string[]): Promise<Annotation[]> {
+  if (ids.length === 0) return [];
+  const filter = ids.map((id) => `annotationid eq ${id}`).join(" or ");
+  const result = await apiRequest(
+    `/annotations?$select=annotationid,subject,notetext,createdon,_objectid_value&$filter=${filter}`
+  );
+  return result?.value ?? [];
+}
+
 // ─── Ideas (tdvsp_idea table) ─────────────────────────────────────────────────
 
 export async function getIdeas(): Promise<Idea[]> {
@@ -301,7 +312,7 @@ export async function getActivitiesByAccount(accountId: string): Promise<HighVal
 
 export async function getActionItemsByAccount(accountId: string): Promise<ActionItem[]> {
   const result = await apiRequest(
-    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
   );
   return result?.value ?? [];
 }
@@ -338,7 +349,7 @@ export async function getActivitiesByContact(contactId: string): Promise<HighVal
 
 export async function getActionItemsByContact(contactId: string): Promise<ActionItem[]> {
   const result = await apiRequest(
-    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_date desc`
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_date desc`
   );
   return result?.value ?? [];
 }
