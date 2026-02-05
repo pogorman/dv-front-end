@@ -2,6 +2,9 @@
 export interface Account {
   accountid?: string;
   name: string;
+  // Parent account lookup
+  _parentaccountid_value?: string;
+  parentaccountid?: { accountid: string; name: string };
 }
 
 // Contact / Customer entity

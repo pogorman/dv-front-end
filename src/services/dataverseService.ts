@@ -48,7 +48,7 @@ async function apiRequest(
 
 export async function getAccounts(): Promise<Account[]> {
   const result = await apiRequest(
-    "/accounts?$select=accountid,name&$orderby=name asc&$top=100"
+    "/accounts?$select=accountid,name,_parentaccountid_value&$expand=parentaccountid($select=accountid,name)&$orderby=name asc&$top=100"
   );
   return result?.value ?? [];
 }

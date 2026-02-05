@@ -338,6 +338,16 @@ export const Accounts: React.FC = () => {
       ),
     }),
     createTableColumn({
+      columnId: "parentAccount",
+      compare: (a, b) => (a.parentaccountid?.name ?? "").localeCompare(b.parentaccountid?.name ?? ""),
+      renderHeaderCell: () => "Parent Account",
+      renderCell: (item) => (
+        <Text style={{ color: tokens.colorNeutralForeground3 }}>
+          {item.parentaccountid?.name ?? "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
       columnId: "actions",
       renderHeaderCell: () => "Actions",
       renderCell: (item) => (
@@ -423,12 +433,20 @@ export const Accounts: React.FC = () => {
             <DialogContent>
               {viewingAccount && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {/* Account Name */}
-                  <div className={styles.viewField}>
-                    <Label>Account Name</Label>
-                    <Text block size={500} weight="semibold">
-                      {viewingAccount.name}
-                    </Text>
+                  {/* Account Name and Parent Account */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+                    <div className={styles.viewField}>
+                      <Label>Account Name</Label>
+                      <Text block size={500} weight="semibold">
+                        {viewingAccount.name}
+                      </Text>
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Parent Account</Label>
+                      <Text block size={400}>
+                        {viewingAccount.parentaccountid?.name || "--"}
+                      </Text>
+                    </div>
                   </div>
 
                   {loadingRelated ? (
