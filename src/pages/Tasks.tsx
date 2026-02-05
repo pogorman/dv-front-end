@@ -40,6 +40,7 @@ import {
   deleteActionItem,
   getAccounts,
 } from "../services/dataverseService";
+import { NotesTimeline } from "../components/NotesTimeline";
 
 const useStyles = makeStyles({
   container: {
@@ -124,6 +125,19 @@ const useStyles = makeStyles({
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     ...shorthands.gap("16px"),
+  },
+  viewLayout: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("24px"),
+  },
+  viewDetails: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  viewNotes: {
+    display: "flex",
+    flexDirection: "column",
   },
 });
 
@@ -413,7 +427,7 @@ export const Tasks: React.FC = () => {
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
-        <DialogSurface>
+        <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
           <DialogBody>
             <DialogTitle
               action={
@@ -428,36 +442,47 @@ export const Tasks: React.FC = () => {
             </DialogTitle>
             <DialogContent>
               {viewingItem && (
-                <>
-                  <div className={styles.viewField}>
-                    <Label>Name</Label>
-                    <Text block size={400} weight="semibold">
-                      {viewingItem.tdvsp_name}
-                    </Text>
+                <div className={styles.viewLayout}>
+                  <div className={styles.viewDetails}>
+                    <div className={styles.viewField}>
+                      <Label>Name</Label>
+                      <Text block size={400} weight="semibold">
+                        {viewingItem.tdvsp_name}
+                      </Text>
+                    </div>
+                    {viewingItem.tdvsp_description && (
+                      <div className={styles.viewField}>
+                        <Label>Description</Label>
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
+                          {viewingItem.tdvsp_description}
+                        </Text>
+                      </div>
+                    )}
+                    <div className={styles.viewGrid}>
+                      <div className={styles.viewField}>
+                        <Label>Date</Label>
+                        <Text block size={400}>
+                          {viewingItem.tdvsp_date ? formatDate(viewingItem.tdvsp_date) : "--"}
+                        </Text>
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Customer</Label>
+                        <Text block size={400}>
+                          {viewingItem.tdvsp_Customer?.name || "--"}
+                        </Text>
+                      </div>
+                    </div>
                   </div>
-                  {viewingItem.tdvsp_description && (
-                    <div className={styles.viewField}>
-                      <Label>Description</Label>
-                      <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
-                        {viewingItem.tdvsp_description}
-                      </Text>
-                    </div>
-                  )}
-                  <div className={styles.viewGrid}>
-                    <div className={styles.viewField}>
-                      <Label>Date</Label>
-                      <Text block size={400}>
-                        {viewingItem.tdvsp_date ? formatDate(viewingItem.tdvsp_date) : "--"}
-                      </Text>
-                    </div>
-                    <div className={styles.viewField}>
-                      <Label>Customer</Label>
-                      <Text block size={400}>
-                        {viewingItem.tdvsp_Customer?.name || "--"}
-                      </Text>
-                    </div>
+                  <div className={styles.viewNotes}>
+                    <NotesTimeline
+                      entityId={viewingItem.tdvsp_actionitemid!}
+                      entityName={viewingItem.tdvsp_name}
+                      entityType="actionitem"
+                      odataBindKey="objectid_tdvsp_actionitem@odata.bind"
+                      entitySetPath="/tdvsp_actionitems"
+                    />
                   </div>
-                </>
+                </div>
               )}
             </DialogContent>
             <DialogActions>

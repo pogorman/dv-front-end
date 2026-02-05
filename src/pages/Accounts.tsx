@@ -28,7 +28,6 @@ import {
   createTableColumn,
   Dropdown,
   Option,
-  Tooltip,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
@@ -37,19 +36,15 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
-  Pin16Regular,
-  PinOff16Regular,
 } from "@fluentui/react-icons";
-import { Account, Annotation, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory } from "../types";
 import { formatDate } from "../utils/formatDate";
-import { pinNote, unpinNote, getPinnedNoteRefs } from "../utils/pinnedNotes";
+import { NotesTimeline } from "../components/NotesTimeline";
 import {
   getAccounts,
   createAccount,
   updateAccount,
   deleteAccount,
-  getAccountAnnotations,
-  createAnnotation,
   getContactsByAccount,
   getActivitiesByAccount,
   getActionItemsByAccount,
@@ -196,10 +191,6 @@ export const Accounts: React.FC = () => {
   const [parentAccountId, setParentAccountId] = useState<string>("");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [newNote, setNewNote] = useState("");
-  const [loadingNotes, setLoadingNotes] = useState(false);
-  const [pinnedIds, setPinnedIds] = useState<Set<string>>(() => new Set(getPinnedNoteRefs().map((r) => r.annotationid)));
   const [relatedContacts, setRelatedContacts] = useState<Customer[]>([]);
   const [relatedActivities, setRelatedActivities] = useState<HighValueActivity[]>([]);
   const [relatedTasks, setRelatedTasks] = useState<ActionItem[]>([]);
@@ -298,18 +289,6 @@ export const Accounts: React.FC = () => {
     }
   };
 
-  const loadAnnotations = useCallback(async (accountId: string) => {
-    setLoadingNotes(true);
-    try {
-      const data = await getAccountAnnotations(accountId);
-      setAnnotations(data);
-    } catch (err) {
-      console.error("Failed to load notes:", err);
-    } finally {
-      setLoadingNotes(false);
-    }
-  }, []);
-
   const loadRelatedRecords = useCallback(async (accountId: string) => {
     setLoadingRelated(true);
     try {
@@ -336,10 +315,8 @@ export const Accounts: React.FC = () => {
 
   useEffect(() => {
     if (viewingAccount?.accountid) {
-      loadAnnotations(viewingAccount.accountid);
       loadRelatedRecords(viewingAccount.accountid);
     } else {
-      setAnnotations([]);
       setRelatedContacts([]);
       setRelatedActivities([]);
       setRelatedTasks([]);
@@ -347,21 +324,7 @@ export const Accounts: React.FC = () => {
       setRelatedIdeas([]);
       setRelatedSummaries([]);
     }
-  }, [viewingAccount, loadAnnotations, loadRelatedRecords]);
-
-  const handleAddNote = async () => {
-    if (!newNote.trim() || !viewingAccount?.accountid) return;
-    try {
-      await createAnnotation({
-        notetext: newNote,
-        "objectid_account@odata.bind": `/accounts(${viewingAccount.accountid})`,
-      });
-      setNewNote("");
-      loadAnnotations(viewingAccount.accountid);
-    } catch (err) {
-      console.error("Failed to add note:", err);
-    }
-  };
+  }, [viewingAccount, loadRelatedRecords]);
 
   // Handlers for adding new related records
   const handleAddContact = async () => {
@@ -766,71 +729,13 @@ export const Accounts: React.FC = () => {
 
                       {/* Column 3: Notes */}
                       <div style={{ display: "flex", flexDirection: "column" }}>
-                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
-                          <div className={styles.relatedHeader}>
-                            <Subtitle1>Notes</Subtitle1>
-                            <span className={styles.badge}>{annotations.length}</span>
-                          </div>
-                          {loadingNotes ? (
-                            <Spinner size="small" />
-                          ) : annotations.length === 0 ? (
-                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No notes yet</Caption1>
-                          ) : (
-                            <div className={styles.relatedList}>
-                              {annotations.map((note) => (
-                                <div key={note.annotationid} className={styles.relatedItem}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                                    <div className={styles.noteDate}>
-                                      {note.createdon ? formatDate(note.createdon) : ""}
-                                    </div>
-                                    <Tooltip
-                                      content={pinnedIds.has(note.annotationid!) ? "Unpin from dashboard" : "Pin to dashboard"}
-                                      relationship="label"
-                                    >
-                                      <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        icon={pinnedIds.has(note.annotationid!) ? <PinOff16Regular /> : <Pin16Regular />}
-                                        onClick={() => {
-                                          if (pinnedIds.has(note.annotationid!)) {
-                                            unpinNote(note.annotationid!);
-                                            setPinnedIds((prev) => {
-                                              const next = new Set(prev);
-                                              next.delete(note.annotationid!);
-                                              return next;
-                                            });
-                                          } else {
-                                            pinNote(note.annotationid!, viewingAccount?.name ?? "");
-                                            setPinnedIds((prev) => new Set(prev).add(note.annotationid!));
-                                          }
-                                        }}
-                                        style={{ minWidth: "auto", padding: "2px" }}
-                                      />
-                                    </Tooltip>
-                                  </div>
-                                  <Text size={300}>{note.notetext}</Text>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          <div className={styles.noteInput}>
-                            <Textarea
-                              placeholder="Add a note..."
-                              value={newNote}
-                              onChange={(_, d) => setNewNote(d.value)}
-                              rows={2}
-                            />
-                            <Button
-                              appearance="primary"
-                              size="small"
-                              style={{ marginTop: 8 }}
-                              onClick={handleAddNote}
-                              disabled={!newNote.trim()}
-                            >
-                              Add Note
-                            </Button>
-                          </div>
-                        </div>
+                        <NotesTimeline
+                          entityId={viewingAccount.accountid!}
+                          entityName={viewingAccount.name}
+                          entityType="account"
+                          odataBindKey="objectid_account@odata.bind"
+                          entitySetPath="/accounts"
+                        />
                       </div>
                     </div>
                   )}

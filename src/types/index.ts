@@ -58,7 +58,16 @@ export interface Annotation {
   notetext: string;
   createdon?: string;
   _objectid_value?: string;
+  // File attachment fields
+  filename?: string;
+  mimetype?: string;
+  filesize?: number;
+  isdocument?: boolean;
+  documentbody?: string; // base64 - only fetched on demand
 }
+
+// Entity type for pinned notes
+export type NoteEntityType = "account" | "project" | "actionitem" | "idea";
 
 // Idea entity (tdvsp_idea table)
 export type IdeaCategory =
@@ -103,6 +112,16 @@ export interface MeetingSummary {
   tdvsp_name: string;
   tdvsp_date?: string;
   tdvsp_summary?: string;
+  // Lookup to account table
+  _tdvsp_account_value?: string;
+  tdvsp_Account?: { accountid: string; name: string };
+}
+
+// Project entity (tdvsp_project table)
+export interface Project {
+  tdvsp_projectid?: string;
+  tdvsp_name: string;
+  tdvsp_description?: string;
   // Lookup to account table
   _tdvsp_account_value?: string;
   tdvsp_Account?: { accountid: string; name: string };

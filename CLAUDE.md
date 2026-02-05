@@ -17,16 +17,19 @@ Internal business tool - React SPA that interfaces with Microsoft Dataverse via 
 ```
 src/
 ├── auth/           # MSAL configuration (msalConfig.ts)
-├── components/     # Shared components (AppShell with sidebar nav + theme toggle)
+├── components/     # Shared components
+│   ├── AppShell.tsx         # Sidebar nav + theme toggle
+│   └── NotesTimeline.tsx    # Shared notes component with file attachments
 ├── context/        # React context providers (ThemeContext for dark/light mode)
 ├── pages/          # Route pages
-│   ├── Dashboard.tsx        # Stats tiles (Accounts, Contacts, Ideas, Tasks, Overdue) + recent lists
+│   ├── Dashboard.tsx        # Stats tiles (Accounts, Contacts, Ideas, Tasks, Overdue) + recent lists + pinned notes sidebar
 │   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, activities, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + view dialog with related ideas
 │   ├── Activities.tsx       # High-Value Activities CRUD
-│   ├── Tasks.tsx            # Action Items CRUD
+│   ├── Tasks.tsx            # Action Items CRUD + view dialog with notes timeline
 │   ├── Impacts.tsx          # Impacts CRUD
-│   ├── Ideas.tsx            # Ideas CRUD with category dropdown
+│   ├── Ideas.tsx            # Ideas CRUD with category dropdown + view dialog with notes timeline
+│   ├── Projects.tsx         # Projects CRUD + view dialog with notes timeline
 │   ├── MeetingSummaries.tsx # Meeting Summaries CRUD
 │   └── Login.tsx            # Unauthenticated login page
 ├── services/       # API layer (dataverseService.ts)
@@ -54,8 +57,9 @@ The app works with these Dataverse tables:
 | Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_Customer (account lookup) |
 | Impacts | `tdvsp_impacts` | tdvsp_impactid, tdvsp_name, tdvsp_date, tdvsp_description, tdvsp_Customer (account lookup) |
 | Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup) |
+| Projects | `tdvsp_projects` | tdvsp_projectid, tdvsp_name, tdvsp_description, tdvsp_Account (account lookup) |
 | Meeting Summaries | `tdvsp_meetingsummaries` | tdvsp_meetingsummaryid, tdvsp_name, tdvsp_date, tdvsp_summary, tdvsp_Account (account lookup) |
-| Annotations (Notes) | `annotations` | annotationid, subject, notetext, createdon, objectid (polymorphic lookup) |
+| Annotations (Notes) | `annotations` | annotationid, subject, notetext, createdon, objectid (polymorphic lookup), filename, mimetype, documentbody (base64 file), isdocument |
 
 Custom tables use the `tdvsp_` prefix (publisher prefix).
 
@@ -70,7 +74,12 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
 - **Dashboard** - Stat tiles for Accounts, Contacts, Ideas, Open Tasks, Overdue. Section cards for Recent Ideas and Action Items with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
-- **Pinned Notes** - Notes from the Account view can be pinned to the Dashboard via localStorage (`pinnedNotes.ts`). Pinned notes show 3-line preview, click to expand in dialog, unpin from dashboard or from account view.
+- **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
+  - Add notes with optional file attachments (stored as base64 in Dataverse)
+  - Pin notes to dashboard
+  - Download attached files
+  - Delete notes
+- **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
 
 ## Coding Conventions
 

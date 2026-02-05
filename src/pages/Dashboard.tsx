@@ -28,9 +28,10 @@ import {
   PinOff16Regular,
   Dismiss24Regular,
   Add16Regular,
+  Attach16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Idea, Annotation, ideaCategoryLabels } from "../types";
+import { ActionItem, Account, Customer, Idea, Annotation, ideaCategoryLabels, NoteEntityType } from "../types";
 import { getActionItems, getAccounts, getCustomers, getIdeas, getAnnotationsByIds } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
@@ -195,7 +196,7 @@ export const Dashboard: React.FC = () => {
   const [pinnedRefs, setPinnedRefs] = useState<PinnedNoteRef[]>(() => getPinnedNoteRefs());
   const [pinnedAnnotations, setPinnedAnnotations] = useState<Annotation[]>([]);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState<{ annotation: Annotation; accountName: string } | null>(null);
+  const [selectedNote, setSelectedNote] = useState<{ annotation: Annotation; entityName: string; entityType: NoteEntityType } | null>(null);
 
   useEffect(() => {
     getAccounts().then(setAccounts).catch(console.error);
@@ -235,9 +236,19 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const getAccountName = (annotationid: string): string => {
+  const getEntityInfo = (annotationid: string): { entityName: string; entityType: NoteEntityType } => {
     const ref = pinnedRefs.find((r) => r.annotationid === annotationid);
-    return ref?.accountName ?? "";
+    return {
+      entityName: ref?.entityName ?? "",
+      entityType: ref?.entityType ?? "account",
+    };
+  };
+
+  const entityTypeLabels: Record<NoteEntityType, string> = {
+    account: "Account",
+    project: "Project",
+    actionitem: "Action Item",
+    idea: "Idea",
   };
 
   return (
@@ -467,36 +478,48 @@ export const Dashboard: React.FC = () => {
               />
             </div>
             <div className={styles.pinnedList}>
-              {pinnedAnnotations.map((note) => (
-                <div
-                  key={note.annotationid}
-                  className={styles.pinnedNoteItem}
-                  onClick={() => {
-                    setSelectedNote({
-                      annotation: note,
-                      accountName: getAccountName(note.annotationid!),
-                    });
-                    setNoteDialogOpen(true);
-                  }}
-                >
-                  <div className={styles.pinnedNoteAccount}>
-                    {getAccountName(note.annotationid!)}
-                  </div>
-                  {note.createdon && (
-                    <div className={styles.pinnedNoteDate}>
-                      {formatDate(note.createdon)}
+              {pinnedAnnotations.map((note) => {
+                const entityInfo = getEntityInfo(note.annotationid!);
+                return (
+                  <div
+                    key={note.annotationid}
+                    className={styles.pinnedNoteItem}
+                    onClick={() => {
+                      setSelectedNote({
+                        annotation: note,
+                        entityName: entityInfo.entityName,
+                        entityType: entityInfo.entityType,
+                      });
+                      setNoteDialogOpen(true);
+                    }}
+                  >
+                    <div className={styles.pinnedNoteAccount}>
+                      <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
+                        {entityTypeLabels[entityInfo.entityType]}:
+                      </span>{" "}
+                      {entityInfo.entityName}
                     </div>
-                  )}
-                  {note.subject && (
-                    <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
-                      {note.subject}
-                    </Text>
-                  )}
-                  <div className={styles.pinnedNotePreview}>
-                    <Text size={200}>{note.notetext}</Text>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      {note.createdon && (
+                        <div className={styles.pinnedNoteDate}>
+                          {formatDate(note.createdon)}
+                        </div>
+                      )}
+                      {note.isdocument && (
+                        <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
+                      )}
+                    </div>
+                    {note.subject && (
+                      <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
+                        {note.subject}
+                      </Text>
+                    )}
+                    <div className={styles.pinnedNotePreview}>
+                      <Text size={200}>{note.notetext}</Text>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         )}
@@ -515,11 +538,14 @@ export const Dashboard: React.FC = () => {
                 />
               }
             >
-              {selectedNote?.accountName && (
+              {selectedNote?.entityName && (
                 <Caption1
                   style={{ color: tokens.colorBrandForeground1, display: "block", marginBottom: 4 }}
                 >
-                  {selectedNote.accountName}
+                  <span style={{ color: tokens.colorNeutralForeground3 }}>
+                    {entityTypeLabels[selectedNote.entityType]}:
+                  </span>{" "}
+                  {selectedNote.entityName}
                 </Caption1>
               )}
               {selectedNote?.annotation.subject || "Note"}
@@ -528,6 +554,12 @@ export const Dashboard: React.FC = () => {
                   style={{ color: tokens.colorNeutralForeground3, display: "block", marginTop: 4 }}
                 >
                   {formatDate(selectedNote.annotation.createdon)}
+                  {selectedNote.annotation.isdocument && (
+                    <span style={{ marginLeft: 8 }}>
+                      <Attach16Regular style={{ verticalAlign: "middle", marginRight: 4 }} />
+                      {selectedNote.annotation.filename}
+                    </span>
+                  )}
                 </Caption1>
               )}
             </DialogTitle>

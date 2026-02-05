@@ -1,5 +1,5 @@
 import { dataverseConfig } from "../auth/msalConfig";
-import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation, Idea, IdeaCategory, MeetingSummary } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation, Idea, IdeaCategory, MeetingSummary, Project } from "../types";
 
 let getAccessToken: (() => Promise<string>) | null = null;
 
@@ -226,13 +226,35 @@ export async function deleteImpact(id: string): Promise<void> {
 
 // ─── Annotations (Notes) ─────────────────────────────────────────────────────
 
-export async function getAccountAnnotations(accountId: string): Promise<Annotation[]> {
+// Generic annotation retrieval by objectid (works for any entity)
+export async function getAnnotations(objectId: string): Promise<Annotation[]> {
   const result = await apiRequest(
-    `/annotations?$select=annotationid,subject,notetext,createdon&$filter=_objectid_value eq ${accountId}&$orderby=createdon desc&$top=50`
+    `/annotations?$select=annotationid,subject,notetext,createdon,_objectid_value,filename,mimetype,filesize,isdocument&$filter=_objectid_value eq ${objectId}&$orderby=createdon desc&$top=50`
   );
   return result?.value ?? [];
 }
 
+// Legacy function for backward compatibility
+export async function getAccountAnnotations(accountId: string): Promise<Annotation[]> {
+  return getAnnotations(accountId);
+}
+
+// Generic annotation creation with polymorphic objectid binding
+export async function createEntityAnnotation(
+  annotation: {
+    subject?: string;
+    notetext: string;
+    filename?: string;
+    mimetype?: string;
+    documentbody?: string;
+    isdocument?: boolean;
+    [key: string]: unknown; // for the objectid_xxx@odata.bind field
+  }
+): Promise<Annotation> {
+  return apiRequest("/annotations", "POST", annotation);
+}
+
+// Legacy function for backward compatibility (accounts only)
 export async function createAnnotation(
   annotation: {
     subject?: string;
@@ -247,11 +269,18 @@ export async function deleteAnnotation(id: string): Promise<void> {
   await apiRequest(`/annotations(${id})`, "DELETE");
 }
 
+// Fetch a single annotation WITH documentbody for download
+export async function getAnnotationWithBody(annotationId: string): Promise<Annotation> {
+  return apiRequest(
+    `/annotations(${annotationId})?$select=annotationid,filename,mimetype,documentbody`
+  );
+}
+
 export async function getAnnotationsByIds(ids: string[]): Promise<Annotation[]> {
   if (ids.length === 0) return [];
   const filter = ids.map((id) => `annotationid eq ${id}`).join(" or ");
   const result = await apiRequest(
-    `/annotations?$select=annotationid,subject,notetext,createdon,_objectid_value&$filter=${filter}`
+    `/annotations?$select=annotationid,subject,notetext,createdon,_objectid_value,filename,mimetype,filesize,isdocument&$filter=${filter}`
   );
   return result?.value ?? [];
 }
@@ -402,4 +431,45 @@ export async function updateMeetingSummary(
 
 export async function deleteMeetingSummary(id: string): Promise<void> {
   await apiRequest(`/tdvsp_meetingsummaries(${id})`, "DELETE");
+}
+
+// ─── Projects (tdvsp_project table) ────────────────────────────────────────────
+
+export async function getProjects(): Promise<Project[]> {
+  const result = await apiRequest(
+    "/tdvsp_projects?$select=tdvsp_projectid,tdvsp_name,tdvsp_description,_tdvsp_account_value&$expand=tdvsp_Account($select=accountid,name)&$orderby=tdvsp_name asc&$top=100"
+  );
+  return result?.value ?? [];
+}
+
+export async function createProject(
+  project: {
+    tdvsp_name: string;
+    tdvsp_description?: string;
+    "tdvsp_Account@odata.bind"?: string;
+  }
+): Promise<Project> {
+  return apiRequest("/tdvsp_projects", "POST", project);
+}
+
+export async function updateProject(
+  id: string,
+  project: {
+    tdvsp_name?: string;
+    tdvsp_description?: string;
+    "tdvsp_Account@odata.bind"?: string;
+  }
+): Promise<Project> {
+  return apiRequest(`/tdvsp_projects(${id})`, "PATCH", project);
+}
+
+export async function deleteProject(id: string): Promise<void> {
+  await apiRequest(`/tdvsp_projects(${id})`, "DELETE");
+}
+
+export async function getProjectsByAccount(accountId: string): Promise<Project[]> {
+  const result = await apiRequest(
+    `/tdvsp_projects?$select=tdvsp_projectid,tdvsp_name,tdvsp_description&$filter=_tdvsp_account_value eq ${accountId}&$orderby=tdvsp_name asc`
+  );
+  return result?.value ?? [];
 }

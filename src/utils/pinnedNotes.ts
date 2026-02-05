@@ -1,23 +1,37 @@
+import { NoteEntityType } from "../types";
+
 const STORAGE_KEY = "og-central-pinned-notes";
 
 export interface PinnedNoteRef {
   annotationid: string;
-  accountName: string;
+  entityName: string;
+  entityType: NoteEntityType;
 }
 
 export function getPinnedNoteRefs(): PinnedNoteRef[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (!stored) return [];
+    const parsed = JSON.parse(stored) as unknown[];
+    // Migrate old shape: { annotationid, accountName } -> new shape
+    return parsed.map((item) => {
+      const obj = item as Record<string, unknown>;
+      if (obj.entityName !== undefined) return obj as unknown as PinnedNoteRef;
+      return {
+        annotationid: obj.annotationid as string,
+        entityName: (obj.accountName as string) ?? "",
+        entityType: "account" as NoteEntityType,
+      };
+    });
   } catch {
     return [];
   }
 }
 
-export function pinNote(annotationid: string, accountName: string): void {
+export function pinNote(annotationid: string, entityName: string, entityType: NoteEntityType): void {
   const current = getPinnedNoteRefs();
   if (!current.find((n) => n.annotationid === annotationid)) {
-    current.push({ annotationid, accountName });
+    current.push({ annotationid, entityName, entityType });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
   }
 }

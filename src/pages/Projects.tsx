@@ -11,7 +11,6 @@ import {
   Subtitle1,
   Body1,
   Caption1,
-  Divider,
   Dialog,
   DialogSurface,
   DialogBody,
@@ -26,19 +25,18 @@ import {
 import {
   Add24Regular,
   Search24Regular,
-  Lightbulb24Filled,
+  Briefcase24Filled,
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Idea, Account, Customer, IdeaCategory, ideaCategoryLabels } from "../types";
+import { Project, Account } from "../types";
 import {
-  getIdeas,
-  createIdea,
-  updateIdea,
-  deleteIdea,
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
   getAccounts,
-  getCustomers,
 } from "../services/dataverseService";
 import { NotesTimeline } from "../components/NotesTimeline";
 
@@ -63,7 +61,7 @@ const useStyles = makeStyles({
     gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
     ...shorthands.gap("16px"),
   },
-  ideaCard: {
+  projectCard: {
     ...shorthands.padding("20px"),
     ...shorthands.borderRadius("12px"),
     transition: "box-shadow 0.15s ease, transform 0.15s ease",
@@ -84,18 +82,6 @@ const useStyles = makeStyles({
     ...shorthands.gap("16px"),
     marginTop: "12px",
     color: tokens.colorNeutralForeground3,
-  },
-  metaItem: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("4px"),
-  },
-  categoryBadge: {
-    ...shorthands.padding("2px", "8px"),
-    ...shorthands.borderRadius("4px"),
-    backgroundColor: tokens.colorBrandBackground2,
-    color: tokens.colorBrandForeground2,
-    fontSize: "12px",
   },
   formGrid: {
     display: "grid",
@@ -130,11 +116,6 @@ const useStyles = makeStyles({
   viewField: {
     marginBottom: "16px",
   },
-  viewGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    ...shorthands.gap("16px"),
-  },
   viewLayout: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -153,51 +134,34 @@ const useStyles = makeStyles({
 interface FormData {
   tdvsp_name: string;
   tdvsp_description: string;
-  tdvsp_category: IdeaCategory | "";
   accountId: string;
-  contactId: string;
 }
 
 const emptyForm: FormData = {
   tdvsp_name: "",
   tdvsp_description: "",
-  tdvsp_category: "",
   accountId: "",
-  contactId: "",
 };
 
-const categoryOptions: { value: IdeaCategory; label: string }[] = [
-  { value: 468510000, label: "Copilot Studio" },
-  { value: 468510001, label: "Canvas Apps" },
-  { value: 468510002, label: "Model-Driven Apps" },
-  { value: 468510003, label: "Power Automate" },
-  { value: 468510004, label: "Power Pages" },
-  { value: 468510005, label: "Azure" },
-  { value: 468510006, label: "AI General" },
-  { value: 468510007, label: "App General" },
-  { value: 468510008, label: "Other" },
-];
-
-export const Ideas: React.FC = () => {
+export const Projects: React.FC = () => {
   const styles = useStyles();
-  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [contacts, setContacts] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [viewingIdea, setViewingIdea] = useState<Idea | null>(null);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
 
-  const loadIdeas = useCallback(async () => {
+  const loadProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getIdeas();
-      setIdeas(data);
+      const data = await getProjects();
+      setProjects(data);
     } catch (err) {
-      console.error("Failed to load ideas:", err);
+      console.error("Failed to load projects:", err);
     } finally {
       setLoading(false);
     }
@@ -212,20 +176,10 @@ export const Ideas: React.FC = () => {
     }
   }, []);
 
-  const loadContacts = useCallback(async () => {
-    try {
-      const data = await getCustomers();
-      setContacts(data);
-    } catch (err) {
-      console.error("Failed to load contacts:", err);
-    }
-  }, []);
-
   useEffect(() => {
-    loadIdeas();
+    loadProjects();
     loadAccounts();
-    loadContacts();
-  }, [loadIdeas, loadAccounts, loadContacts]);
+  }, [loadProjects, loadAccounts]);
 
   const openNew = () => {
     setEditingId(null);
@@ -233,21 +187,19 @@ export const Ideas: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const openView = (idea: Idea) => {
-    setViewingIdea(idea);
+  const openView = (project: Project) => {
+    setViewingProject(project);
     setViewDialogOpen(true);
   };
 
-  const openEdit = (idea: Idea) => {
+  const openEdit = (project: Project) => {
     setViewDialogOpen(false);
-    setViewingIdea(null);
-    setEditingId(idea.tdvsp_ideaid ?? null);
+    setViewingProject(null);
+    setEditingId(project.tdvsp_projectid ?? null);
     setFormData({
-      tdvsp_name: idea.tdvsp_name,
-      tdvsp_description: idea.tdvsp_description ?? "",
-      tdvsp_category: idea.tdvsp_category ?? "",
-      accountId: idea.tdvsp_Account?.accountid ?? "",
-      contactId: idea.tdvsp_Contact?.contactid ?? "",
+      tdvsp_name: project.tdvsp_name,
+      tdvsp_description: project.tdvsp_description ?? "",
+      accountId: project.tdvsp_Account?.accountid ?? "",
     });
     setDialogOpen(true);
   };
@@ -257,50 +209,43 @@ export const Ideas: React.FC = () => {
       const payload: {
         tdvsp_name: string;
         tdvsp_description?: string;
-        tdvsp_category?: IdeaCategory;
         "tdvsp_Account@odata.bind"?: string;
-        "tdvsp_Contact@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
         tdvsp_description: formData.tdvsp_description || undefined,
-        tdvsp_category: formData.tdvsp_category || undefined,
       };
       if (formData.accountId) {
         payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
       }
-      if (formData.contactId) {
-        payload["tdvsp_Contact@odata.bind"] = `/contacts(${formData.contactId})`;
-      }
       if (editingId) {
-        await updateIdea(editingId, payload);
+        await updateProject(editingId, payload);
       } else {
-        await createIdea(payload);
+        await createProject(payload);
       }
       setDialogOpen(false);
       setFormData(emptyForm);
       setEditingId(null);
-      loadIdeas();
+      loadProjects();
     } catch (err) {
-      console.error("Failed to save idea:", err);
+      console.error("Failed to save project:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteIdea(id);
-      loadIdeas();
+      await deleteProject(id);
+      loadProjects();
     } catch (err) {
-      console.error("Failed to delete idea:", err);
+      console.error("Failed to delete project:", err);
     }
   };
 
-  const filtered = ideas.filter((idea) => {
+  const filtered = projects.filter((p) => {
     const q = searchQuery.toLowerCase();
     return (
-      idea.tdvsp_name?.toLowerCase().includes(q) ||
-      idea.tdvsp_description?.toLowerCase().includes(q) ||
-      idea.tdvsp_Account?.name?.toLowerCase().includes(q) ||
-      (idea.tdvsp_Contact && `${idea.tdvsp_Contact.firstname} ${idea.tdvsp_Contact.lastname}`.toLowerCase().includes(q))
+      p.tdvsp_name?.toLowerCase().includes(q) ||
+      p.tdvsp_description?.toLowerCase().includes(q) ||
+      p.tdvsp_Account?.name?.toLowerCase().includes(q)
     );
   });
 
@@ -310,17 +255,17 @@ export const Ideas: React.FC = () => {
         <Input
           className={styles.searchBox}
           contentBefore={<Search24Regular />}
-          placeholder="Search ideas..."
+          placeholder="Search projects..."
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
-            New Idea
+            New Project
           </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Idea" : "New Idea"}</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Project" : "New Project"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -330,7 +275,7 @@ export const Ideas: React.FC = () => {
                       onChange={(_, d) =>
                         setFormData({ ...formData, tdvsp_name: d.value })
                       }
-                      placeholder="Brief title for this idea"
+                      placeholder="Project name"
                     />
                   </div>
                   <div className={styles.formFieldFull}>
@@ -340,32 +285,10 @@ export const Ideas: React.FC = () => {
                       onChange={(_, d) =>
                         setFormData({ ...formData, tdvsp_description: d.value })
                       }
-                      placeholder="Describe the idea..."
-                      rows={4}
+                      placeholder="Project description..."
+                      rows={3}
+                      resize="vertical"
                     />
-                  </div>
-                  <div className={styles.formField}>
-                    <Label>Category</Label>
-                    <Dropdown
-                      placeholder="Select category"
-                      value={
-                        formData.tdvsp_category
-                          ? ideaCategoryLabels[formData.tdvsp_category]
-                          : ""
-                      }
-                      onOptionSelect={(_, d) =>
-                        setFormData({
-                          ...formData,
-                          tdvsp_category: d.optionValue ? (Number(d.optionValue) as IdeaCategory) : "",
-                        })
-                      }
-                    >
-                      {categoryOptions.map((cat) => (
-                        <Option key={cat.value} value={String(cat.value)}>
-                          {cat.label}
-                        </Option>
-                      ))}
-                    </Dropdown>
                   </div>
                   <div className={styles.formField}>
                     <Label>Account</Label>
@@ -382,32 +305,12 @@ export const Ideas: React.FC = () => {
                         })
                       }
                     >
+                      <Option value="" text="(None)">
+                        (None)
+                      </Option>
                       {accounts.map((a) => (
-                        <Option key={a.accountid} value={a.accountid!}>
+                        <Option key={a.accountid} value={a.accountid!} text={a.name}>
                           {a.name}
-                        </Option>
-                      ))}
-                    </Dropdown>
-                  </div>
-                  <div className={styles.formFieldFull}>
-                    <Label>Contact</Label>
-                    <Dropdown
-                      placeholder="Select contact"
-                      value={
-                        contacts.find((c) => c.contactid === formData.contactId)
-                          ? `${contacts.find((c) => c.contactid === formData.contactId)!.firstname} ${contacts.find((c) => c.contactid === formData.contactId)!.lastname}`
-                          : ""
-                      }
-                      onOptionSelect={(_, d) =>
-                        setFormData({
-                          ...formData,
-                          contactId: d.optionValue ?? "",
-                        })
-                      }
-                    >
-                      {contacts.map((c) => (
-                        <Option key={c.contactid} value={c.contactid!} text={`${c.firstname} ${c.lastname}`}>
-                          {c.firstname} {c.lastname}
                         </Option>
                       ))}
                     </Dropdown>
@@ -418,7 +321,11 @@ export const Ideas: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSave}>
+                <Button
+                  appearance="primary"
+                  onClick={handleSave}
+                  disabled={!formData.tdvsp_name.trim()}
+                >
                   Save
                 </Button>
               </DialogActions>
@@ -429,35 +336,54 @@ export const Ideas: React.FC = () => {
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-          <Spinner label="Loading ideas..." />
+          <Spinner label="Loading projects..." />
         </div>
       ) : filtered.length === 0 ? (
         <div className={styles.emptyState}>
-          <Lightbulb24Filled style={{ fontSize: 48, color: "#f5a623", marginBottom: 16 }} />
-          <Subtitle1>No ideas found</Subtitle1>
+          <Briefcase24Filled
+            style={{ fontSize: 48, color: tokens.colorBrandForeground1, marginBottom: 16 }}
+          />
+          <Subtitle1>No projects found</Subtitle1>
           <Caption1 style={{ marginTop: 8 }}>
-            Create your first idea to start tracking.
+            Create your first project to get started.
           </Caption1>
         </div>
       ) : (
         <div className={styles.grid}>
-          {filtered.map((idea) => (
-            <Card key={idea.tdvsp_ideaid} className={styles.ideaCard}>
+          {filtered.map((project) => (
+            <Card key={project.tdvsp_projectid} className={styles.projectCard}>
               <div className={styles.cardHeader}>
-                <Subtitle1
-                  block
-                  className={styles.nameLink}
-                  onClick={() => openView(idea)}
-                >
-                  {idea.tdvsp_name}
-                </Subtitle1>
+                <div>
+                  <Text
+                    weight="semibold"
+                    size={400}
+                    className={styles.nameLink}
+                    onClick={() => openView(project)}
+                  >
+                    {project.tdvsp_name}
+                  </Text>
+                  {project.tdvsp_description && (
+                    <Body1
+                      style={{
+                        marginTop: 8,
+                        color: tokens.colorNeutralForeground2,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {project.tdvsp_description}
+                    </Body1>
+                  )}
+                </div>
                 <div style={{ display: "flex", gap: 4 }}>
                   <Button
                     appearance="subtle"
                     icon={<Edit24Regular />}
                     size="small"
                     title="Edit"
-                    onClick={() => openEdit(idea)}
+                    onClick={() => openEdit(project)}
                   />
                   <Button
                     appearance="subtle"
@@ -465,32 +391,16 @@ export const Ideas: React.FC = () => {
                     size="small"
                     title="Delete"
                     onClick={() =>
-                      idea.tdvsp_ideaid && handleDelete(idea.tdvsp_ideaid)
+                      project.tdvsp_projectid && handleDelete(project.tdvsp_projectid)
                     }
                   />
                 </div>
               </div>
-              {idea.tdvsp_description && (
-                <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
-                  {idea.tdvsp_description}
-                </Body1>
+              {project.tdvsp_Account?.name && (
+                <div className={styles.cardMeta}>
+                  <Caption1>{project.tdvsp_Account.name}</Caption1>
+                </div>
               )}
-              <Divider style={{ margin: "12px 0" }} />
-              <div className={styles.cardMeta}>
-                {idea.tdvsp_category && (
-                  <span className={styles.categoryBadge}>
-                    {ideaCategoryLabels[idea.tdvsp_category]}
-                  </span>
-                )}
-                {idea.tdvsp_Account?.name && (
-                  <Caption1>{idea.tdvsp_Account.name}</Caption1>
-                )}
-                {idea.tdvsp_Contact && (
-                  <Caption1>
-                    {idea.tdvsp_Contact.firstname} {idea.tdvsp_Contact.lastname}
-                  </Caption1>
-                )}
-              </div>
             </Card>
           ))}
         </div>
@@ -509,56 +419,40 @@ export const Ideas: React.FC = () => {
                 />
               }
             >
-              Idea Details
+              Project Details
             </DialogTitle>
             <DialogContent>
-              {viewingIdea && (
+              {viewingProject && (
                 <div className={styles.viewLayout}>
                   <div className={styles.viewDetails}>
                     <div className={styles.viewField}>
                       <Label>Name</Label>
                       <Text block size={400} weight="semibold">
-                        {viewingIdea.tdvsp_name}
+                        {viewingProject.tdvsp_name}
                       </Text>
                     </div>
+                    {viewingProject.tdvsp_description && (
+                      <div className={styles.viewField}>
+                        <Label>Description</Label>
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
+                          {viewingProject.tdvsp_description}
+                        </Text>
+                      </div>
+                    )}
                     <div className={styles.viewField}>
-                      <Label>Description</Label>
-                      <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
-                        {viewingIdea.tdvsp_description || "--"}
+                      <Label>Account</Label>
+                      <Text block size={400}>
+                        {viewingProject.tdvsp_Account?.name || "--"}
                       </Text>
-                    </div>
-                    <div className={styles.viewGrid}>
-                      <div className={styles.viewField}>
-                        <Label>Category</Label>
-                        <Text block size={400}>
-                          {viewingIdea.tdvsp_category
-                            ? ideaCategoryLabels[viewingIdea.tdvsp_category]
-                            : "--"}
-                        </Text>
-                      </div>
-                      <div className={styles.viewField}>
-                        <Label>Account</Label>
-                        <Text block size={400}>
-                          {viewingIdea.tdvsp_Account?.name || "--"}
-                        </Text>
-                      </div>
-                      <div className={styles.viewField}>
-                        <Label>Contact</Label>
-                        <Text block size={400}>
-                          {viewingIdea.tdvsp_Contact
-                            ? `${viewingIdea.tdvsp_Contact.firstname} ${viewingIdea.tdvsp_Contact.lastname}`
-                            : "--"}
-                        </Text>
-                      </div>
                     </div>
                   </div>
                   <div className={styles.viewNotes}>
                     <NotesTimeline
-                      entityId={viewingIdea.tdvsp_ideaid!}
-                      entityName={viewingIdea.tdvsp_name}
-                      entityType="idea"
-                      odataBindKey="objectid_tdvsp_idea@odata.bind"
-                      entitySetPath="/tdvsp_ideas"
+                      entityId={viewingProject.tdvsp_projectid!}
+                      entityName={viewingProject.tdvsp_name}
+                      entityType="project"
+                      odataBindKey="objectid_tdvsp_project@odata.bind"
+                      entitySetPath="/tdvsp_projects"
                     />
                   </div>
                 </div>
@@ -568,7 +462,7 @@ export const Ideas: React.FC = () => {
               <Button
                 appearance="primary"
                 icon={<Edit24Regular />}
-                onClick={() => viewingIdea && openEdit(viewingIdea)}
+                onClick={() => viewingProject && openEdit(viewingProject)}
               >
                 Edit
               </Button>
