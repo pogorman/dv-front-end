@@ -44,7 +44,9 @@ const useStyles = makeStyles({
   },
   welcomeCard: {
     ...shorthands.padding("32px"),
-    background: "linear-gradient(135deg, #0078d4 0%, #106ebe 50%, #005a9e 100%)",
+    backgroundImage: "url('/images/banner-bg.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
     color: "white",
     ...shorthands.borderRadius("12px"),
   },
