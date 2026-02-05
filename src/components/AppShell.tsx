@@ -172,6 +172,17 @@ const useStyles = makeStyles({
     alignItems: "center",
     ...shorthands.gap("8px"),
   },
+  sectionLabel: {
+    ...shorthands.padding("8px", "12px", "4px"),
+    fontSize: "11px",
+    fontWeight: "600",
+    color: tokens.colorNeutralForeground3,
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+  },
+  sectionDivider: {
+    ...shorthands.margin("8px", "0"),
+  },
 });
 
 interface NavItem {
@@ -182,69 +193,90 @@ interface NavItem {
   iconActive: React.ReactElement;
 }
 
-const navItems: NavItem[] = [
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
+const dashboardItem: NavItem = {
+  key: "dashboard",
+  label: "Dashboard",
+  path: "/",
+  icon: <Home24Regular />,
+  iconActive: <Home24Filled />,
+};
+
+const navSections: NavSection[] = [
   {
-    key: "dashboard",
-    label: "Dashboard",
-    path: "/",
-    icon: <Home24Regular />,
-    iconActive: <Home24Filled />,
+    label: "O'G's Data",
+    items: [
+      {
+        key: "tasks",
+        label: "Action Items",
+        path: "/tasks",
+        icon: <TaskListSquareLtr24Regular />,
+        iconActive: <TaskListSquareLtr24Filled />,
+      },
+      {
+        key: "projects",
+        label: "Projects",
+        path: "/projects",
+        icon: <Briefcase24Regular />,
+        iconActive: <Briefcase24Filled />,
+      },
+      {
+        key: "summaries",
+        label: "Meeting Summaries",
+        path: "/summaries",
+        icon: <Notebook24Regular />,
+        iconActive: <Notebook24Filled />,
+      },
+      {
+        key: "ideas",
+        label: "Ideas",
+        path: "/ideas",
+        icon: <Lightbulb24Regular />,
+        iconActive: <Lightbulb24Filled />,
+      },
+    ],
   },
   {
-    key: "accounts",
-    label: "Accounts",
-    path: "/accounts",
-    icon: <Building24Regular />,
-    iconActive: <Building24Filled />,
+    label: "Impact",
+    items: [
+      {
+        key: "activities",
+        label: "High-Value Activities",
+        path: "/activities",
+        icon: <Star24Regular />,
+        iconActive: <Star24Filled />,
+      },
+      {
+        key: "impacts",
+        label: "Impacts",
+        path: "/impacts",
+        icon: <Flash24Regular />,
+        iconActive: <Flash24Filled />,
+      },
+    ],
   },
   {
-    key: "contacts",
-    label: "Contacts",
-    path: "/contacts",
-    icon: <ContactCard24Regular />,
-    iconActive: <ContactCard24Filled />,
-  },
-  {
-    key: "tasks",
-    label: "Action Items",
-    path: "/tasks",
-    icon: <TaskListSquareLtr24Regular />,
-    iconActive: <TaskListSquareLtr24Filled />,
-  },
-  {
-    key: "ideas",
-    label: "Ideas",
-    path: "/ideas",
-    icon: <Lightbulb24Regular />,
-    iconActive: <Lightbulb24Filled />,
-  },
-  {
-    key: "projects",
-    label: "Projects",
-    path: "/projects",
-    icon: <Briefcase24Regular />,
-    iconActive: <Briefcase24Filled />,
-  },
-  {
-    key: "activities",
-    label: "High-Value Activities",
-    path: "/activities",
-    icon: <Star24Regular />,
-    iconActive: <Star24Filled />,
-  },
-  {
-    key: "impacts",
-    label: "Impacts",
-    path: "/impacts",
-    icon: <Flash24Regular />,
-    iconActive: <Flash24Filled />,
-  },
-  {
-    key: "summaries",
-    label: "Meeting Summaries",
-    path: "/summaries",
-    icon: <Notebook24Regular />,
-    iconActive: <Notebook24Filled />,
+    label: "Core",
+    items: [
+      {
+        key: "accounts",
+        label: "Accounts",
+        path: "/accounts",
+        icon: <Building24Regular />,
+        iconActive: <Building24Filled />,
+      },
+      {
+        key: "contacts",
+        label: "Contacts",
+        path: "/contacts",
+        icon: <ContactCard24Regular />,
+        iconActive: <ContactCard24Filled />,
+      },
+    ],
   },
 ];
 
@@ -310,27 +342,53 @@ export const AppShell: React.FC = () => {
         <Divider />
 
         <div className={styles.navSection}>
-          {navItems.map((item) => {
-            const isActive = currentPath === item.path;
-            return (
-              <Tooltip
-                content={item.label}
-                relationship="label"
-                positioning="after"
-                key={item.key}
-              >
-                <button
-                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
-                  onClick={() => navigate(item.path)}
-                >
-                  <span className={styles.navIcon}>
-                    {isActive ? item.iconActive : item.icon}
-                  </span>
-                  {expanded && <span>{item.label}</span>}
-                </button>
-              </Tooltip>
-            );
-          })}
+          {/* Dashboard */}
+          <Tooltip
+            content={dashboardItem.label}
+            relationship="label"
+            positioning="after"
+          >
+            <button
+              className={`${styles.navItem} ${currentPath === dashboardItem.path ? styles.navItemActive : ""}`}
+              onClick={() => navigate(dashboardItem.path)}
+            >
+              <span className={styles.navIcon}>
+                {currentPath === dashboardItem.path ? dashboardItem.iconActive : dashboardItem.icon}
+              </span>
+              {expanded && <span>{dashboardItem.label}</span>}
+            </button>
+          </Tooltip>
+
+          {/* Sections */}
+          {navSections.map((section) => (
+            <React.Fragment key={section.label}>
+              <Divider className={styles.sectionDivider} />
+              {expanded && (
+                <div className={styles.sectionLabel}>{section.label}</div>
+              )}
+              {section.items.map((item) => {
+                const isActive = currentPath === item.path;
+                return (
+                  <Tooltip
+                    content={item.label}
+                    relationship="label"
+                    positioning="after"
+                    key={item.key}
+                  >
+                    <button
+                      className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
+                      onClick={() => navigate(item.path)}
+                    >
+                      <span className={styles.navIcon}>
+                        {isActive ? item.iconActive : item.icon}
+                      </span>
+                      {expanded && <span>{item.label}</span>}
+                    </button>
+                  </Tooltip>
+                );
+              })}
+            </React.Fragment>
+          ))}
         </div>
 
         <Divider />
