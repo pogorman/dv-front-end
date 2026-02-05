@@ -26,15 +26,18 @@ import {
   DataGridCell,
   TableColumnDefinition,
   createTableColumn,
+  Dropdown,
+  Option,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
+  Add16Regular,
   Search24Regular,
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Account, Annotation, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels } from "../types";
+import { Account, Annotation, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getAccounts,
@@ -49,6 +52,12 @@ import {
   getImpactsByAccount,
   getIdeasByAccount,
   getMeetingSummariesByAccount,
+  createCustomer,
+  createActionItem,
+  createActivity,
+  createImpact,
+  createIdea,
+  createMeetingSummary,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -193,6 +202,22 @@ export const Accounts: React.FC = () => {
   const [relatedSummaries, setRelatedSummaries] = useState<MeetingSummary[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
 
+  // Add new dialogs state
+  const [addContactOpen, setAddContactOpen] = useState(false);
+  const [addActionItemOpen, setAddActionItemOpen] = useState(false);
+  const [addIdeaOpen, setAddIdeaOpen] = useState(false);
+  const [addActivityOpen, setAddActivityOpen] = useState(false);
+  const [addImpactOpen, setAddImpactOpen] = useState(false);
+  const [addSummaryOpen, setAddSummaryOpen] = useState(false);
+
+  // Form data for add new dialogs
+  const [newContact, setNewContact] = useState({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "" });
+  const [newActionItem, setNewActionItem] = useState({ tdvsp_name: "", tdvsp_date: "" });
+  const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string });
+  const [newActivity, setNewActivity] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
+  const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
+  const [newSummary, setNewSummary] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "" });
+
   const loadAccounts = useCallback(async () => {
     setLoading(true);
     try {
@@ -315,6 +340,106 @@ export const Accounts: React.FC = () => {
       loadAnnotations(viewingAccount.accountid);
     } catch (err) {
       console.error("Failed to add note:", err);
+    }
+  };
+
+  // Handlers for adding new related records
+  const handleAddContact = async () => {
+    if (!newContact.firstname || !newContact.lastname || !viewingAccount?.accountid) return;
+    try {
+      await createCustomer({
+        ...newContact,
+        "parentcustomerid_account@odata.bind": `/accounts(${viewingAccount.accountid})`,
+      });
+      setAddContactOpen(false);
+      setNewContact({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "" });
+      loadRelatedRecords(viewingAccount.accountid);
+    } catch (err) {
+      console.error("Failed to add contact:", err);
+    }
+  };
+
+  const handleAddActionItem = async () => {
+    if (!newActionItem.tdvsp_name || !viewingAccount?.accountid) return;
+    try {
+      await createActionItem({
+        tdvsp_name: newActionItem.tdvsp_name,
+        tdvsp_date: newActionItem.tdvsp_date || new Date().toISOString().split("T")[0],
+        "tdvsp_Customer@odata.bind": `/accounts(${viewingAccount.accountid})`,
+      });
+      setAddActionItemOpen(false);
+      setNewActionItem({ tdvsp_name: "", tdvsp_date: "" });
+      loadRelatedRecords(viewingAccount.accountid);
+    } catch (err) {
+      console.error("Failed to add action item:", err);
+    }
+  };
+
+  const handleAddIdea = async () => {
+    if (!newIdea.tdvsp_name || !viewingAccount?.accountid) return;
+    try {
+      await createIdea({
+        tdvsp_name: newIdea.tdvsp_name,
+        tdvsp_description: newIdea.tdvsp_description || undefined,
+        tdvsp_category: newIdea.tdvsp_category ? Number(newIdea.tdvsp_category) as IdeaCategory : undefined,
+        "tdvsp_Account@odata.bind": `/accounts(${viewingAccount.accountid})`,
+      });
+      setAddIdeaOpen(false);
+      setNewIdea({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" });
+      loadRelatedRecords(viewingAccount.accountid);
+    } catch (err) {
+      console.error("Failed to add idea:", err);
+    }
+  };
+
+  const handleAddActivity = async () => {
+    if (!newActivity.tdvsp_name || !viewingAccount?.accountid) return;
+    try {
+      await createActivity({
+        tdvsp_name: newActivity.tdvsp_name,
+        tdvsp_description: newActivity.tdvsp_description,
+        tdvsp_date: newActivity.tdvsp_date || new Date().toISOString().split("T")[0],
+        "tdvsp_Customer@odata.bind": `/accounts(${viewingAccount.accountid})`,
+      });
+      setAddActivityOpen(false);
+      setNewActivity({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
+      loadRelatedRecords(viewingAccount.accountid);
+    } catch (err) {
+      console.error("Failed to add activity:", err);
+    }
+  };
+
+  const handleAddImpact = async () => {
+    if (!newImpact.tdvsp_name || !viewingAccount?.accountid) return;
+    try {
+      await createImpact({
+        tdvsp_name: newImpact.tdvsp_name,
+        tdvsp_description: newImpact.tdvsp_description,
+        tdvsp_date: newImpact.tdvsp_date || new Date().toISOString().split("T")[0],
+        "tdvsp_Customer@odata.bind": `/accounts(${viewingAccount.accountid})`,
+      });
+      setAddImpactOpen(false);
+      setNewImpact({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
+      loadRelatedRecords(viewingAccount.accountid);
+    } catch (err) {
+      console.error("Failed to add impact:", err);
+    }
+  };
+
+  const handleAddSummary = async () => {
+    if (!newSummary.tdvsp_name || !viewingAccount?.accountid) return;
+    try {
+      await createMeetingSummary({
+        tdvsp_name: newSummary.tdvsp_name,
+        tdvsp_date: newSummary.tdvsp_date || undefined,
+        tdvsp_summary: newSummary.tdvsp_summary || undefined,
+        "tdvsp_Account@odata.bind": `/accounts(${viewingAccount.accountid})`,
+      });
+      setAddSummaryOpen(false);
+      setNewSummary({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "" });
+      loadRelatedRecords(viewingAccount.accountid);
+    } catch (err) {
+      console.error("Failed to add meeting summary:", err);
     }
   };
 
@@ -460,6 +585,7 @@ export const Accounts: React.FC = () => {
                           <div className={styles.relatedHeader}>
                             <Subtitle1>Contacts</Subtitle1>
                             <span className={styles.badge}>{relatedContacts.length}</span>
+                            <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Add</Button>
                           </div>
                           {relatedContacts.length === 0 ? (
                             <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No contacts</Caption1>
@@ -480,6 +606,7 @@ export const Accounts: React.FC = () => {
                           <div className={styles.relatedHeader}>
                             <Subtitle1>Action Items</Subtitle1>
                             <span className={styles.badge}>{relatedTasks.length}</span>
+                            <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddActionItemOpen(true)}>Add</Button>
                           </div>
                           {relatedTasks.length === 0 ? (
                             <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No tasks</Caption1>
@@ -500,6 +627,7 @@ export const Accounts: React.FC = () => {
                           <div className={styles.relatedHeader}>
                             <Subtitle1>Ideas</Subtitle1>
                             <span className={styles.badge}>{relatedIdeas.length}</span>
+                            <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddIdeaOpen(true)}>Add</Button>
                           </div>
                           {relatedIdeas.length === 0 ? (
                             <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas</Caption1>
@@ -525,6 +653,7 @@ export const Accounts: React.FC = () => {
                           <div className={styles.relatedHeader}>
                             <Subtitle1>High-Value Activities</Subtitle1>
                             <span className={styles.badge}>{relatedActivities.length}</span>
+                            <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddActivityOpen(true)}>Add</Button>
                           </div>
                           {relatedActivities.length === 0 ? (
                             <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No activities</Caption1>
@@ -545,6 +674,7 @@ export const Accounts: React.FC = () => {
                           <div className={styles.relatedHeader}>
                             <Subtitle1>Impacts</Subtitle1>
                             <span className={styles.badge}>{relatedImpacts.length}</span>
+                            <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Add</Button>
                           </div>
                           {relatedImpacts.length === 0 ? (
                             <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No impacts</Caption1>
@@ -565,6 +695,7 @@ export const Accounts: React.FC = () => {
                           <div className={styles.relatedHeader}>
                             <Subtitle1>Meeting Summaries</Subtitle1>
                             <span className={styles.badge}>{relatedSummaries.length}</span>
+                            <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Add</Button>
                           </div>
                           {relatedSummaries.length === 0 ? (
                             <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No meeting summaries</Caption1>
@@ -636,6 +767,204 @@ export const Accounts: React.FC = () => {
               >
                 Edit
               </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Contact Dialog */}
+      <Dialog open={addContactOpen} onOpenChange={(_, d) => setAddContactOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Add Contact to {viewingAccount?.name}</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className={styles.formField}>
+                    <Label required>First Name</Label>
+                    <Input value={newContact.firstname} onChange={(_, d) => setNewContact({ ...newContact, firstname: d.value })} />
+                  </div>
+                  <div className={styles.formField}>
+                    <Label required>Last Name</Label>
+                    <Input value={newContact.lastname} onChange={(_, d) => setNewContact({ ...newContact, lastname: d.value })} />
+                  </div>
+                </div>
+                <div className={styles.formField}>
+                  <Label>Email</Label>
+                  <Input type="email" value={newContact.emailaddress1} onChange={(_, d) => setNewContact({ ...newContact, emailaddress1: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Phone</Label>
+                  <Input value={newContact.telephone1} onChange={(_, d) => setNewContact({ ...newContact, telephone1: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Job Title</Label>
+                  <Input value={newContact.jobtitle} onChange={(_, d) => setNewContact({ ...newContact, jobtitle: d.value })} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddContactOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddContact} disabled={!newContact.firstname || !newContact.lastname}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Action Item Dialog */}
+      <Dialog open={addActionItemOpen} onOpenChange={(_, d) => setAddActionItemOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Add Action Item to {viewingAccount?.name}</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className={styles.formField}>
+                  <Label required>Name</Label>
+                  <Input value={newActionItem.tdvsp_name} onChange={(_, d) => setNewActionItem({ ...newActionItem, tdvsp_name: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Date</Label>
+                  <Input type="date" value={newActionItem.tdvsp_date} onChange={(_, d) => setNewActionItem({ ...newActionItem, tdvsp_date: d.value })} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddActionItemOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddActionItem} disabled={!newActionItem.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Idea Dialog */}
+      <Dialog open={addIdeaOpen} onOpenChange={(_, d) => setAddIdeaOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Add Idea to {viewingAccount?.name}</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className={styles.formField}>
+                  <Label required>Name</Label>
+                  <Input value={newIdea.tdvsp_name} onChange={(_, d) => setNewIdea({ ...newIdea, tdvsp_name: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Category</Label>
+                  <Dropdown
+                    placeholder="Select category"
+                    value={newIdea.tdvsp_category ? ideaCategoryLabels[Number(newIdea.tdvsp_category) as IdeaCategory] : ""}
+                    onOptionSelect={(_, d) => setNewIdea({ ...newIdea, tdvsp_category: d.optionValue ?? "" })}
+                  >
+                    {Object.entries(ideaCategoryLabels).map(([value, label]) => (
+                      <Option key={value} value={value} text={label}>{label}</Option>
+                    ))}
+                  </Dropdown>
+                </div>
+                <div className={styles.formField}>
+                  <Label>Description</Label>
+                  <Textarea value={newIdea.tdvsp_description} onChange={(_, d) => setNewIdea({ ...newIdea, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddIdeaOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddIdea} disabled={!newIdea.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add High-Value Activity Dialog */}
+      <Dialog open={addActivityOpen} onOpenChange={(_, d) => setAddActivityOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Add High-Value Activity to {viewingAccount?.name}</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className={styles.formField}>
+                  <Label required>Name</Label>
+                  <Input value={newActivity.tdvsp_name} onChange={(_, d) => setNewActivity({ ...newActivity, tdvsp_name: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Date</Label>
+                  <Input type="date" value={newActivity.tdvsp_date} onChange={(_, d) => setNewActivity({ ...newActivity, tdvsp_date: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Description</Label>
+                  <Textarea value={newActivity.tdvsp_description} onChange={(_, d) => setNewActivity({ ...newActivity, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddActivityOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddActivity} disabled={!newActivity.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Impact Dialog */}
+      <Dialog open={addImpactOpen} onOpenChange={(_, d) => setAddImpactOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Add Impact to {viewingAccount?.name}</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className={styles.formField}>
+                  <Label required>Name</Label>
+                  <Input value={newImpact.tdvsp_name} onChange={(_, d) => setNewImpact({ ...newImpact, tdvsp_name: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Date</Label>
+                  <Input type="date" value={newImpact.tdvsp_date} onChange={(_, d) => setNewImpact({ ...newImpact, tdvsp_date: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Description</Label>
+                  <Textarea value={newImpact.tdvsp_description} onChange={(_, d) => setNewImpact({ ...newImpact, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddImpactOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddImpact} disabled={!newImpact.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Meeting Summary Dialog */}
+      <Dialog open={addSummaryOpen} onOpenChange={(_, d) => setAddSummaryOpen(d.open)}>
+        <DialogSurface style={{ maxWidth: "600px", width: "600px" }}>
+          <DialogBody>
+            <DialogTitle>Add Meeting Summary to {viewingAccount?.name}</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className={styles.formField}>
+                  <Label required>Name</Label>
+                  <Input value={newSummary.tdvsp_name} onChange={(_, d) => setNewSummary({ ...newSummary, tdvsp_name: d.value })} placeholder="Meeting title or name" />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Date</Label>
+                  <Input type="date" value={newSummary.tdvsp_date} onChange={(_, d) => setNewSummary({ ...newSummary, tdvsp_date: d.value })} />
+                </div>
+                <div className={styles.formField}>
+                  <Label>Summary</Label>
+                  <Textarea
+                    value={newSummary.tdvsp_summary}
+                    onChange={(_, d) => setNewSummary({ ...newSummary, tdvsp_summary: d.value })}
+                    placeholder="Enter meeting summary..."
+                    rows={8}
+                    style={{ resize: "vertical", minHeight: "150px" }}
+                    maxLength={5000}
+                  />
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3, textAlign: "right" }}>
+                    {newSummary.tdvsp_summary.length} / 5000
+                  </Caption1>
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddSummaryOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddSummary} disabled={!newSummary.tdvsp_name}>Save</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
