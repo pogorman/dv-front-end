@@ -21,7 +21,7 @@ import {
 import {
   Building24Filled,
   ContactCard24Filled,
-  Lightbulb24Filled,
+  Briefcase24Filled,
   TaskListSquareLtr24Filled,
   Warning24Filled,
   Pin24Regular,
@@ -31,8 +31,8 @@ import {
   Attach16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Idea, Annotation, ideaCategoryLabels, NoteEntityType } from "../types";
-import { getActionItems, getAccounts, getCustomers, getIdeas, getAnnotationsByIds } from "../services/dataverseService";
+import { ActionItem, Account, Customer, Project, Annotation, NoteEntityType } from "../types";
+import { getActionItems, getAccounts, getCustomers, getProjects, getAnnotationsByIds } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
 
@@ -189,7 +189,7 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Customer[]>([]);
-  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
   // Pinned notes state
@@ -201,7 +201,7 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     getAccounts().then(setAccounts).catch(console.error);
     getCustomers().then(setContacts).catch(console.error);
-    getIdeas().then(setIdeas).catch(console.error);
+    getProjects().then(setProjects).catch(console.error);
     getActionItems().then(setActionItems).catch(console.error);
   }, []);
 
@@ -308,21 +308,21 @@ export const Dashboard: React.FC = () => {
               </Caption1>
             </Card>
 
-            <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
+            <Card className={styles.statCard} onClick={() => navigate("/projects")}>
               <div className={styles.statHeader}>
-                <Caption1>Ideas</Caption1>
+                <Caption1>Projects</Caption1>
                 <div
                   className={styles.statIconWrap}
-                  style={{ backgroundColor: "#fef3e2" }}
+                  style={{ backgroundColor: "#e8f0fe" }}
                 >
-                  <Lightbulb24Filled style={{ color: "#d48000" }} />
+                  <Briefcase24Filled style={{ color: "#5b5fc7" }} />
                 </div>
               </div>
-              <div className={styles.statNumber} style={{ color: "#d48000" }}>
-                {ideas.length}
+              <div className={styles.statNumber} style={{ color: "#5b5fc7" }}>
+                {projects.length}
               </div>
               <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                Total ideas
+                Total projects
               </Caption1>
             </Card>
 
@@ -367,44 +367,37 @@ export const Dashboard: React.FC = () => {
           <div className={styles.sectionGrid}>
             <Card className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
-                <Subtitle1>Recent Ideas</Subtitle1>
+                <Subtitle1>Recent Projects</Subtitle1>
                 <Button
                   appearance="subtle"
                   size="small"
                   icon={<Add16Regular />}
-                  onClick={() => navigate("/ideas")}
+                  onClick={() => navigate("/projects")}
                 >
                   New
                 </Button>
               </div>
-              {ideas.length === 0 ? (
+              {projects.length === 0 ? (
                 <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
-                  No ideas yet
+                  No projects yet
                 </Body1>
               ) : (
-                ideas.slice(0, 4).map((idea, i) => (
-                  <React.Fragment key={idea.tdvsp_ideaid}>
+                projects.slice(0, 4).map((project, i) => (
+                  <React.Fragment key={project.tdvsp_projectid}>
                     {i > 0 && <Divider />}
-                    <div className={styles.listItem} onClick={() => navigate("/ideas")}>
+                    <div className={styles.listItem} onClick={() => navigate("/projects")}>
                       <div>
                         <Text weight="semibold" block className={styles.nameLink}>
-                          {idea.tdvsp_name}
+                          {project.tdvsp_name}
                         </Text>
-                        <Caption1
-                          style={{ color: tokens.colorNeutralForeground3 }}
-                        >
-                          {idea.tdvsp_category
-                            ? ideaCategoryLabels[idea.tdvsp_category]
-                            : ""}
-                          {idea.tdvsp_Account?.name &&
-                            `${idea.tdvsp_category ? " · " : ""}${idea.tdvsp_Account.name}`}
-                        </Caption1>
+                        {project.tdvsp_Account?.name && (
+                          <Caption1
+                            style={{ color: tokens.colorNeutralForeground3 }}
+                          >
+                            {project.tdvsp_Account.name}
+                          </Caption1>
+                        )}
                       </div>
-                      {idea.tdvsp_category && (
-                        <Badge appearance="outline" color="informative">
-                          {ideaCategoryLabels[idea.tdvsp_category]}
-                        </Badge>
-                      )}
                     </div>
                   </React.Fragment>
                 ))
