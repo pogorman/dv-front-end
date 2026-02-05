@@ -189,6 +189,7 @@ export const Accounts: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [parentAccountId, setParentAccountId] = useState<string>("");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
@@ -237,6 +238,7 @@ export const Accounts: React.FC = () => {
   const openNew = () => {
     setEditingId(null);
     setName("");
+    setParentAccountId("");
     setDialogOpen(true);
   };
 
@@ -250,18 +252,31 @@ export const Accounts: React.FC = () => {
     setViewingAccount(null);
     setEditingId(account.accountid ?? null);
     setName(account.name);
+    setParentAccountId(account._parentaccountid_value ?? "");
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
     try {
+      const payload: {
+        name: string;
+        "parentaccountid@odata.bind"?: string | null;
+      } = { name };
+
+      if (parentAccountId) {
+        payload["parentaccountid@odata.bind"] = `/accounts(${parentAccountId})`;
+      } else if (editingId) {
+        payload["parentaccountid@odata.bind"] = null;
+      }
+
       if (editingId) {
-        await updateAccount(editingId, { name });
+        await updateAccount(editingId, payload);
       } else {
-        await createAccount({ name });
+        await createAccount(payload);
       }
       setDialogOpen(false);
       setName("");
+      setParentAccountId("");
       setEditingId(null);
       loadAccounts();
     } catch (err) {
@@ -514,15 +529,47 @@ export const Accounts: React.FC = () => {
             <DialogBody>
               <DialogTitle>{editingId ? "Edit Account" : "New Account"}</DialogTitle>
               <DialogContent>
-                <div className={styles.formField}>
-                  <Label htmlFor="accountname" required>
-                    Account Name
-                  </Label>
-                  <Input
-                    id="accountname"
-                    value={name}
-                    onChange={(_, d) => setName(d.value)}
-                  />
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div className={styles.formField}>
+                    <Label htmlFor="accountname" required>
+                      Account Name
+                    </Label>
+                    <Input
+                      id="accountname"
+                      value={name}
+                      onChange={(_, d) => setName(d.value)}
+                    />
+                  </div>
+                  <div className={styles.formField}>
+                    <Label>Parent Account</Label>
+                    <Dropdown
+                      placeholder="Select parent account"
+                      value={
+                        parentAccountId
+                          ? accounts.find((a) => a.accountid === parentAccountId)?.name ?? ""
+                          : ""
+                      }
+                      selectedOptions={parentAccountId ? [parentAccountId] : []}
+                      onOptionSelect={(_, d) =>
+                        setParentAccountId(d.optionValue ?? "")
+                      }
+                    >
+                      <Option value="" text="(None)">
+                        (None)
+                      </Option>
+                      {accounts
+                        .filter((a) => a.accountid !== editingId)
+                        .map((a) => (
+                          <Option
+                            key={a.accountid}
+                            value={a.accountid!}
+                            text={a.name}
+                          >
+                            {a.name}
+                          </Option>
+                        ))}
+                    </Dropdown>
+                  </div>
                 </div>
               </DialogContent>
               <DialogActions>

@@ -54,14 +54,20 @@ export async function getAccounts(): Promise<Account[]> {
 }
 
 export async function createAccount(
-  account: Omit<Account, "accountid">
+  account: {
+    name: string;
+    "parentaccountid@odata.bind"?: string | null;
+  }
 ): Promise<Account> {
   return apiRequest("/accounts", "POST", account);
 }
 
 export async function updateAccount(
   id: string,
-  account: Partial<Account>
+  account: {
+    name?: string;
+    "parentaccountid@odata.bind"?: string | null;
+  }
 ): Promise<Account> {
   return apiRequest(`/accounts(${id})`, "PATCH", account);
 }

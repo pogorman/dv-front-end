@@ -13,13 +13,14 @@ import {
 } from "@fluentui/react-components";
 import {
   Building24Filled,
-  Star24Filled,
+  ContactCard24Filled,
+  Lightbulb24Filled,
   TaskListSquareLtr24Filled,
   Warning24Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { HighValueActivity, ActionItem, Account } from "../types";
-import { getActivities, getActionItems, getAccounts } from "../services/dataverseService";
+import { ActionItem, Account, Customer, Idea, ideaCategoryLabels } from "../types";
+import { getActionItems, getAccounts, getCustomers, getIdeas } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 
 const useStyles = makeStyles({
@@ -94,16 +95,17 @@ export const Dashboard: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [activities, setActivities] = useState<HighValueActivity[]>([]);
+  const [contacts, setContacts] = useState<Customer[]>([]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
 
   useEffect(() => {
     getAccounts().then(setAccounts).catch(console.error);
-    getActivities().then(setActivities).catch(console.error);
+    getCustomers().then(setContacts).catch(console.error);
+    getIdeas().then(setIdeas).catch(console.error);
     getActionItems().then(setActionItems).catch(console.error);
   }, []);
 
-  const upcomingActivities = activities.slice(0, 4);
   const overdueTasks = actionItems.filter(
     (t) => t.tdvsp_date && new Date(t.tdvsp_date) < new Date()
   );
@@ -144,21 +146,39 @@ export const Dashboard: React.FC = () => {
           </Caption1>
         </Card>
 
-        <Card className={styles.statCard} onClick={() => navigate("/activities")}>
+        <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
           <div className={styles.statHeader}>
-            <Caption1>Upcoming Activities</Caption1>
+            <Caption1>Contacts</Caption1>
+            <div
+              className={styles.statIconWrap}
+              style={{ backgroundColor: "#e8e0f0" }}
+            >
+              <ContactCard24Filled style={{ color: "#7c3aed" }} />
+            </div>
+          </div>
+          <div className={styles.statNumber} style={{ color: "#7c3aed" }}>
+            {contacts.length}
+          </div>
+          <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+            Total contacts
+          </Caption1>
+        </Card>
+
+        <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
+          <div className={styles.statHeader}>
+            <Caption1>Ideas</Caption1>
             <div
               className={styles.statIconWrap}
               style={{ backgroundColor: "#fef3e2" }}
             >
-              <Star24Filled style={{ color: "#d48000" }} />
+              <Lightbulb24Filled style={{ color: "#d48000" }} />
             </div>
           </div>
           <div className={styles.statNumber} style={{ color: "#d48000" }}>
-            {upcomingActivities.length}
+            {ideas.length}
           </div>
           <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-            Scheduled
+            Total ideas
           </Caption1>
         </Card>
 
@@ -202,33 +222,33 @@ export const Dashboard: React.FC = () => {
       {/* Detail Sections */}
       <div className={styles.sectionGrid}>
         <Card className={styles.sectionCard}>
-          <Subtitle1 style={{ marginBottom: 16 }}>
-            Upcoming Activities
-          </Subtitle1>
-          {upcomingActivities.length === 0 ? (
+          <Subtitle1 style={{ marginBottom: 16 }}>Recent Ideas</Subtitle1>
+          {ideas.length === 0 ? (
             <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
-              No upcoming activities
+              No ideas yet
             </Body1>
           ) : (
-            upcomingActivities.map((a, i) => (
-              <React.Fragment key={a.tdvsp_hvaid}>
+            ideas.slice(0, 4).map((idea, i) => (
+              <React.Fragment key={idea.tdvsp_ideaid}>
                 {i > 0 && <Divider />}
                 <div className={styles.listItem}>
                   <div>
                     <Text weight="semibold" block>
-                      {a.tdvsp_name}
+                      {idea.tdvsp_name}
                     </Text>
-                    {a.tdvsp_Customer?.name && (
-                      <Caption1
-                        style={{ color: tokens.colorNeutralForeground3 }}
-                      >
-                        {a.tdvsp_Customer.name}
-                      </Caption1>
-                    )}
+                    <Caption1
+                      style={{ color: tokens.colorNeutralForeground3 }}
+                    >
+                      {idea.tdvsp_category
+                        ? ideaCategoryLabels[idea.tdvsp_category]
+                        : ""}
+                      {idea.tdvsp_Account?.name &&
+                        `${idea.tdvsp_category ? " · " : ""}${idea.tdvsp_Account.name}`}
+                    </Caption1>
                   </div>
-                  {a.tdvsp_date && (
+                  {idea.tdvsp_category && (
                     <Badge appearance="outline" color="informative">
-                      {formatDate(a.tdvsp_date)}
+                      {ideaCategoryLabels[idea.tdvsp_category]}
                     </Badge>
                   )}
                 </div>
