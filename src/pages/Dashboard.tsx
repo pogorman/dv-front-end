@@ -17,6 +17,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Input,
+  Label,
+  Dropdown,
+  Option,
+  Textarea,
 } from "@fluentui/react-components";
 import {
   Building24Filled,
@@ -30,8 +35,22 @@ import {
   Attach16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Annotation, NoteEntityType } from "../types";
-import { getActionItems, getAccounts, getCustomers, getProjects, getAnnotationsByIds } from "../services/dataverseService";
+import { ActionItem, Account, Customer, Project, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels } from "../types";
+import {
+  getActionItems,
+  getAccounts,
+  getCustomers,
+  getProjects,
+  getAnnotationsByIds,
+  createAccount,
+  createCustomer,
+  createProject,
+  createActionItem,
+  createIdea,
+  createActivity,
+  createImpact,
+  createMeetingSummary,
+} from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
 
@@ -209,6 +228,26 @@ export const Dashboard: React.FC = () => {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<{ annotation: Annotation; entityName: string; entityType: NoteEntityType } | null>(null);
 
+  // Quick add dialog state
+  const [addAccountOpen, setAddAccountOpen] = useState(false);
+  const [addContactOpen, setAddContactOpen] = useState(false);
+  const [addProjectOpen, setAddProjectOpen] = useState(false);
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
+  const [addIdeaOpen, setAddIdeaOpen] = useState(false);
+  const [addHvaOpen, setAddHvaOpen] = useState(false);
+  const [addImpactOpen, setAddImpactOpen] = useState(false);
+  const [addSummaryOpen, setAddSummaryOpen] = useState(false);
+
+  // Form data for quick add dialogs
+  const [newAccount, setNewAccount] = useState({ name: "", parentAccountId: "" });
+  const [newContact, setNewContact] = useState({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "", accountId: "" });
+  const [newProject, setNewProject] = useState({ tdvsp_name: "", tdvsp_description: "", accountId: "" });
+  const [newTask, setNewTask] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "" });
+  const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string, accountId: "" });
+  const [newHva, setNewHva] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
+  const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
+  const [newSummary, setNewSummary] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "" });
+
   useEffect(() => {
     getAccounts().then(setAccounts).catch(console.error);
     getCustomers().then(setContacts).catch(console.error);
@@ -233,6 +272,198 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     loadPinnedAnnotations();
   }, [loadPinnedAnnotations]);
+
+  // Quick add handlers
+  const handleAddAccount = async () => {
+    if (!newAccount.name) return;
+    try {
+      const payload: { name: string; "parentaccountid@odata.bind"?: string } = { name: newAccount.name };
+      if (newAccount.parentAccountId) {
+        payload["parentaccountid@odata.bind"] = `/accounts(${newAccount.parentAccountId})`;
+      }
+      await createAccount(payload);
+      setAddAccountOpen(false);
+      setNewAccount({ name: "", parentAccountId: "" });
+      getAccounts().then(setAccounts).catch(console.error);
+    } catch (err) {
+      console.error("Failed to add account:", err);
+    }
+  };
+
+  const handleAddContact = async () => {
+    if (!newContact.firstname || !newContact.lastname) return;
+    try {
+      const payload: {
+        firstname: string;
+        lastname: string;
+        emailaddress1: string;
+        telephone1: string;
+        jobtitle: string;
+        "parentcustomerid_account@odata.bind"?: string;
+      } = {
+        firstname: newContact.firstname,
+        lastname: newContact.lastname,
+        emailaddress1: newContact.emailaddress1,
+        telephone1: newContact.telephone1,
+        jobtitle: newContact.jobtitle,
+      };
+      if (newContact.accountId) {
+        payload["parentcustomerid_account@odata.bind"] = `/accounts(${newContact.accountId})`;
+      }
+      await createCustomer(payload);
+      setAddContactOpen(false);
+      setNewContact({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "", accountId: "" });
+      getCustomers().then(setContacts).catch(console.error);
+    } catch (err) {
+      console.error("Failed to add contact:", err);
+    }
+  };
+
+  const handleAddProject = async () => {
+    if (!newProject.tdvsp_name) return;
+    try {
+      const payload: {
+        tdvsp_name: string;
+        tdvsp_description?: string;
+        "tdvsp_Account@odata.bind"?: string;
+      } = {
+        tdvsp_name: newProject.tdvsp_name,
+        tdvsp_description: newProject.tdvsp_description || undefined,
+      };
+      if (newProject.accountId) {
+        payload["tdvsp_Account@odata.bind"] = `/accounts(${newProject.accountId})`;
+      }
+      await createProject(payload);
+      setAddProjectOpen(false);
+      setNewProject({ tdvsp_name: "", tdvsp_description: "", accountId: "" });
+      getProjects().then(setProjects).catch(console.error);
+    } catch (err) {
+      console.error("Failed to add project:", err);
+    }
+  };
+
+  const handleAddTask = async () => {
+    if (!newTask.tdvsp_name) return;
+    try {
+      const payload: {
+        tdvsp_name: string;
+        tdvsp_date: string;
+        tdvsp_description?: string;
+        "tdvsp_Customer@odata.bind"?: string;
+      } = {
+        tdvsp_name: newTask.tdvsp_name,
+        tdvsp_date: newTask.tdvsp_date || new Date().toISOString().split("T")[0],
+        tdvsp_description: newTask.tdvsp_description || undefined,
+      };
+      if (newTask.accountId) {
+        payload["tdvsp_Customer@odata.bind"] = `/accounts(${newTask.accountId})`;
+      }
+      await createActionItem(payload);
+      setAddTaskOpen(false);
+      setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "" });
+      getActionItems().then(setActionItems).catch(console.error);
+    } catch (err) {
+      console.error("Failed to add action item:", err);
+    }
+  };
+
+  const handleAddIdea = async () => {
+    if (!newIdea.tdvsp_name) return;
+    try {
+      const payload: {
+        tdvsp_name: string;
+        tdvsp_description?: string;
+        tdvsp_category?: IdeaCategory;
+        "tdvsp_Account@odata.bind"?: string;
+      } = {
+        tdvsp_name: newIdea.tdvsp_name,
+        tdvsp_description: newIdea.tdvsp_description || undefined,
+      };
+      if (newIdea.tdvsp_category) {
+        payload.tdvsp_category = Number(newIdea.tdvsp_category) as IdeaCategory;
+      }
+      if (newIdea.accountId) {
+        payload["tdvsp_Account@odata.bind"] = `/accounts(${newIdea.accountId})`;
+      }
+      await createIdea(payload);
+      setAddIdeaOpen(false);
+      setNewIdea({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "", accountId: "" });
+    } catch (err) {
+      console.error("Failed to add idea:", err);
+    }
+  };
+
+  const handleAddHva = async () => {
+    if (!newHva.tdvsp_name) return;
+    try {
+      const payload: {
+        tdvsp_name: string;
+        tdvsp_description: string;
+        tdvsp_date: string;
+        "tdvsp_Customer@odata.bind"?: string;
+      } = {
+        tdvsp_name: newHva.tdvsp_name,
+        tdvsp_description: newHva.tdvsp_description,
+        tdvsp_date: newHva.tdvsp_date || new Date().toISOString().split("T")[0],
+      };
+      if (newHva.accountId) {
+        payload["tdvsp_Customer@odata.bind"] = `/accounts(${newHva.accountId})`;
+      }
+      await createActivity(payload);
+      setAddHvaOpen(false);
+      setNewHva({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
+    } catch (err) {
+      console.error("Failed to add HVA:", err);
+    }
+  };
+
+  const handleAddImpact = async () => {
+    if (!newImpact.tdvsp_name) return;
+    try {
+      const payload: {
+        tdvsp_name: string;
+        tdvsp_description: string;
+        tdvsp_date: string;
+        "tdvsp_Customer@odata.bind"?: string;
+      } = {
+        tdvsp_name: newImpact.tdvsp_name,
+        tdvsp_description: newImpact.tdvsp_description,
+        tdvsp_date: newImpact.tdvsp_date || new Date().toISOString().split("T")[0],
+      };
+      if (newImpact.accountId) {
+        payload["tdvsp_Customer@odata.bind"] = `/accounts(${newImpact.accountId})`;
+      }
+      await createImpact(payload);
+      setAddImpactOpen(false);
+      setNewImpact({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
+    } catch (err) {
+      console.error("Failed to add impact:", err);
+    }
+  };
+
+  const handleAddSummary = async () => {
+    if (!newSummary.tdvsp_name) return;
+    try {
+      const payload: {
+        tdvsp_name: string;
+        tdvsp_date?: string;
+        tdvsp_summary?: string;
+        "tdvsp_Account@odata.bind"?: string;
+      } = {
+        tdvsp_name: newSummary.tdvsp_name,
+        tdvsp_date: newSummary.tdvsp_date || undefined,
+        tdvsp_summary: newSummary.tdvsp_summary || undefined,
+      };
+      if (newSummary.accountId) {
+        payload["tdvsp_Account@odata.bind"] = `/accounts(${newSummary.accountId})`;
+      }
+      await createMeetingSummary(payload);
+      setAddSummaryOpen(false);
+      setNewSummary({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "" });
+    } catch (err) {
+      console.error("Failed to add meeting summary:", err);
+    }
+  };
 
   const handleUnpin = (annotationid: string) => {
     unpinNote(annotationid);
@@ -262,14 +493,14 @@ export const Dashboard: React.FC = () => {
     <div className={styles.container}>
       {/* Quick Action Buttons */}
       <div className={styles.quickActions}>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/accounts?new=true")}>Account</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/contacts?new=true")}>Contact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/projects?new=true")}>Project</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/tasks?new=true")}>Action Item</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/ideas?new=true")}>Idea</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/activities?new=true")}>HVA</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/impacts?new=true")}>Impact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/summaries?new=true")}>Meeting Summary</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddIdeaOpen(true)}>Idea</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddHvaOpen(true)}>HVA</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
       </div>
 
       {/* Welcome Banner */}
@@ -578,6 +809,370 @@ export const Dashboard: React.FC = () => {
               <Button appearance="primary" onClick={() => setNoteDialogOpen(false)}>
                 Close
               </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Account Dialog */}
+      <Dialog open={addAccountOpen} onOpenChange={(_, d) => setAddAccountOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>New Account</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label required>Account Name</Label>
+                  <Input value={newAccount.name} onChange={(_, d) => setNewAccount({ ...newAccount, name: d.value })} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Parent Account</Label>
+                  <Dropdown
+                    placeholder="Select parent account"
+                    value={newAccount.parentAccountId ? accounts.find((a) => a.accountid === newAccount.parentAccountId)?.name ?? "" : ""}
+                    onOptionSelect={(_, d) => setNewAccount({ ...newAccount, parentAccountId: d.optionValue ?? "" })}
+                  >
+                    <Option value="" text="(None)">(None)</Option>
+                    {accounts.map((a) => (
+                      <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                    ))}
+                  </Dropdown>
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddAccountOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddAccount} disabled={!newAccount.name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Contact Dialog */}
+      <Dialog open={addContactOpen} onOpenChange={(_, d) => setAddContactOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>New Contact</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label required>First Name</Label>
+                    <Input value={newContact.firstname} onChange={(_, d) => setNewContact({ ...newContact, firstname: d.value })} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label required>Last Name</Label>
+                    <Input value={newContact.lastname} onChange={(_, d) => setNewContact({ ...newContact, lastname: d.value })} />
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Email</Label>
+                  <Input type="email" value={newContact.emailaddress1} onChange={(_, d) => setNewContact({ ...newContact, emailaddress1: d.value })} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Phone</Label>
+                    <Input value={newContact.telephone1} onChange={(_, d) => setNewContact({ ...newContact, telephone1: d.value })} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Job Title</Label>
+                    <Input value={newContact.jobtitle} onChange={(_, d) => setNewContact({ ...newContact, jobtitle: d.value })} />
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Account</Label>
+                  <Dropdown
+                    placeholder="Select account"
+                    value={newContact.accountId ? accounts.find((a) => a.accountid === newContact.accountId)?.name ?? "" : ""}
+                    onOptionSelect={(_, d) => setNewContact({ ...newContact, accountId: d.optionValue ?? "" })}
+                  >
+                    <Option value="" text="(None)">(None)</Option>
+                    {accounts.map((a) => (
+                      <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                    ))}
+                  </Dropdown>
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddContactOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddContact} disabled={!newContact.firstname || !newContact.lastname}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Project Dialog */}
+      <Dialog open={addProjectOpen} onOpenChange={(_, d) => setAddProjectOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>New Project</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label required>Name</Label>
+                  <Input value={newProject.tdvsp_name} onChange={(_, d) => setNewProject({ ...newProject, tdvsp_name: d.value })} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Account</Label>
+                  <Dropdown
+                    placeholder="Select account"
+                    value={newProject.accountId ? accounts.find((a) => a.accountid === newProject.accountId)?.name ?? "" : ""}
+                    onOptionSelect={(_, d) => setNewProject({ ...newProject, accountId: d.optionValue ?? "" })}
+                  >
+                    <Option value="" text="(None)">(None)</Option>
+                    {accounts.map((a) => (
+                      <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                    ))}
+                  </Dropdown>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Description</Label>
+                  <Textarea value={newProject.tdvsp_description} onChange={(_, d) => setNewProject({ ...newProject, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddProjectOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddProject} disabled={!newProject.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Action Item Dialog */}
+      <Dialog open={addTaskOpen} onOpenChange={(_, d) => setAddTaskOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>New Action Item</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label required>Name</Label>
+                  <Input value={newTask.tdvsp_name} onChange={(_, d) => setNewTask({ ...newTask, tdvsp_name: d.value })} placeholder="What needs to be done?" />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Date</Label>
+                    <Input type="date" value={newTask.tdvsp_date} onChange={(_, d) => setNewTask({ ...newTask, tdvsp_date: d.value })} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Account</Label>
+                    <Dropdown
+                      placeholder="Select account"
+                      value={newTask.accountId ? accounts.find((a) => a.accountid === newTask.accountId)?.name ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewTask({ ...newTask, accountId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {accounts.map((a) => (
+                        <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Description</Label>
+                  <Textarea value={newTask.tdvsp_description} onChange={(_, d) => setNewTask({ ...newTask, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddTaskOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddTask} disabled={!newTask.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Idea Dialog */}
+      <Dialog open={addIdeaOpen} onOpenChange={(_, d) => setAddIdeaOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>New Idea</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label required>Name</Label>
+                  <Input value={newIdea.tdvsp_name} onChange={(_, d) => setNewIdea({ ...newIdea, tdvsp_name: d.value })} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Category</Label>
+                    <Dropdown
+                      placeholder="Select category"
+                      value={newIdea.tdvsp_category ? ideaCategoryLabels[Number(newIdea.tdvsp_category) as IdeaCategory] : ""}
+                      onOptionSelect={(_, d) => setNewIdea({ ...newIdea, tdvsp_category: d.optionValue ?? "" })}
+                    >
+                      {Object.entries(ideaCategoryLabels).map(([value, label]) => (
+                        <Option key={value} value={value} text={label}>{label}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Account</Label>
+                    <Dropdown
+                      placeholder="Select account"
+                      value={newIdea.accountId ? accounts.find((a) => a.accountid === newIdea.accountId)?.name ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewIdea({ ...newIdea, accountId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {accounts.map((a) => (
+                        <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Description</Label>
+                  <Textarea value={newIdea.tdvsp_description} onChange={(_, d) => setNewIdea({ ...newIdea, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddIdeaOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddIdea} disabled={!newIdea.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add HVA Dialog */}
+      <Dialog open={addHvaOpen} onOpenChange={(_, d) => setAddHvaOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>New High-Value Activity</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label required>Name</Label>
+                  <Input value={newHva.tdvsp_name} onChange={(_, d) => setNewHva({ ...newHva, tdvsp_name: d.value })} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Date</Label>
+                    <Input type="date" value={newHva.tdvsp_date} onChange={(_, d) => setNewHva({ ...newHva, tdvsp_date: d.value })} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Account</Label>
+                    <Dropdown
+                      placeholder="Select account"
+                      value={newHva.accountId ? accounts.find((a) => a.accountid === newHva.accountId)?.name ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewHva({ ...newHva, accountId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {accounts.map((a) => (
+                        <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Description</Label>
+                  <Textarea value={newHva.tdvsp_description} onChange={(_, d) => setNewHva({ ...newHva, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddHvaOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddHva} disabled={!newHva.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Impact Dialog */}
+      <Dialog open={addImpactOpen} onOpenChange={(_, d) => setAddImpactOpen(d.open)}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>New Impact</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label required>Name</Label>
+                  <Input value={newImpact.tdvsp_name} onChange={(_, d) => setNewImpact({ ...newImpact, tdvsp_name: d.value })} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Date</Label>
+                    <Input type="date" value={newImpact.tdvsp_date} onChange={(_, d) => setNewImpact({ ...newImpact, tdvsp_date: d.value })} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Account</Label>
+                    <Dropdown
+                      placeholder="Select account"
+                      value={newImpact.accountId ? accounts.find((a) => a.accountid === newImpact.accountId)?.name ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewImpact({ ...newImpact, accountId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {accounts.map((a) => (
+                        <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Description</Label>
+                  <Textarea value={newImpact.tdvsp_description} onChange={(_, d) => setNewImpact({ ...newImpact, tdvsp_description: d.value })} rows={3} />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddImpactOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddImpact} disabled={!newImpact.tdvsp_name}>Save</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Meeting Summary Dialog */}
+      <Dialog open={addSummaryOpen} onOpenChange={(_, d) => setAddSummaryOpen(d.open)}>
+        <DialogSurface style={{ maxWidth: "600px", width: "600px" }}>
+          <DialogBody>
+            <DialogTitle>New Meeting Summary</DialogTitle>
+            <DialogContent>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label required>Name</Label>
+                  <Input value={newSummary.tdvsp_name} onChange={(_, d) => setNewSummary({ ...newSummary, tdvsp_name: d.value })} placeholder="Meeting title or name" />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Date</Label>
+                    <Input type="date" value={newSummary.tdvsp_date} onChange={(_, d) => setNewSummary({ ...newSummary, tdvsp_date: d.value })} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Account</Label>
+                    <Dropdown
+                      placeholder="Select account"
+                      value={newSummary.accountId ? accounts.find((a) => a.accountid === newSummary.accountId)?.name ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewSummary({ ...newSummary, accountId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {accounts.map((a) => (
+                        <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <Label>Summary</Label>
+                  <Textarea
+                    value={newSummary.tdvsp_summary}
+                    onChange={(_, d) => setNewSummary({ ...newSummary, tdvsp_summary: d.value })}
+                    placeholder="Enter meeting summary..."
+                    rows={8}
+                    style={{ resize: "vertical", minHeight: "150px" }}
+                    maxLength={5000}
+                  />
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3, textAlign: "right" }}>
+                    {newSummary.tdvsp_summary.length} / 5000
+                  </Caption1>
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setAddSummaryOpen(false)}>Cancel</Button>
+              <Button appearance="primary" onClick={handleAddSummary} disabled={!newSummary.tdvsp_name}>Save</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
