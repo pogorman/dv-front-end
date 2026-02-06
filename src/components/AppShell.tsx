@@ -38,6 +38,7 @@ import {
 } from "@fluentui/react-icons";
 import { useMsal } from "@azure/msal-react";
 import { useTheme } from "../context/ThemeContext";
+import { CopilotChat } from "./CopilotChat";
 
 const SIDEBAR_WIDTH = 260;
 const SIDEBAR_COLLAPSED = 56;
@@ -443,6 +444,9 @@ export const AppShell: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Copilot Chat */}
+      <CopilotChat />
     </div>
   );
 };

@@ -19,6 +19,7 @@ src/
 ├── auth/           # MSAL configuration (msalConfig.ts)
 ├── components/     # Shared components
 │   ├── AppShell.tsx         # Sidebar nav (sectioned) + theme toggle
+│   ├── CopilotChat.tsx      # Floating Copilot Studio chat widget
 │   └── NotesTimeline.tsx    # Shared notes component with file attachments
 ├── public/images/  # Static images (banner-bg.png for dashboard)
 ├── context/        # React context providers (ThemeContext for dark/light mode)
@@ -87,6 +88,7 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
   - Download attached files
   - Delete notes
 - **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
+- **Copilot Chat** - Floating chat button (bottom-right) connects to Copilot Studio agent. Uses `CopilotChat.tsx` component with Bot Framework Web Chat. Authenticates via MSAL with Power Platform API scope.
 
 ## Coding Conventions
 
@@ -106,6 +108,25 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
 3. On login, MSAL acquires token for Dataverse scope
 4. `TokenProviderSetup` component gates children until token provider is ready
 5. Token provider is set in dataverseService for all API calls
+
+## Copilot Studio Integration
+
+The app includes a floating chat widget connected to a Copilot Studio agent.
+
+**Configuration (in `CopilotChat.tsx`):**
+- Environment ID: `0582014c-9a6d-e35b-8705-5168c385f413`
+- Bot: `auto_agent_s82bp`
+- Token endpoint: Power Platform Copilot Studio API
+
+**Azure AD App Registration Requirements:**
+- Power Platform API permission (`https://api.powerplatform.com/.default`)
+- Delegated `user_impersonation` scope
+
+**How it works:**
+1. User clicks chat button (bottom-right corner)
+2. Component acquires Power Platform token via MSAL
+3. Calls Copilot Studio conversation endpoint to get Direct Line token
+4. Renders Bot Framework Web Chat with the token
 
 ## Git Workflow
 
