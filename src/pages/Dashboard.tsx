@@ -23,7 +23,6 @@ import {
   ContactCard24Filled,
   Briefcase24Filled,
   TaskListSquareLtr24Filled,
-  Warning24Filled,
   Pin24Regular,
   PinOff16Regular,
   Dismiss24Regular,
@@ -41,6 +40,16 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     ...shorthands.gap("24px"),
+  },
+  quickActions: {
+    display: "flex",
+    flexWrap: "wrap",
+    ...shorthands.gap("8px"),
+  },
+  quickActionBtn: {
+    ...shorthands.borderRadius("20px"),
+    fontSize: "13px",
+    fontWeight: "500",
   },
   welcomeCard: {
     ...shorthands.padding("32px"),
@@ -225,10 +234,6 @@ export const Dashboard: React.FC = () => {
     loadPinnedAnnotations();
   }, [loadPinnedAnnotations]);
 
-  const overdueTasks = actionItems.filter(
-    (t) => t.tdvsp_date && new Date(t.tdvsp_date) < new Date()
-  );
-
   const handleUnpin = (annotationid: string) => {
     unpinNote(annotationid);
     setPinnedRefs((prev) => prev.filter((r) => r.annotationid !== annotationid));
@@ -255,6 +260,18 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {/* Quick Action Buttons */}
+      <div className={styles.quickActions}>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/accounts")}>Account</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/contacts")}>Contact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/projects")}>Project</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/tasks")}>Action Item</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/ideas")}>Idea</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/activities")}>HVA</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/impacts")}>Impact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/summaries")}>Meeting Summary</Button>
+      </div>
+
       {/* Welcome Banner */}
       <div className={styles.welcomeCard}>
         <Text
@@ -346,66 +363,10 @@ export const Dashboard: React.FC = () => {
               </Caption1>
             </Card>
 
-            <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
-              <div className={styles.statHeader}>
-                <Caption1>Overdue</Caption1>
-                <div
-                  className={styles.statIconWrap}
-                  style={{ backgroundColor: "#fde7e9" }}
-                >
-                  <Warning24Filled style={{ color: "#d13438" }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#d13438" }}>
-                {overdueTasks.length}
-              </div>
-              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                Need attention
-              </Caption1>
-            </Card>
-          </div>
+                      </div>
 
           {/* Detail Sections */}
           <div className={styles.sectionGrid}>
-            <Card className={styles.sectionCard}>
-              <div className={styles.sectionHeader}>
-                <Subtitle1>Recent Projects</Subtitle1>
-                <Button
-                  appearance="subtle"
-                  size="small"
-                  icon={<Add16Regular />}
-                  onClick={() => navigate("/projects")}
-                >
-                  New
-                </Button>
-              </div>
-              {projects.length === 0 ? (
-                <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
-                  No projects yet
-                </Body1>
-              ) : (
-                projects.slice(0, 4).map((project, i) => (
-                  <React.Fragment key={project.tdvsp_projectid}>
-                    {i > 0 && <Divider />}
-                    <div className={styles.listItem} onClick={() => navigate("/projects")}>
-                      <div>
-                        <Text weight="semibold" block className={styles.nameLink}>
-                          {project.tdvsp_name}
-                        </Text>
-                        {project.tdvsp_Account?.name && (
-                          <Caption1
-                            style={{ color: tokens.colorNeutralForeground3 }}
-                          >
-                            {project.tdvsp_Account.name}
-                          </Caption1>
-                        )}
-                      </div>
-                    </div>
-                  </React.Fragment>
-                ))
-              )}
-            </Card>
-
             <Card className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <Subtitle1>Action Items</Subtitle1>
@@ -450,6 +411,45 @@ export const Dashboard: React.FC = () => {
                           {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
                         </Badge>
                       )}
+                    </div>
+                  </React.Fragment>
+                ))
+              )}
+            </Card>
+
+            <Card className={styles.sectionCard}>
+              <div className={styles.sectionHeader}>
+                <Subtitle1>Recent Projects</Subtitle1>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<Add16Regular />}
+                  onClick={() => navigate("/projects")}
+                >
+                  New
+                </Button>
+              </div>
+              {projects.length === 0 ? (
+                <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
+                  No projects yet
+                </Body1>
+              ) : (
+                projects.slice(0, 4).map((project, i) => (
+                  <React.Fragment key={project.tdvsp_projectid}>
+                    {i > 0 && <Divider />}
+                    <div className={styles.listItem} onClick={() => navigate("/projects")}>
+                      <div>
+                        <Text weight="semibold" block className={styles.nameLink}>
+                          {project.tdvsp_name}
+                        </Text>
+                        {project.tdvsp_Account?.name && (
+                          <Caption1
+                            style={{ color: tokens.colorNeutralForeground3 }}
+                          >
+                            {project.tdvsp_Account.name}
+                          </Caption1>
+                        )}
+                      </div>
                     </div>
                   </React.Fragment>
                 ))
