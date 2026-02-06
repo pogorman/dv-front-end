@@ -262,14 +262,14 @@ export const Dashboard: React.FC = () => {
     <div className={styles.container}>
       {/* Quick Action Buttons */}
       <div className={styles.quickActions}>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/accounts")}>Account</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/contacts")}>Contact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/projects")}>Project</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/tasks")}>Action Item</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/ideas")}>Idea</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/activities")}>HVA</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/impacts")}>Impact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/summaries")}>Meeting Summary</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/accounts?new=true")}>Account</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/contacts?new=true")}>Contact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/projects?new=true")}>Project</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/tasks?new=true")}>Action Item</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/ideas?new=true")}>Idea</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/activities?new=true")}>HVA</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/impacts?new=true")}>Impact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => navigate("/summaries?new=true")}>Meeting Summary</Button>
       </div>
 
       {/* Welcome Banner */}

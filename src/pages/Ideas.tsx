@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   makeStyles,
   shorthands,
@@ -180,6 +181,7 @@ const categoryOptions: { value: IdeaCategory; label: string }[] = [
 
 export const Ideas: React.FC = () => {
   const styles = useStyles();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Customer[]>([]);
@@ -226,6 +228,14 @@ export const Ideas: React.FC = () => {
     loadAccounts();
     loadContacts();
   }, [loadIdeas, loadAccounts, loadContacts]);
+
+  // Auto-open new dialog if ?new=true
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setDialogOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const openNew = () => {
     setEditingId(null);

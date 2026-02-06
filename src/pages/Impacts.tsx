@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   makeStyles,
   shorthands,
@@ -146,6 +147,7 @@ const emptyForm: FormData = {
 
 export const Impacts: React.FC = () => {
   const styles = useStyles();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [impacts, setImpacts] = useState<Impact[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,6 +183,14 @@ export const Impacts: React.FC = () => {
     loadImpacts();
     loadAccounts();
   }, [loadImpacts, loadAccounts]);
+
+  // Auto-open new dialog if ?new=true
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setDialogOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const openNew = () => {
     setEditingId(null);

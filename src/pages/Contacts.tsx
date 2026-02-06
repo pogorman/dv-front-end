@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   makeStyles,
   shorthands,
@@ -151,6 +152,7 @@ const emptyForm: FormData = {
 
 export const Contacts: React.FC = () => {
   const styles = useStyles();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [contacts, setContacts] = useState<Customer[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,6 +190,14 @@ export const Contacts: React.FC = () => {
     loadContacts();
     loadAccounts();
   }, [loadContacts, loadAccounts]);
+
+  // Auto-open new dialog if ?new=true
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setDialogOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const loadRelatedRecords = useCallback(async (contactId: string) => {
     setLoadingRelated(true);
