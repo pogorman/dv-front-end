@@ -33,6 +33,7 @@ import {
   Dismiss24Regular,
   Add16Regular,
   Attach16Regular,
+  CalendarLtr20Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels } from "../types";
@@ -77,6 +78,32 @@ const useStyles = makeStyles({
     backgroundPosition: "center",
     color: "white",
     ...shorthands.borderRadius("12px"),
+  },
+  tomorrowSection: {
+    ...shorthands.padding("12px", "20px"),
+    ...shorthands.borderRadius("10px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("16px"),
+    flexWrap: "wrap",
+  },
+  tomorrowEmpty: {
+    color: tokens.colorNeutralForeground3,
+    fontStyle: "italic",
+    fontSize: "14px",
+  },
+  tomorrowItem: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
+    ...shorthands.padding("4px", "12px"),
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("6px"),
+    cursor: "pointer",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
   },
   dashboardBody: {
     display: "flex",
@@ -489,6 +516,15 @@ export const Dashboard: React.FC = () => {
     idea: "Idea",
   };
 
+  // Tomorrow's tasks
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  };
+  const tomorrowDate = getTomorrowDate();
+  const tomorrowTasks = actionItems.filter((item) => item.tdvsp_date === tomorrowDate);
+
   return (
     <div className={styles.container}>
       {/* Quick Action Buttons */}
@@ -515,6 +551,32 @@ export const Dashboard: React.FC = () => {
         <Text size={400} style={{ color: "rgba(255,255,255,0.85)" }}>
           Here's an overview of your customers, activities, and tasks.
         </Text>
+      </div>
+
+      {/* Tomorrow's Tasks */}
+      <div className={styles.tomorrowSection}>
+        <CalendarLtr20Regular style={{ color: tokens.colorBrandForeground1 }} />
+        <Text weight="semibold" style={{ marginRight: 8 }}>Tomorrow:</Text>
+        {tomorrowTasks.length === 0 ? (
+          <Text className={styles.tomorrowEmpty}>
+            C'mon O'G... I know you have stuff to do tomorrow. Let's get it lined up!
+          </Text>
+        ) : (
+          tomorrowTasks.map((task) => (
+            <div
+              key={task.tdvsp_actionitemid}
+              className={styles.tomorrowItem}
+              onClick={() => navigate("/tasks")}
+            >
+              <Text size={200}>{task.tdvsp_name}</Text>
+              {task.tdvsp_Customer?.name && (
+                <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                  · {task.tdvsp_Customer.name}
+                </Caption1>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Main body with optional pinned notes sidebar */}
