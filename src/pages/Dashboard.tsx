@@ -527,18 +527,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      {/* Quick Action Buttons */}
-      <div className={styles.quickActions}>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddIdeaOpen(true)}>Idea</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddHvaOpen(true)}>HVA</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
-      </div>
-
       {/* Welcome Banner */}
       <div className={styles.welcomeCard}>
         <Text
@@ -551,6 +539,18 @@ export const Dashboard: React.FC = () => {
         <Text size={400} style={{ color: "rgba(255,255,255,0.85)" }}>
           Here's an overview of your customers, activities, and tasks.
         </Text>
+      </div>
+
+      {/* Quick Action Buttons */}
+      <div className={styles.quickActions}>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddIdeaOpen(true)}>Idea</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddHvaOpen(true)}>HVA</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
       </div>
 
       {/* Tomorrow's Tasks */}
