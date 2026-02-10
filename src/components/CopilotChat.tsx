@@ -12,13 +12,15 @@ import {
   Chat24Filled,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import ReactWebChat, { createDirectLine } from "botframework-webchat";
+import ReactWebChat, { createDirectLine, createStore } from "botframework-webchat";
 import { useTheme } from "../context/ThemeContext";
 import { useMsal } from "@azure/msal-react";
 
-// Copilot Studio configuration
-const COPILOT_TOKEN_ENDPOINT =
-  "https://0582014c9a6de35b87055168c385f4.13.environment.api.powerplatform.com/copilotstudio/dataverse-backed/authenticated/bots/auto_agent_s82bp/conversations?api-version=2022-03-01-preview";
+// Copilot Studio Direct Line configuration (set REACT_APP_COPILOT_DIRECT_LINE_SECRET in .env)
+const DIRECT_LINE_SECRET = process.env.REACT_APP_COPILOT_DIRECT_LINE_SECRET || "";
+
+// Custom scope for SSO with the bot
+const BOT_SSO_SCOPE = "api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope";
 
 const useStyles = makeStyles({
   floatingButton: {
@@ -99,6 +101,7 @@ export const CopilotChat: React.FC = () => {
   const [directLine, setDirectLine] = useState<ReturnType<
     typeof createDirectLine
   > | null>(null);
+  const [store, setStore] = useState<ReturnType<typeof createStore> | null>(null);
   const initializingRef = useRef(false);
 
   const initializeChat = async () => {
@@ -110,51 +113,118 @@ export const CopilotChat: React.FC = () => {
     setError(null);
 
     try {
-      // Step 1: Get access token for Power Platform API
-      if (accounts.length === 0) {
-        throw new Error("No authenticated account");
+      // Check for Direct Line secret
+      if (!DIRECT_LINE_SECRET) {
+        throw new Error("Direct Line secret not configured");
       }
 
-      let accessToken: string;
-      // Use Power Platform API scope
-      const powerPlatformScope = "https://api.powerplatform.com/.default";
-      try {
-        const tokenResponse = await instance.acquireTokenSilent({
-          scopes: [powerPlatformScope],
-          account: accounts[0],
-        });
-        accessToken = tokenResponse.accessToken;
-      } catch {
-        // Try popup if silent fails
-        const tokenResponse = await instance.acquireTokenPopup({
-          scopes: [powerPlatformScope],
-        });
-        accessToken = tokenResponse.accessToken;
+      // Step 1: Get user's Azure AD token for SSO
+      let ssoToken: string | null = null;
+      if (accounts.length > 0) {
+        try {
+          const tokenResponse = await instance.acquireTokenSilent({
+            scopes: [BOT_SSO_SCOPE],
+            account: accounts[0],
+          });
+          ssoToken = tokenResponse.accessToken;
+          console.log("Got SSO token for bot");
+        } catch (err) {
+          console.log("Silent token failed, trying popup...");
+          try {
+            const tokenResponse = await instance.acquireTokenPopup({
+              scopes: [BOT_SSO_SCOPE],
+            });
+            ssoToken = tokenResponse.accessToken;
+          } catch (popupErr) {
+            console.warn("Could not get SSO token, continuing without SSO:", popupErr);
+          }
+        }
       }
 
-      console.log("Got Power Platform token, starting conversation...");
+      // Step 2: Exchange Direct Line secret for a token
+      const dlTokenResponse = await fetch(
+        "https://directline.botframework.com/v3/directline/tokens/generate",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${DIRECT_LINE_SECRET}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user: {
+              id: accounts[0]?.localAccountId || "user",
+              name: accounts[0]?.name || "User",
+            },
+          }),
+        }
+      );
 
-      // Step 2: Start conversation with Copilot Studio
-      const response = await fetch(COPILOT_TOKEN_ENDPOINT, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+      if (!dlTokenResponse.ok) {
+        const errorText = await dlTokenResponse.text();
+        console.error("Direct Line token error:", dlTokenResponse.status, errorText);
+        throw new Error(`Failed to get token: ${dlTokenResponse.status}`);
+      }
+
+      const tokenData = await dlTokenResponse.json();
+      console.log("Got Direct Line token, conversation:", tokenData.conversationId);
+
+      // Create DirectLine connection with the token
+      const dl = createDirectLine({
+        token: tokenData.token,
+      });
+
+      // Create a store that handles SSO token exchange
+      const chatStore = createStore({}, ({ dispatch }: { dispatch: (action: unknown) => void }) => (next: (action: unknown) => unknown) => (action: unknown) => {
+        const typedAction = action as { type: string; payload?: { activity?: { type: string; name: string; value?: { connectionName?: string } } } };
+
+        // Handle OAuth token exchange request from bot
+        if (
+          typedAction.type === "DIRECT_LINE/INCOMING_ACTIVITY" &&
+          typedAction.payload?.activity?.type === "invoke" &&
+          typedAction.payload?.activity?.name === "signin/tokenExchange"
+        ) {
+          if (ssoToken) {
+            // Send the SSO token to the bot via event activity
+            dl.postActivity({
+              type: "event",
+              name: "signin/tokenExchange",
+              value: {
+                id: typedAction.payload.activity.value?.connectionName,
+                token: ssoToken,
+              },
+            } as Parameters<typeof dl.postActivity>[0]).subscribe();
+            console.log("Sent SSO token to bot");
+          }
+        }
+
+        return next(action);
+      });
+
+      setStore(chatStore);
+      setDirectLine(dl);
+
+      // Wait for connection to be established, then send welcome event
+      const subscription = dl.connectionStatus$.subscribe({
+        next: (status: number) => {
+          // ConnectionStatus.Online = 2
+          if (status === 2) {
+            // Send welcome event to trigger bot's greeting
+            dl.postActivity({
+              type: "event",
+              name: "startConversation",
+              from: {
+                id: accounts[0]?.localAccountId || "user",
+                name: accounts[0]?.name || "User",
+              },
+            } as Parameters<typeof dl.postActivity>[0]).subscribe({
+              next: () => console.log("Sent startConversation event"),
+              error: (err: Error) => console.warn("Failed to send startConversation:", err),
+            });
+            subscription.unsubscribe();
+          }
         },
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Copilot API error:", response.status, errorText);
-        throw new Error(`Copilot API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log("Conversation started:", data.conversationId);
-
-      // Step 3: Create DirectLine connection
-      const dl = createDirectLine({ token: data.token });
-      setDirectLine(dl);
       setIsLoading(false);
     } catch (err) {
       console.error("Failed to initialize chat:", err);
@@ -245,9 +315,10 @@ export const CopilotChat: React.FC = () => {
               Retry
             </Button>
           </div>
-        ) : directLine ? (
+        ) : directLine && store ? (
           <ReactWebChat
             directLine={directLine}
+            store={store}
             styleOptions={styleOptions}
             locale="en-US"
           />
