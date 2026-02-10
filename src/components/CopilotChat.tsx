@@ -103,6 +103,34 @@ export const CopilotChat: React.FC = () => {
   > | null>(null);
   const [store, setStore] = useState<ReturnType<typeof createStore> | null>(null);
   const initializingRef = useRef(false);
+  const ssoTokenRef = useRef<string | null>(null);
+
+  // Function to get SSO token (can be called to refresh)
+  const acquireSsoToken = async (): Promise<string | null> => {
+    if (accounts.length === 0) return null;
+
+    try {
+      const tokenResponse = await instance.acquireTokenSilent({
+        scopes: [BOT_SSO_SCOPE],
+        account: accounts[0],
+      });
+      ssoTokenRef.current = tokenResponse.accessToken;
+      console.log("Got SSO token for bot");
+      return tokenResponse.accessToken;
+    } catch (err) {
+      console.log("Silent token failed, trying popup...");
+      try {
+        const tokenResponse = await instance.acquireTokenPopup({
+          scopes: [BOT_SSO_SCOPE],
+        });
+        ssoTokenRef.current = tokenResponse.accessToken;
+        return tokenResponse.accessToken;
+      } catch (popupErr) {
+        console.warn("Could not get SSO token:", popupErr);
+        return null;
+      }
+    }
+  };
 
   const initializeChat = async () => {
     // Prevent multiple simultaneous initialization attempts
@@ -119,27 +147,7 @@ export const CopilotChat: React.FC = () => {
       }
 
       // Step 1: Get user's Azure AD token for SSO
-      let ssoToken: string | null = null;
-      if (accounts.length > 0) {
-        try {
-          const tokenResponse = await instance.acquireTokenSilent({
-            scopes: [BOT_SSO_SCOPE],
-            account: accounts[0],
-          });
-          ssoToken = tokenResponse.accessToken;
-          console.log("Got SSO token for bot");
-        } catch (err) {
-          console.log("Silent token failed, trying popup...");
-          try {
-            const tokenResponse = await instance.acquireTokenPopup({
-              scopes: [BOT_SSO_SCOPE],
-            });
-            ssoToken = tokenResponse.accessToken;
-          } catch (popupErr) {
-            console.warn("Could not get SSO token, continuing without SSO:", popupErr);
-          }
-        }
-      }
+      await acquireSsoToken();
 
       // Step 2: Exchange Direct Line secret for a token
       const dlTokenResponse = await fetch(
@@ -174,8 +182,17 @@ export const CopilotChat: React.FC = () => {
       });
 
       // Create a store that handles SSO token exchange
-      const chatStore = createStore({}, ({ dispatch }: { dispatch: (action: unknown) => void }) => (next: (action: unknown) => unknown) => (action: unknown) => {
-        const typedAction = action as { type: string; payload?: { activity?: { type: string; name: string; value?: { connectionName?: string } } } };
+      const chatStore = createStore({}, () => (next: (action: unknown) => unknown) => (action: unknown) => {
+        const typedAction = action as {
+          type: string;
+          payload?: {
+            activity?: {
+              type: string;
+              name: string;
+              value?: { connectionName?: string; id?: string }
+            }
+          }
+        };
 
         // Handle OAuth token exchange request from bot
         if (
@@ -183,18 +200,39 @@ export const CopilotChat: React.FC = () => {
           typedAction.payload?.activity?.type === "invoke" &&
           typedAction.payload?.activity?.name === "signin/tokenExchange"
         ) {
-          if (ssoToken) {
-            // Send the SSO token to the bot via event activity
-            dl.postActivity({
-              type: "event",
-              name: "signin/tokenExchange",
-              value: {
-                id: typedAction.payload.activity.value?.connectionName,
-                token: ssoToken,
-              },
-            } as Parameters<typeof dl.postActivity>[0]).subscribe();
-            console.log("Sent SSO token to bot");
-          }
+          const connectionName = typedAction.payload.activity.value?.connectionName;
+          const exchangeId = typedAction.payload.activity.value?.id;
+
+          // Try to get a fresh SSO token and send it to the bot
+          (async () => {
+            let token = ssoTokenRef.current;
+
+            // If no cached token, try to acquire one
+            if (!token) {
+              token = await acquireSsoToken();
+            }
+
+            if (token) {
+              dl.postActivity({
+                type: "event",
+                name: "signin/tokenExchange",
+                from: {
+                  id: accounts[0]?.localAccountId || "user",
+                  name: accounts[0]?.name || "User",
+                },
+                value: {
+                  id: exchangeId || connectionName,
+                  connectionName: connectionName,
+                  token: token,
+                },
+              } as Parameters<typeof dl.postActivity>[0]).subscribe({
+                next: () => console.log("Sent SSO token exchange to bot"),
+                error: (err: Error) => console.error("Failed to send token exchange:", err),
+              });
+            } else {
+              console.warn("No SSO token available for token exchange");
+            }
+          })();
         }
 
         return next(action);
