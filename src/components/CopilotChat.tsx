@@ -7,11 +7,7 @@ import {
   Text,
   Spinner,
 } from "@fluentui/react-components";
-import {
-  Chat24Regular,
-  Chat24Filled,
-  Dismiss24Regular,
-} from "@fluentui/react-icons";
+import { Dismiss24Regular } from "@fluentui/react-icons";
 import ReactWebChat, { createDirectLine, createStore } from "botframework-webchat";
 import { useTheme } from "../context/ThemeContext";
 import { useMsal } from "@azure/msal-react";
@@ -30,8 +26,7 @@ const useStyles = makeStyles({
     width: "56px",
     height: "56px",
     ...shorthands.borderRadius("50%"),
-    backgroundColor: tokens.colorBrandBackground,
-    color: "white",
+    backgroundColor: "white",
     boxShadow: tokens.shadow16,
     zIndex: 1000,
     cursor: "pointer",
@@ -39,11 +34,23 @@ const useStyles = makeStyles({
     alignItems: "center",
     justifyContent: "center",
     border: "none",
+    ...shorthands.padding("0"),
+    overflow: "hidden",
     transition: "transform 0.2s ease, box-shadow 0.2s ease",
     ":hover": {
       transform: "scale(1.05)",
       boxShadow: tokens.shadow28,
     },
+  },
+  floatingButtonImg: {
+    width: "48px",
+    height: "48px",
+    objectFit: "contain" as const,
+  },
+  headerImg: {
+    width: "24px",
+    height: "24px",
+    objectFit: "contain" as const,
   },
   chatPanel: {
     position: "fixed",
@@ -306,7 +313,7 @@ export const CopilotChat: React.FC = () => {
     sendBoxButtonColor: tokens.colorBrandBackground,
     sendBoxButtonColorOnHover: tokens.colorBrandBackgroundHover,
     sendBoxBorderTop: `1px solid ${isDark ? "#404040" : "#e0e0e0"}`,
-    botAvatarInitials: "AI",
+    botAvatarImage: "/images/og_logo_white.png",
     userAvatarInitials: "You",
     hideUploadButton: true,
   };
@@ -318,7 +325,7 @@ export const CopilotChat: React.FC = () => {
         onClick={handleOpen}
         aria-label="Open chat"
       >
-        <Chat24Filled />
+        <img src="/images/og_logo_white.png" alt="O'G" className={styles.floatingButtonImg} />
       </button>
     );
   }
@@ -327,9 +334,9 @@ export const CopilotChat: React.FC = () => {
     <div className={styles.chatPanel}>
       <div className={styles.chatHeader}>
         <div className={styles.headerTitle}>
-          <Chat24Regular />
+          <img src="/images/og_logo_white.png" alt="O'G" className={styles.headerImg} />
           <Text weight="semibold" style={{ color: "white" }}>
-            O'G Assistant
+            O'G
           </Text>
         </div>
         <Button
