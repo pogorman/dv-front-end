@@ -36,7 +36,7 @@ import {
   CalendarLtr20Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels } from "../types";
+import { ActionItem, Account, Customer, Project, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels } from "../types";
 import {
   getActionItems,
   getAccounts,
@@ -689,6 +689,7 @@ export const Dashboard: React.FC = () => {
                           style={{ color: tokens.colorNeutralForeground3 }}
                         >
                           {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
+                          {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
                           {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                         </Caption1>
                       </div>
