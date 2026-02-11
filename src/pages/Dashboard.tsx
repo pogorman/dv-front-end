@@ -696,12 +696,18 @@ export const Dashboard: React.FC = () => {
                         <Badge
                           appearance="filled"
                           color={
-                            new Date(t.tdvsp_date) < new Date()
-                              ? "danger"
-                              : "informative"
+                            t.tdvsp_taskstatus === 468510005
+                              ? "success"
+                              : new Date(t.tdvsp_date) < new Date()
+                                ? "danger"
+                                : "informative"
                           }
                         >
-                          {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                          {t.tdvsp_taskstatus === 468510005
+                            ? "Complete"
+                            : new Date(t.tdvsp_date) < new Date()
+                              ? "Overdue"
+                              : "Upcoming"}
                         </Badge>
                       )}
                     </div>
