@@ -21,7 +21,7 @@ src/
 │   ├── AppShell.tsx         # Sidebar nav (sectioned) + theme toggle
 │   ├── CopilotChat.tsx      # Floating Copilot Studio chat widget
 │   └── NotesTimeline.tsx    # Shared notes component with file attachments
-├── public/images/  # Static images (banner-bg.png for dashboard)
+├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat widget)
 ├── context/        # React context providers (ThemeContext for dark/light mode)
 ├── pages/          # Route pages
 │   ├── Dashboard.tsx        # Stats tiles (Accounts, Contacts, Ideas, Tasks, Overdue) + recent lists + pinned notes sidebar
@@ -88,7 +88,7 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
   - Download attached files
   - Delete notes
 - **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
-- **Copilot Chat** - Floating chat button (bottom-right) connects to Copilot Studio agent. Uses `CopilotChat.tsx` component with Bot Framework Web Chat. Authenticates via MSAL with Power Platform API scope.
+- **Copilot Chat** - Floating O'G logo button (bottom-right) opens chat panel connected to Copilot Studio agent. Uses `CopilotChat.tsx` with Bot Framework Web Chat. Authenticates via Direct Line secret (from `REACT_APP_COPILOT_DIRECT_LINE_SECRET` env var) and SSO token exchange (scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`). Bot avatar uses O'G logo (`/images/og_logo_white.png`). Sends `startConversation` event on connect to trigger bot greeting.
 
 ## Coding Conventions
 
@@ -111,22 +111,25 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
 
 ## Copilot Studio Integration
 
-The app includes a floating chat widget connected to a Copilot Studio agent.
+The app includes a floating chat widget (O'G logo button, bottom-right) connected to a Copilot Studio agent via Direct Line.
 
-**Configuration (in `CopilotChat.tsx`):**
-- Environment ID: `0582014c-9a6d-e35b-8705-5168c385f413`
-- Bot: `auto_agent_s82bp`
-- Token endpoint: Power Platform Copilot Studio API
+**Configuration:**
+- Direct Line secret: stored in `.env` as `REACT_APP_COPILOT_DIRECT_LINE_SECRET` (baked into build at compile time)
+- SSO scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`
+- Bot avatar & button icon: `/images/og_logo_white.png`
 
 **Azure AD App Registration Requirements:**
+- Exposed API scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`
+- Redirect URI (Web): `https://token.botframework.com/.auth/web/redirect`
 - Power Platform API permission (`https://api.powerplatform.com/.default`)
-- Delegated `user_impersonation` scope
 
 **How it works:**
-1. User clicks chat button (bottom-right corner)
-2. Component acquires Power Platform token via MSAL
-3. Calls Copilot Studio conversation endpoint to get Direct Line token
-4. Renders Bot Framework Web Chat with the token
+1. User clicks O'G logo button (bottom-right corner)
+2. Component acquires SSO token via MSAL for the bot's custom scope
+3. Exchanges Direct Line secret for a conversation token
+4. Creates Web Chat store with middleware that handles `signin/tokenExchange` invoke activities (SSO)
+5. Sends `startConversation` event once connected to trigger bot greeting
+6. Renders Bot Framework Web Chat with Direct Line connection and SSO store
 
 ## Git Workflow
 
