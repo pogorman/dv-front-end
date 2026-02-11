@@ -31,12 +31,32 @@ export interface HighValueActivity {
   tdvsp_Customer?: { accountid: string; name: string };
 }
 
+// Task Status choice field (on Action Items)
+export type TaskStatus =
+  | 468510000 // Recognized/Pondering
+  | 468510001 // In Progress
+  | 468510002 // Pending Communication
+  | 468510003 // On Hold
+  | 468510004 // Wrapping Up
+  | 468510005; // Complete
+
+export const taskStatusLabels: Record<TaskStatus, string> = {
+  468510000: "Recognized/Pondering",
+  468510001: "In Progress",
+  468510002: "Pending Communication",
+  468510003: "On Hold",
+  468510004: "Wrapping Up",
+  468510005: "Complete",
+};
+
 // Action Item entity (tdvsp_actionitem table)
 export interface ActionItem {
   tdvsp_actionitemid?: string;
   tdvsp_name: string;
   tdvsp_date: string;
   tdvsp_description?: string;
+  tdvsp_taskstatus?: TaskStatus;
+  createdon?: string;
   _tdvsp_customer_value?: string;
   tdvsp_Customer?: { accountid: string; name: string };
 }

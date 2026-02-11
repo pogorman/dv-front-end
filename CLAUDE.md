@@ -28,7 +28,7 @@ src/
 │   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, activities, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + view dialog with related ideas
 │   ├── Activities.tsx       # High-Value Activities CRUD
-│   ├── Tasks.tsx            # Action Items CRUD + view dialog with notes timeline
+│   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status + view dialog with notes timeline
 │   ├── Impacts.tsx          # Impacts CRUD
 │   ├── Ideas.tsx            # Ideas CRUD with category dropdown + view dialog with notes timeline
 │   ├── Projects.tsx         # Projects CRUD + view dialog with notes timeline
@@ -56,7 +56,7 @@ The app works with these Dataverse tables:
 | Accounts | `accounts` | accountid, name, parentaccountid (self-lookup) |
 | Contacts | `contacts` | contactid, firstname, lastname, emailaddress1, telephone1, jobtitle, parentcustomerid (account lookup) |
 | High-Value Activities | `tdvsp_hvas` | tdvsp_hvaid, tdvsp_name, tdvsp_description, tdvsp_date, tdvsp_Customer (account lookup) |
-| Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_Customer (account lookup) |
+| Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_taskstatus (choice), tdvsp_Customer (account lookup), createdon |
 | Impacts | `tdvsp_impacts` | tdvsp_impactid, tdvsp_name, tdvsp_date, tdvsp_description, tdvsp_Customer (account lookup) |
 | Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup) |
 | Projects | `tdvsp_projects` | tdvsp_projectid, tdvsp_name, tdvsp_description, tdvsp_Account (account lookup) |
@@ -68,6 +68,10 @@ Custom tables use the `tdvsp_` prefix (publisher prefix).
 ### Idea Categories (Choice Field)
 
 Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Driven Apps), 468510003 (Power Automate), 468510004 (Power Pages), 468510005 (Azure), 468510006 (AI General), 468510007 (App General), 468510008 (Other)
+
+### Task Status (Choice Field)
+
+Values: 468510000 (Recognized/Pondering), 468510001 (In Progress), 468510002 (Pending Communication), 468510003 (On Hold), 468510004 (Wrapping Up), 468510005 (Complete)
 
 ## Key Features
 

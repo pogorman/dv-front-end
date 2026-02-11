@@ -11,7 +11,6 @@ import {
   Text,
   Subtitle1,
   Caption1,
-  Divider,
   Dialog,
   DialogSurface,
   DialogBody,
@@ -22,17 +21,24 @@ import {
   Dropdown,
   Option,
   Textarea,
+  DataGrid,
+  DataGridHeader,
+  DataGridHeaderCell,
+  DataGridBody,
+  DataGridRow,
+  DataGridCell,
+  TableColumnDefinition,
+  createTableColumn,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
   Search24Regular,
   TaskListSquareLtr24Filled,
-  CalendarLtr24Regular,
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { ActionItem, Account } from "../types";
+import { ActionItem, Account, TaskStatus, taskStatusLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getActionItems,
@@ -146,6 +152,7 @@ interface FormData {
   tdvsp_name: string;
   tdvsp_date: string;
   tdvsp_description: string;
+  tdvsp_taskstatus: string;
   customerAccountId: string;
 }
 
@@ -153,6 +160,7 @@ const emptyForm: FormData = {
   tdvsp_name: "",
   tdvsp_date: "",
   tdvsp_description: "",
+  tdvsp_taskstatus: "",
   customerAccountId: "",
 };
 
@@ -222,6 +230,7 @@ export const Tasks: React.FC = () => {
       tdvsp_name: item.tdvsp_name,
       tdvsp_date: item.tdvsp_date ? item.tdvsp_date.split("T")[0] : "",
       tdvsp_description: item.tdvsp_description ?? "",
+      tdvsp_taskstatus: item.tdvsp_taskstatus != null ? String(item.tdvsp_taskstatus) : "",
       customerAccountId: item.tdvsp_Customer?.accountid ?? "",
     });
     setDialogOpen(true);
@@ -233,11 +242,13 @@ export const Tasks: React.FC = () => {
         tdvsp_name: string;
         tdvsp_date: string;
         tdvsp_description?: string;
+        tdvsp_taskstatus?: number;
         "tdvsp_Customer@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
         tdvsp_date: formData.tdvsp_date,
         tdvsp_description: formData.tdvsp_description || undefined,
+        tdvsp_taskstatus: formData.tdvsp_taskstatus ? Number(formData.tdvsp_taskstatus) : undefined,
       };
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
@@ -272,6 +283,99 @@ export const Tasks: React.FC = () => {
       t.tdvsp_Customer?.name?.toLowerCase().includes(q)
     );
   });
+
+  const gridColumns: TableColumnDefinition<ActionItem>[] = [
+    createTableColumn({
+      columnId: "date",
+      compare: (a, b) => (a.tdvsp_date ?? "").localeCompare(b.tdvsp_date ?? ""),
+      renderHeaderCell: () => "Date",
+      renderCell: (item) => (
+        <Text>{item.tdvsp_date ? formatDate(item.tdvsp_date) : "--"}</Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "name",
+      compare: (a, b) => (a.tdvsp_name ?? "").localeCompare(b.tdvsp_name ?? ""),
+      renderHeaderCell: () => "Name",
+      renderCell: (item) => (
+        <Text
+          weight="semibold"
+          className={styles.nameLink}
+          onClick={() => openView(item)}
+        >
+          {item.tdvsp_name}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "taskStatus",
+      compare: (a, b) => (a.tdvsp_taskstatus ?? 0) - (b.tdvsp_taskstatus ?? 0),
+      renderHeaderCell: () => "Task Status",
+      renderCell: (item) => (
+        <Text>
+          {item.tdvsp_taskstatus != null
+            ? taskStatusLabels[item.tdvsp_taskstatus as TaskStatus] ?? "--"
+            : "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "customer",
+      compare: (a, b) =>
+        (a.tdvsp_Customer?.name ?? "").localeCompare(b.tdvsp_Customer?.name ?? ""),
+      renderHeaderCell: () => "Customer",
+      renderCell: (item) => (
+        <Text>{item.tdvsp_Customer?.name ?? "--"}</Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "description",
+      renderHeaderCell: () => "Description",
+      renderCell: (item) => (
+        <Text
+          truncate
+          wrap={false}
+          style={{ maxWidth: 200, display: "block", overflow: "hidden", textOverflow: "ellipsis" }}
+          title={item.tdvsp_description ?? ""}
+        >
+          {item.tdvsp_description || "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "createdon",
+      compare: (a, b) => (a.createdon ?? "").localeCompare(b.createdon ?? ""),
+      renderHeaderCell: () => "Created On",
+      renderCell: (item) => (
+        <Text>{item.createdon ? formatDate(item.createdon) : "--"}</Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "actions",
+      renderHeaderCell: () => "Actions",
+      renderCell: (item) => (
+        <div style={{ display: "flex", gap: 4 }}>
+          <Button
+            appearance="subtle"
+            icon={<Edit24Regular />}
+            size="small"
+            title="Edit"
+            onClick={() => openEdit(item)}
+          />
+          <Button
+            appearance="subtle"
+            icon={<Delete24Regular />}
+            size="small"
+            title="Delete"
+            onClick={() =>
+              item.tdvsp_actionitemid &&
+              handleDelete(item.tdvsp_actionitemid)
+            }
+          />
+        </div>
+      ),
+    }),
+  ];
 
   return (
     <div className={styles.container}>
@@ -347,6 +451,31 @@ export const Tasks: React.FC = () => {
                       ))}
                     </Dropdown>
                   </div>
+                  <div className={styles.formField}>
+                    <Label>Task Status</Label>
+                    <Dropdown
+                      placeholder="Select status"
+                      value={
+                        formData.tdvsp_taskstatus
+                          ? taskStatusLabels[Number(formData.tdvsp_taskstatus) as TaskStatus] ?? ""
+                          : ""
+                      }
+                      onOptionSelect={(_, d) =>
+                        setFormData({
+                          ...formData,
+                          tdvsp_taskstatus: d.optionValue ?? "",
+                        })
+                      }
+                    >
+                      {(Object.entries(taskStatusLabels) as [string, string][]).map(
+                        ([value, label]) => (
+                          <Option key={value} value={value}>
+                            {label}
+                          </Option>
+                        )
+                      )}
+                    </Dropdown>
+                  </div>
                 </div>
               </DialogContent>
               <DialogActions>
@@ -378,60 +507,29 @@ export const Tasks: React.FC = () => {
             </Caption1>
           </div>
         ) : (
-          filtered.map((item, i) => (
-            <React.Fragment key={item.tdvsp_actionitemid}>
-              {i > 0 && <Divider />}
-              <div className={styles.taskRow}>
-                <div className={styles.taskContent}>
-                  <Text
-                    weight="semibold"
-                    className={styles.nameLink}
-                    onClick={() => openView(item)}
-                  >
-                    {item.tdvsp_name}
-                  </Text>
-                  <div className={styles.taskMeta}>
-                    {item.tdvsp_date && (
-                      <div className={styles.metaItem}>
-                        <CalendarLtr24Regular style={{ fontSize: 14 }} />
-                        <Caption1
-                          style={{ color: tokens.colorNeutralForeground3 }}
-                        >
-                          {formatDate(item.tdvsp_date)}
-                        </Caption1>
-                      </div>
-                    )}
-                    {item.tdvsp_Customer?.name && (
-                      <Caption1
-                        style={{ color: tokens.colorNeutralForeground3 }}
-                      >
-                        {item.tdvsp_Customer.name}
-                      </Caption1>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 4 }}>
-                  <Button
-                    appearance="subtle"
-                    icon={<Edit24Regular />}
-                    size="small"
-                    title="Edit"
-                    onClick={() => openEdit(item)}
-                  />
-                  <Button
-                    appearance="subtle"
-                    icon={<Delete24Regular />}
-                    size="small"
-                    title="Delete"
-                    onClick={() =>
-                      item.tdvsp_actionitemid &&
-                      handleDelete(item.tdvsp_actionitemid)
-                    }
-                  />
-                </div>
-              </div>
-            </React.Fragment>
-          ))
+          <DataGrid
+            items={filtered}
+            columns={gridColumns}
+            getRowId={(item) => item.tdvsp_actionitemid ?? item.tdvsp_name}
+            sortable
+          >
+            <DataGridHeader>
+              <DataGridRow>
+                {({ renderHeaderCell }) => (
+                  <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                )}
+              </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<ActionItem>>
+              {({ item, rowId }) => (
+                <DataGridRow<ActionItem> key={rowId}>
+                  {({ renderCell }) => (
+                    <DataGridCell>{renderCell(item)}</DataGridCell>
+                  )}
+                </DataGridRow>
+              )}
+            </DataGridBody>
+          </DataGrid>
         )}
       </Card>
 
@@ -476,9 +574,23 @@ export const Tasks: React.FC = () => {
                         </Text>
                       </div>
                       <div className={styles.viewField}>
+                        <Label>Task Status</Label>
+                        <Text block size={400}>
+                          {viewingItem.tdvsp_taskstatus != null
+                            ? taskStatusLabels[viewingItem.tdvsp_taskstatus as TaskStatus] ?? "--"
+                            : "--"}
+                        </Text>
+                      </div>
+                      <div className={styles.viewField}>
                         <Label>Customer</Label>
                         <Text block size={400}>
                           {viewingItem.tdvsp_Customer?.name || "--"}
+                        </Text>
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Created On</Label>
+                        <Text block size={400}>
+                          {viewingItem.createdon ? formatDate(viewingItem.createdon) : "--"}
                         </Text>
                       </div>
                     </div>
