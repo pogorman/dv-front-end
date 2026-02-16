@@ -33,6 +33,7 @@ import {
   Dismiss24Regular,
   Add16Regular,
   Attach16Regular,
+  Warning24Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels } from "../types";
@@ -212,6 +213,28 @@ const useStyles = makeStyles({
     color: tokens.colorBrandForeground1,
     marginBottom: "2px",
     fontWeight: "600",
+  },
+  topPriorityCard: {
+    ...shorthands.padding("20px"),
+    ...shorthands.borderRadius("12px"),
+    borderLeft: "4px solid #d13438",
+  },
+  topPriorityHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
+    marginBottom: "12px",
+  },
+  topPriorityItem: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    ...shorthands.padding("10px", "0px"),
+    cursor: "pointer",
+    ...shorthands.borderRadius("6px"),
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
   },
 });
 
@@ -519,6 +542,53 @@ export const Dashboard: React.FC = () => {
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
       </div>
+
+      {/* Top Priority Section */}
+      {actionItems.filter((t) => t.tdvsp_priority === 468510002).length > 0 && (
+        <Card className={styles.topPriorityCard}>
+          <div className={styles.topPriorityHeader}>
+            <Warning24Filled style={{ color: "#d13438" }} />
+            <Subtitle1>Top Priority</Subtitle1>
+          </div>
+          {actionItems
+            .filter((t) => t.tdvsp_priority === 468510002)
+            .map((t, i) => (
+              <React.Fragment key={t.tdvsp_actionitemid}>
+                {i > 0 && <Divider />}
+                <div className={styles.topPriorityItem} onClick={() => navigate("/tasks")}>
+                  <div>
+                    <Text weight="semibold" block className={styles.nameLink}>
+                      {t.tdvsp_name}
+                    </Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                      {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
+                      {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                      {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                    </Caption1>
+                  </div>
+                  {t.tdvsp_date && (
+                    <Badge
+                      appearance="filled"
+                      color={
+                        t.tdvsp_taskstatus === 468510005
+                          ? "success"
+                          : new Date(t.tdvsp_date) < new Date()
+                            ? "danger"
+                            : "informative"
+                      }
+                    >
+                      {t.tdvsp_taskstatus === 468510005
+                        ? "Complete"
+                        : new Date(t.tdvsp_date) < new Date()
+                          ? "Overdue"
+                          : "Upcoming"}
+                    </Badge>
+                  )}
+                </div>
+              </React.Fragment>
+            ))}
+        </Card>
+      )}
 
       {/* Main body with optional pinned notes sidebar */}
       <div className={styles.dashboardBody}>
