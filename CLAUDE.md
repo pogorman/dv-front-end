@@ -28,7 +28,7 @@ src/
 │   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, activities, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + view dialog with related ideas
 │   ├── Activities.tsx       # High-Value Activities CRUD
-│   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status + view dialog with notes timeline
+│   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority + view dialog with notes timeline
 │   ├── Impacts.tsx          # Impacts CRUD
 │   ├── Ideas.tsx            # Ideas CRUD with category dropdown + view dialog with notes timeline
 │   ├── Projects.tsx         # Projects CRUD + view dialog with notes timeline
@@ -56,7 +56,7 @@ The app works with these Dataverse tables:
 | Accounts | `accounts` | accountid, name, parentaccountid (self-lookup) |
 | Contacts | `contacts` | contactid, firstname, lastname, emailaddress1, telephone1, jobtitle, parentcustomerid (account lookup) |
 | High-Value Activities | `tdvsp_hvas` | tdvsp_hvaid, tdvsp_name, tdvsp_description, tdvsp_date, tdvsp_Customer (account lookup) |
-| Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_taskstatus (choice), tdvsp_Customer (account lookup), createdon |
+| Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_taskstatus (choice), tdvsp_priority (choice), tdvsp_Customer (account lookup), createdon |
 | Impacts | `tdvsp_impacts` | tdvsp_impactid, tdvsp_name, tdvsp_date, tdvsp_description, tdvsp_Customer (account lookup) |
 | Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup) |
 | Projects | `tdvsp_projects` | tdvsp_projectid, tdvsp_name, tdvsp_description, tdvsp_Account (account lookup) |
@@ -73,6 +73,10 @@ Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Dr
 
 Values: 468510000 (Recognized/Pondering), 468510001 (In Progress), 468510002 (Pending Communication), 468510003 (On Hold), 468510004 (Wrapping Up), 468510005 (Complete)
 
+### Task Priority (Choice Field)
+
+Values: 468510000 (Low... but on deck for sure), 468510001 (Eh... Get to it when you can), 468510002 (Top priority... no kidding!), 468510003 (High... next in line after top priority...)
+
 ## Key Features
 
 - **Sidebar Navigation** - Organized into sections with subtle dividers:
@@ -84,7 +88,7 @@ Values: 468510000 (Recognized/Pondering), 468510001 (In Progress), 468510002 (Pe
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Quick action buttons at top open inline dialogs for creating any record type (stays on dashboard). Custom banner background image. Stat tiles for Accounts, Contacts, Projects, Open Tasks. Section cards for Action Items (left) and Ideas (right) with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Dashboard** - Quick action buttons at top open inline dialogs for creating any record type (stays on dashboard). Custom banner background image. "Top Priority" full-width card (red accent) shows action items with priority "Top priority... no kidding!" (only when they exist). Stat tiles for Accounts, Contacts, Projects, Open Tasks. Section cards for Action Items (left) and Ideas (right) with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by section "New" buttons, not dashboard quick actions).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
   - Add notes with optional file attachments (stored as base64 in Dataverse)
@@ -152,5 +156,5 @@ The app includes a floating chat widget (O'G logo button, bottom-right) connecte
 
 # Build and deploy to production
 npm run build
-npx swa deploy ./build --deployment-token "<token>" --env production
+npx @azure/static-web-apps-cli deploy ./build --deployment-token "<token>" --env production
 ```

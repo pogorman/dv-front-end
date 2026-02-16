@@ -258,6 +258,7 @@ User opens app
    │ phone       │  │           │  │tdvsp_desc    │  └───────┬───────┘
    │ jobtitle    │  └───────────┘  │tdvsp_task    │          │
    └──────┬──────┘                 │  status      │          │
+          │                        │tdvsp_priority│          │
           │                        └──────┬───────┘          │
           │                               │                  │
           │    ┌──────────────┐           │                  │
@@ -333,6 +334,15 @@ User opens app
 | 468510003 | On Hold |
 | 468510004 | Wrapping Up |
 | 468510005 | Complete |
+
+**Task Priority** (`tdvsp_priority`):
+
+| Value | Label |
+|-------|-------|
+| 468510000 | Low... but on deck for sure |
+| 468510001 | Eh... Get to it when you can |
+| 468510002 | Top priority... no kidding! |
+| 468510003 | High... next in line after top priority... |
 
 ### OData API Patterns
 
@@ -486,7 +496,7 @@ All TypeScript interfaces are centralized in a single file:
 | `Account` | Account records with optional parent account lookup |
 | `Customer` | Contact records with account lookup |
 | `HighValueActivity` | HVA records with account lookup |
-| `ActionItem` | Task records with status, date, and account lookup |
+| `ActionItem` | Task records with status, priority, date, and account lookup |
 | `Impact` | Impact records with account lookup |
 | `Idea` | Idea records with category, account, and contact lookups |
 | `Project` | Project records with account lookup |
@@ -495,6 +505,7 @@ All TypeScript interfaces are centralized in a single file:
 | `NoteEntityType` | Union type: `"account" \| "project" \| "actionitem" \| "idea"` |
 | `IdeaCategory` | Numeric union type for idea category choices |
 | `TaskStatus` | Numeric union type for task status choices |
+| `TaskPriority` | Numeric union type for task priority choices |
 
 ---
 
@@ -515,15 +526,16 @@ The landing page providing an at-a-glance overview.
 **Sections:**
 1. **Welcome Banner** — Background image (`/images/banner-bg.png`) with greeting text
 2. **Quick Action Buttons** — Pill-shaped buttons to create any record type (Account, Contact, Project, Action Item, Idea, HVA, Impact, Meeting Summary) without leaving the dashboard
-3. **Stats Grid** — Four clickable stat cards:
+3. **Top Priority Card** — Full-width card with red left accent border showing action items with "Top priority... no kidding!" priority. Displays name, due date, status, account, and overdue/upcoming badge. Only visible when top priority items exist.
+4. **Stats Grid** — Four clickable stat cards:
    - Accounts (blue) — total count
    - Contacts (purple) — total count
    - Projects (indigo) — total count
    - Open Tasks (green) — total action items
-4. **Section Cards** (2-column grid):
-   - **Action Items** — Latest 4 items with due date, status badge (Overdue/Upcoming/Complete), and account name
+5. **Section Cards** (2-column grid):
+   - **Action Items** — Latest 4 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete)
    - **Ideas** — Latest 5 items showing name, category, account on line 1; description preview on line 2
-5. **Pinned Notes Sidebar** (280px, right) — Appears only when notes are pinned; shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog
+6. **Pinned Notes Sidebar** (280px, right) — Appears only when notes are pinned; shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog
 
 **Data loaded on mount:** Accounts, Contacts, Projects, Action Items, Ideas, Pinned Annotations
 
@@ -554,13 +566,15 @@ CRUD for contact records linked to accounts.
 
 Task management with status tracking.
 
-**Main View:** DataGrid with columns: Date, Name (clickable), Task Status, Customer, Description, Created On, Actions
+**Main View:** DataGrid with columns: Date, Name (clickable), Task Status, Priority, Customer, Description, Created On, Actions
 
-**View Dialog:** Two-column layout — Details on the left, Notes Timeline on the right
+**View Dialog:** Two-column layout — Details (name, description, date, status, priority, customer, created on) on the left, Notes Timeline on the right
 
-**Forms:** Name (required), Date, Account (dropdown), Task Status (6-option dropdown), Description (textarea)
+**Forms:** Name (required), Date, Account (dropdown), Task Status (6-option dropdown), Priority (4-option dropdown), Description (textarea)
 
 **Task Status Workflow:** Recognized/Pondering → In Progress → Pending Communication → On Hold → Wrapping Up → Complete
+
+**Task Priority Options:** Low... but on deck for sure | Eh... Get to it when you can | Top priority... no kidding! | High... next in line after top priority...
 
 ### 8.5 Ideas (`pages/Ideas.tsx`)
 
@@ -730,7 +744,7 @@ az login
 npm run build
 
 # Step 4: Deploy to production
-npx swa deploy ./build --deployment-token "<token>" --env production
+npx @azure/static-web-apps-cli deploy ./build --deployment-token "<token>" --env production
 ```
 
 ### Environment Variables
@@ -814,8 +828,9 @@ The **sidebar** (left) organizes pages into sections:
 ### Dashboard
 
 - **Quick Action Buttons** — Create any record type directly from the dashboard
+- **Top Priority** — Full-width card highlighting action items marked as "Top priority... no kidding!" with due dates and status badges (only appears when such items exist)
 - **Stat Cards** — Click any card to navigate to that page
-- **Action Items** — Shows the 4 most recent tasks with status badges (Overdue, Upcoming, Complete)
+- **Action Items** — Shows the 4 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete)
 - **Ideas** — Shows the 5 most recent ideas with category and account
 - **Pinned Notes** (right sidebar) — Appears when you have pinned notes; click to expand
 
