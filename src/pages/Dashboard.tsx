@@ -33,15 +33,15 @@ import {
   Dismiss24Regular,
   Add16Regular,
   Attach16Regular,
-  CalendarLtr20Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels } from "../types";
+import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels } from "../types";
 import {
   getActionItems,
   getAccounts,
   getCustomers,
   getProjects,
+  getIdeas,
   getAnnotationsByIds,
   createAccount,
   createCustomer,
@@ -78,32 +78,6 @@ const useStyles = makeStyles({
     backgroundPosition: "center",
     color: "white",
     ...shorthands.borderRadius("12px"),
-  },
-  tomorrowSection: {
-    ...shorthands.padding("12px", "20px"),
-    ...shorthands.borderRadius("10px"),
-    backgroundColor: tokens.colorNeutralBackground2,
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("16px"),
-    flexWrap: "wrap",
-  },
-  tomorrowEmpty: {
-    color: tokens.colorNeutralForeground3,
-    fontStyle: "italic",
-    fontSize: "14px",
-  },
-  tomorrowItem: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("8px"),
-    ...shorthands.padding("4px", "12px"),
-    backgroundColor: tokens.colorNeutralBackground1,
-    ...shorthands.borderRadius("6px"),
-    cursor: "pointer",
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
-    },
   },
   dashboardBody: {
     display: "flex",
@@ -248,6 +222,7 @@ export const Dashboard: React.FC = () => {
   const [contacts, setContacts] = useState<Customer[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
 
   // Pinned notes state
   const [pinnedRefs, setPinnedRefs] = useState<PinnedNoteRef[]>(() => getPinnedNoteRefs());
@@ -280,6 +255,7 @@ export const Dashboard: React.FC = () => {
     getCustomers().then(setContacts).catch(console.error);
     getProjects().then(setProjects).catch(console.error);
     getActionItems().then(setActionItems).catch(console.error);
+    getIdeas().then(setIdeas).catch(console.error);
   }, []);
 
   const loadPinnedAnnotations = useCallback(async () => {
@@ -516,15 +492,6 @@ export const Dashboard: React.FC = () => {
     idea: "Idea",
   };
 
-  // Tomorrow's tasks
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
-  };
-  const tomorrowDate = getTomorrowDate();
-  const tomorrowTasks = actionItems.filter((item) => item.tdvsp_date === tomorrowDate);
-
   return (
     <div className={styles.container}>
       {/* Welcome Banner */}
@@ -551,32 +518,6 @@ export const Dashboard: React.FC = () => {
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddHvaOpen(true)}>HVA</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
-      </div>
-
-      {/* Tomorrow's Tasks */}
-      <div className={styles.tomorrowSection}>
-        <CalendarLtr20Regular style={{ color: tokens.colorBrandForeground1 }} />
-        <Text weight="semibold" style={{ marginRight: 8 }}>Tomorrow:</Text>
-        {tomorrowTasks.length === 0 ? (
-          <Text className={styles.tomorrowEmpty}>
-            C'mon O'G... I know you have stuff to do tomorrow. Let's get it lined up!
-          </Text>
-        ) : (
-          tomorrowTasks.map((task) => (
-            <div
-              key={task.tdvsp_actionitemid}
-              className={styles.tomorrowItem}
-              onClick={() => navigate("/tasks")}
-            >
-              <Text size={200}>{task.tdvsp_name}</Text>
-              {task.tdvsp_Customer?.name && (
-                <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                  · {task.tdvsp_Customer.name}
-                </Caption1>
-              )}
-            </div>
-          ))
-        )}
       </div>
 
       {/* Main body with optional pinned notes sidebar */}
@@ -719,37 +660,43 @@ export const Dashboard: React.FC = () => {
 
             <Card className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
-                <Subtitle1>Recent Projects</Subtitle1>
+                <Subtitle1>Ideas</Subtitle1>
                 <Button
                   appearance="subtle"
                   size="small"
                   icon={<Add16Regular />}
-                  onClick={() => navigate("/projects")}
+                  onClick={() => navigate("/ideas")}
                 >
                   New
                 </Button>
               </div>
-              {projects.length === 0 ? (
+              {ideas.length === 0 ? (
                 <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
-                  No projects yet
+                  No ideas yet
                 </Body1>
               ) : (
-                projects.slice(0, 4).map((project, i) => (
-                  <React.Fragment key={project.tdvsp_projectid}>
+                ideas.slice(0, 5).map((idea, i) => (
+                  <React.Fragment key={idea.tdvsp_ideaid}>
                     {i > 0 && <Divider />}
-                    <div className={styles.listItem} onClick={() => navigate("/projects")}>
-                      <div>
-                        <Text weight="semibold" block className={styles.nameLink}>
-                          {project.tdvsp_name}
-                        </Text>
-                        {project.tdvsp_Account?.name && (
-                          <Caption1
-                            style={{ color: tokens.colorNeutralForeground3 }}
-                          >
-                            {project.tdvsp_Account.name}
-                          </Caption1>
+                    <div className={styles.listItem} onClick={() => navigate("/ideas")} style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                      <Text weight="semibold" className={styles.nameLink}>
+                        {idea.tdvsp_name}
+                        {idea.tdvsp_category != null && (
+                          <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
+                            {" "}&ndash; {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] ?? ""}
+                          </span>
                         )}
-                      </div>
+                        {idea.tdvsp_Account?.name && (
+                          <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
+                            {" "}&ndash; {idea.tdvsp_Account.name}
+                          </span>
+                        )}
+                      </Text>
+                      {idea.tdvsp_description && (
+                        <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {idea.tdvsp_description}
+                        </Caption1>
+                      )}
                     </div>
                   </React.Fragment>
                 ))

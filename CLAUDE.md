@@ -24,7 +24,7 @@ src/
 ├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat widget)
 ├── context/        # React context providers (ThemeContext for dark/light mode)
 ├── pages/          # Route pages
-│   ├── Dashboard.tsx        # Stats tiles (Accounts, Contacts, Ideas, Tasks, Overdue) + recent lists + pinned notes sidebar
+│   ├── Dashboard.tsx        # Stats tiles (Accounts, Contacts, Projects, Open Tasks) + Action Items & Ideas sections + pinned notes sidebar
 │   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, activities, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + view dialog with related ideas
 │   ├── Activities.tsx       # High-Value Activities CRUD
@@ -84,7 +84,7 @@ Values: 468510000 (Recognized/Pondering), 468510001 (In Progress), 468510002 (Pe
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Quick action buttons at top open inline dialogs for creating any record type (stays on dashboard). Custom banner background image. "Tomorrow's Tasks" section below banner shows action items due tomorrow (or motivational message if empty). Stat tiles for Accounts, Contacts, Projects, Open Tasks. Section cards for Action Items (left) and Recent Projects (right) with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Dashboard** - Quick action buttons at top open inline dialogs for creating any record type (stays on dashboard). Custom banner background image. Stat tiles for Accounts, Contacts, Projects, Open Tasks. Section cards for Action Items (left) and Ideas (right) with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by section "New" buttons, not dashboard quick actions).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
   - Add notes with optional file attachments (stored as base64 in Dataverse)
