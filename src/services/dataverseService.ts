@@ -156,7 +156,7 @@ export async function deleteActivity(id: string): Promise<void> {
 
 export async function getActionItems(): Promise<ActionItem[]> {
   const result = await apiRequest(
-    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,createdon,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
+    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype,createdon,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
   );
   return result?.value ?? [];
 }
@@ -168,6 +168,7 @@ export async function createActionItem(
     tdvsp_description?: string;
     tdvsp_taskstatus?: number;
     tdvsp_priority?: number;
+    tdvsp_tasktype?: number;
     "tdvsp_Customer@odata.bind"?: string;
   }
 ): Promise<ActionItem> {
@@ -182,6 +183,7 @@ export async function updateActionItem(
     tdvsp_description?: string;
     tdvsp_taskstatus?: number;
     tdvsp_priority?: number;
+    tdvsp_tasktype?: number;
     "tdvsp_Customer@odata.bind"?: string;
   }
 ): Promise<ActionItem> {

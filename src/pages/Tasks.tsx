@@ -38,7 +38,7 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { ActionItem, Account, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels } from "../types";
+import { ActionItem, Account, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getActionItems,
@@ -154,6 +154,7 @@ interface FormData {
   tdvsp_description: string;
   tdvsp_taskstatus: string;
   tdvsp_priority: string;
+  tdvsp_tasktype: string;
   customerAccountId: string;
 }
 
@@ -163,6 +164,7 @@ const emptyForm: FormData = {
   tdvsp_description: "",
   tdvsp_taskstatus: "",
   tdvsp_priority: "",
+  tdvsp_tasktype: "",
   customerAccountId: "",
 };
 
@@ -234,6 +236,7 @@ export const Tasks: React.FC = () => {
       tdvsp_description: item.tdvsp_description ?? "",
       tdvsp_taskstatus: item.tdvsp_taskstatus != null ? String(item.tdvsp_taskstatus) : "",
       tdvsp_priority: item.tdvsp_priority != null ? String(item.tdvsp_priority) : "",
+      tdvsp_tasktype: item.tdvsp_tasktype != null ? String(item.tdvsp_tasktype) : "",
       customerAccountId: item.tdvsp_Customer?.accountid ?? "",
     });
     setDialogOpen(true);
@@ -247,6 +250,7 @@ export const Tasks: React.FC = () => {
         tdvsp_description?: string;
         tdvsp_taskstatus?: number;
         tdvsp_priority?: number;
+        tdvsp_tasktype?: number;
         "tdvsp_Customer@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
@@ -254,6 +258,7 @@ export const Tasks: React.FC = () => {
         tdvsp_description: formData.tdvsp_description || undefined,
         tdvsp_taskstatus: formData.tdvsp_taskstatus ? Number(formData.tdvsp_taskstatus) : undefined,
         tdvsp_priority: formData.tdvsp_priority ? Number(formData.tdvsp_priority) : undefined,
+        tdvsp_tasktype: formData.tdvsp_tasktype ? Number(formData.tdvsp_tasktype) : undefined,
       };
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
@@ -332,6 +337,18 @@ export const Tasks: React.FC = () => {
         <Text>
           {item.tdvsp_priority != null
             ? taskPriorityLabels[item.tdvsp_priority as TaskPriority] ?? "--"
+            : "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "taskType",
+      compare: (a, b) => (a.tdvsp_tasktype ?? 0) - (b.tdvsp_tasktype ?? 0),
+      renderHeaderCell: () => "Type",
+      renderCell: (item) => (
+        <Text>
+          {item.tdvsp_tasktype != null
+            ? taskTypeLabels[item.tdvsp_tasktype as TaskType] ?? "--"
             : "--"}
         </Text>
       ),
@@ -518,6 +535,31 @@ export const Tasks: React.FC = () => {
                       )}
                     </Dropdown>
                   </div>
+                  <div className={styles.formField}>
+                    <Label>Task Type</Label>
+                    <Dropdown
+                      placeholder="Select type"
+                      value={
+                        formData.tdvsp_tasktype
+                          ? taskTypeLabels[Number(formData.tdvsp_tasktype) as TaskType] ?? ""
+                          : ""
+                      }
+                      onOptionSelect={(_, d) =>
+                        setFormData({
+                          ...formData,
+                          tdvsp_tasktype: d.optionValue ?? "",
+                        })
+                      }
+                    >
+                      {(Object.entries(taskTypeLabels) as [string, string][]).map(
+                        ([value, label]) => (
+                          <Option key={value} value={value}>
+                            {label}
+                          </Option>
+                        )
+                      )}
+                    </Dropdown>
+                  </div>
                 </div>
               </DialogContent>
               <DialogActions>
@@ -628,6 +670,14 @@ export const Tasks: React.FC = () => {
                         <Text block size={400}>
                           {viewingItem.tdvsp_priority != null
                             ? taskPriorityLabels[viewingItem.tdvsp_priority as TaskPriority] ?? "--"
+                            : "--"}
+                        </Text>
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Task Type</Label>
+                        <Text block size={400}>
+                          {viewingItem.tdvsp_tasktype != null
+                            ? taskTypeLabels[viewingItem.tdvsp_tasktype as TaskType] ?? "--"
                             : "--"}
                         </Text>
                       </div>

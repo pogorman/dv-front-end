@@ -34,9 +34,11 @@ import {
   Add16Regular,
   Attach16Regular,
   Warning24Filled,
+  Home24Filled,
+  CheckmarkCircle16Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels } from "../types";
+import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType } from "../types";
 import {
   getActionItems,
   getAccounts,
@@ -235,6 +237,32 @@ const useStyles = makeStyles({
     ":hover": {
       backgroundColor: tokens.colorNeutralBackground1Hover,
     },
+  },
+  personalCard: {
+    ...shorthands.padding("20px"),
+    ...shorthands.borderRadius("12px"),
+    borderLeft: "4px solid #0e7c7b",
+  },
+  personalHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
+    marginBottom: "12px",
+  },
+  personalItem: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("10px"),
+    ...shorthands.padding("8px", "0px"),
+    cursor: "pointer",
+    ...shorthands.borderRadius("6px"),
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  personalItemContent: {
+    flexGrow: 1,
+    minWidth: 0,
   },
 });
 
@@ -582,6 +610,56 @@ export const Dashboard: React.FC = () => {
                         : new Date(t.tdvsp_date) < new Date()
                           ? "Overdue"
                           : "Upcoming"}
+                    </Badge>
+                  )}
+                </div>
+              </React.Fragment>
+            ))}
+        </Card>
+      )}
+
+      {/* Personal Items Section */}
+      {actionItems.filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)).length > 0 && (
+        <Card className={styles.personalCard}>
+          <div className={styles.personalHeader}>
+            <Home24Filled style={{ color: "#0e7c7b" }} />
+            <Subtitle1>Personal</Subtitle1>
+            <Caption1 style={{ color: tokens.colorNeutralForeground3, marginLeft: "4px" }}>
+              Honey-do's & life stuff
+            </Caption1>
+          </div>
+          {actionItems
+            .filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+            .map((t, i) => (
+              <React.Fragment key={t.tdvsp_actionitemid}>
+                {i > 0 && <Divider />}
+                <div className={styles.personalItem} onClick={() => navigate("/tasks")}>
+                  <CheckmarkCircle16Filled
+                    style={{
+                      color: t.tdvsp_taskstatus === (468510005 as TaskStatus) ? "#107c10" : tokens.colorNeutralForeground3,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div className={styles.personalItemContent}>
+                    <Text weight="semibold" block className={styles.nameLink}>
+                      {t.tdvsp_name}
+                    </Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                      {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
+                      {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                    </Caption1>
+                  </div>
+                  {t.tdvsp_date && (
+                    <Badge
+                      appearance="filled"
+                      color={
+                        new Date(t.tdvsp_date) < new Date()
+                          ? "danger"
+                          : "informative"
+                      }
+                      style={{ flexShrink: 0 }}
+                    >
+                      {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
                     </Badge>
                   )}
                 </div>

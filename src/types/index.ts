@@ -63,6 +63,16 @@ export const taskPriorityLabels: Record<TaskPriority, string> = {
   468510003: "High... next in line after top priority...",
 };
 
+// Task Type choice field (on Action Items)
+export type TaskType =
+  | 468510000 // Personal
+  | 468510001; // Work
+
+export const taskTypeLabels: Record<TaskType, string> = {
+  468510000: "Personal",
+  468510001: "Work",
+};
+
 // Action Item entity (tdvsp_actionitem table)
 export interface ActionItem {
   tdvsp_actionitemid?: string;
@@ -71,6 +81,7 @@ export interface ActionItem {
   tdvsp_description?: string;
   tdvsp_taskstatus?: TaskStatus;
   tdvsp_priority?: TaskPriority;
+  tdvsp_tasktype?: TaskType;
   createdon?: string;
   _tdvsp_customer_value?: string;
   tdvsp_Customer?: { accountid: string; name: string };

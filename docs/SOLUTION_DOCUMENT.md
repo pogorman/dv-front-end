@@ -259,6 +259,7 @@ User opens app
    │ jobtitle    │  └───────────┘  │tdvsp_task    │          │
    └──────┬──────┘                 │  status      │          │
           │                        │tdvsp_priority│          │
+   │                        │tdvsp_tasktype│          │
           │                        └──────┬───────┘          │
           │                               │                  │
           │    ┌──────────────┐           │                  │
@@ -343,6 +344,13 @@ User opens app
 | 468510001 | Eh... Get to it when you can |
 | 468510002 | Top priority... no kidding! |
 | 468510003 | High... next in line after top priority... |
+
+**Task Type** (`tdvsp_tasktype`):
+
+| Value | Label |
+|-------|-------|
+| 468510000 | Personal |
+| 468510001 | Work |
 
 ### OData API Patterns
 
@@ -496,7 +504,7 @@ All TypeScript interfaces are centralized in a single file:
 | `Account` | Account records with optional parent account lookup |
 | `Customer` | Contact records with account lookup |
 | `HighValueActivity` | HVA records with account lookup |
-| `ActionItem` | Task records with status, priority, date, and account lookup |
+| `ActionItem` | Task records with status, priority, type, date, and account lookup |
 | `Impact` | Impact records with account lookup |
 | `Idea` | Idea records with category, account, and contact lookups |
 | `Project` | Project records with account lookup |
@@ -506,6 +514,7 @@ All TypeScript interfaces are centralized in a single file:
 | `IdeaCategory` | Numeric union type for idea category choices |
 | `TaskStatus` | Numeric union type for task status choices |
 | `TaskPriority` | Numeric union type for task priority choices |
+| `TaskType` | Numeric union type for task type choices (Personal, Work) |
 
 ---
 
@@ -527,15 +536,16 @@ The landing page providing an at-a-glance overview.
 1. **Welcome Banner** — Background image (`/images/banner-bg.png`) with greeting text
 2. **Quick Action Buttons** — Pill-shaped buttons to create any record type (Account, Contact, Project, Action Item, Idea, HVA, Impact, Meeting Summary) without leaving the dashboard
 3. **Top Priority Card** — Full-width card with red left accent border showing action items with "Top priority... no kidding!" priority. Displays name, due date, status, account, and overdue/upcoming badge. Only visible when top priority items exist.
-4. **Stats Grid** — Four clickable stat cards:
+4. **Personal Card** — Full-width card with teal left accent border and Home icon showing action items with task type "Personal" that aren't complete. Designed for honey-do's and personal life tasks separate from work items. Each item shows a checkmark icon, name, due date, status, and overdue/upcoming badge. Only visible when incomplete personal items exist.
+5. **Stats Grid** — Four clickable stat cards:
    - Accounts (blue) — total count
    - Contacts (purple) — total count
    - Projects (indigo) — total count
    - Open Tasks (green) — total action items
-5. **Section Cards** (2-column grid):
+6. **Section Cards** (2-column grid):
    - **Action Items** — Latest 4 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete)
    - **Ideas** — Latest 5 items showing name, category, account on line 1; description preview on line 2
-6. **Pinned Notes Sidebar** (280px, right) — Appears only when notes are pinned; shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog
+7. **Pinned Notes Sidebar** (280px, right) — Appears only when notes are pinned; shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog
 
 **Data loaded on mount:** Accounts, Contacts, Projects, Action Items, Ideas, Pinned Annotations
 
@@ -566,11 +576,11 @@ CRUD for contact records linked to accounts.
 
 Task management with status tracking.
 
-**Main View:** DataGrid with columns: Date, Name (clickable), Task Status, Priority, Customer, Description, Created On, Actions
+**Main View:** DataGrid with columns: Date, Name (clickable), Task Status, Priority, Type, Customer, Description, Created On, Actions
 
-**View Dialog:** Two-column layout — Details (name, description, date, status, priority, customer, created on) on the left, Notes Timeline on the right
+**View Dialog:** Two-column layout — Details (name, description, date, status, priority, type, customer, created on) on the left, Notes Timeline on the right
 
-**Forms:** Name (required), Date, Account (dropdown), Task Status (6-option dropdown), Priority (4-option dropdown), Description (textarea)
+**Forms:** Name (required), Date, Account (dropdown), Task Status (6-option dropdown), Priority (4-option dropdown), Task Type (Personal/Work dropdown), Description (textarea)
 
 **Task Status Workflow:** Recognized/Pondering → In Progress → Pending Communication → On Hold → Wrapping Up → Complete
 
@@ -829,6 +839,7 @@ The **sidebar** (left) organizes pages into sections:
 
 - **Quick Action Buttons** — Create any record type directly from the dashboard
 - **Top Priority** — Full-width card highlighting action items marked as "Top priority... no kidding!" with due dates and status badges (only appears when such items exist)
+- **Personal** — Full-width card (teal accent) showing personal/honey-do action items that aren't complete (only appears when incomplete personal items exist)
 - **Stat Cards** — Click any card to navigate to that page
 - **Action Items** — Shows the 4 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete)
 - **Ideas** — Shows the 5 most recent ideas with category and account
