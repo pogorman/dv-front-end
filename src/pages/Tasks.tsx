@@ -38,7 +38,7 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { ActionItem, Account, TaskStatus, taskStatusLabels } from "../types";
+import { ActionItem, Account, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getActionItems,
@@ -153,6 +153,7 @@ interface FormData {
   tdvsp_date: string;
   tdvsp_description: string;
   tdvsp_taskstatus: string;
+  tdvsp_taskpriority: string;
   customerAccountId: string;
 }
 
@@ -161,6 +162,7 @@ const emptyForm: FormData = {
   tdvsp_date: "",
   tdvsp_description: "",
   tdvsp_taskstatus: "",
+  tdvsp_taskpriority: "",
   customerAccountId: "",
 };
 
@@ -231,6 +233,7 @@ export const Tasks: React.FC = () => {
       tdvsp_date: item.tdvsp_date ? item.tdvsp_date.split("T")[0] : "",
       tdvsp_description: item.tdvsp_description ?? "",
       tdvsp_taskstatus: item.tdvsp_taskstatus != null ? String(item.tdvsp_taskstatus) : "",
+      tdvsp_taskpriority: item.tdvsp_taskpriority != null ? String(item.tdvsp_taskpriority) : "",
       customerAccountId: item.tdvsp_Customer?.accountid ?? "",
     });
     setDialogOpen(true);
@@ -243,12 +246,14 @@ export const Tasks: React.FC = () => {
         tdvsp_date: string;
         tdvsp_description?: string;
         tdvsp_taskstatus?: number;
+        tdvsp_taskpriority?: number;
         "tdvsp_Customer@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
         tdvsp_date: formData.tdvsp_date,
         tdvsp_description: formData.tdvsp_description || undefined,
         tdvsp_taskstatus: formData.tdvsp_taskstatus ? Number(formData.tdvsp_taskstatus) : undefined,
+        tdvsp_taskpriority: formData.tdvsp_taskpriority ? Number(formData.tdvsp_taskpriority) : undefined,
       };
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
@@ -315,6 +320,18 @@ export const Tasks: React.FC = () => {
         <Text>
           {item.tdvsp_taskstatus != null
             ? taskStatusLabels[item.tdvsp_taskstatus as TaskStatus] ?? "--"
+            : "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "taskPriority",
+      compare: (a, b) => (a.tdvsp_taskpriority ?? 0) - (b.tdvsp_taskpriority ?? 0),
+      renderHeaderCell: () => "Priority",
+      renderCell: (item) => (
+        <Text>
+          {item.tdvsp_taskpriority != null
+            ? taskPriorityLabels[item.tdvsp_taskpriority as TaskPriority] ?? "--"
             : "--"}
         </Text>
       ),
@@ -476,6 +493,31 @@ export const Tasks: React.FC = () => {
                       )}
                     </Dropdown>
                   </div>
+                  <div className={styles.formField}>
+                    <Label>Priority</Label>
+                    <Dropdown
+                      placeholder="Select priority"
+                      value={
+                        formData.tdvsp_taskpriority
+                          ? taskPriorityLabels[Number(formData.tdvsp_taskpriority) as TaskPriority] ?? ""
+                          : ""
+                      }
+                      onOptionSelect={(_, d) =>
+                        setFormData({
+                          ...formData,
+                          tdvsp_taskpriority: d.optionValue ?? "",
+                        })
+                      }
+                    >
+                      {(Object.entries(taskPriorityLabels) as [string, string][]).map(
+                        ([value, label]) => (
+                          <Option key={value} value={value}>
+                            {label}
+                          </Option>
+                        )
+                      )}
+                    </Dropdown>
+                  </div>
                 </div>
               </DialogContent>
               <DialogActions>
@@ -578,6 +620,14 @@ export const Tasks: React.FC = () => {
                         <Text block size={400}>
                           {viewingItem.tdvsp_taskstatus != null
                             ? taskStatusLabels[viewingItem.tdvsp_taskstatus as TaskStatus] ?? "--"
+                            : "--"}
+                        </Text>
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Priority</Label>
+                        <Text block size={400}>
+                          {viewingItem.tdvsp_taskpriority != null
+                            ? taskPriorityLabels[viewingItem.tdvsp_taskpriority as TaskPriority] ?? "--"
                             : "--"}
                         </Text>
                       </div>

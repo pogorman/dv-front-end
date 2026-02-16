@@ -49,6 +49,20 @@ export const taskStatusLabels: Record<TaskStatus, string> = {
   468510005: "Complete",
 };
 
+// Task Priority choice field (on Action Items)
+export type TaskPriority =
+  | 468510000 // Low... but on deck for sure
+  | 468510001 // Eh... Get to it when you can
+  | 468510002 // Top priority... no kidding!
+  | 468510003; // High... next in line after top priority...
+
+export const taskPriorityLabels: Record<TaskPriority, string> = {
+  468510000: "Low... but on deck for sure",
+  468510001: "Eh... Get to it when you can",
+  468510002: "Top priority... no kidding!",
+  468510003: "High... next in line after top priority...",
+};
+
 // Action Item entity (tdvsp_actionitem table)
 export interface ActionItem {
   tdvsp_actionitemid?: string;
@@ -56,6 +70,7 @@ export interface ActionItem {
   tdvsp_date: string;
   tdvsp_description?: string;
   tdvsp_taskstatus?: TaskStatus;
+  tdvsp_taskpriority?: TaskPriority;
   createdon?: string;
   _tdvsp_customer_value?: string;
   tdvsp_Customer?: { accountid: string; name: string };

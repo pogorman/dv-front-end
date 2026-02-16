@@ -35,7 +35,7 @@ import {
   Attach16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels } from "../types";
+import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels } from "../types";
 import {
   getActionItems,
   getAccounts,
@@ -631,6 +631,7 @@ export const Dashboard: React.FC = () => {
                         >
                           {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
                           {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                          {t.tdvsp_taskpriority != null && ` · ${taskPriorityLabels[t.tdvsp_taskpriority as TaskPriority] ?? ""}`}
                           {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                         </Caption1>
                       </div>
