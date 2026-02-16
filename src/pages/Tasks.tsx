@@ -153,7 +153,7 @@ interface FormData {
   tdvsp_date: string;
   tdvsp_description: string;
   tdvsp_taskstatus: string;
-  tdvsp_taskpriority: string;
+  tdvsp_priority: string;
   customerAccountId: string;
 }
 
@@ -162,7 +162,7 @@ const emptyForm: FormData = {
   tdvsp_date: "",
   tdvsp_description: "",
   tdvsp_taskstatus: "",
-  tdvsp_taskpriority: "",
+  tdvsp_priority: "",
   customerAccountId: "",
 };
 
@@ -233,7 +233,7 @@ export const Tasks: React.FC = () => {
       tdvsp_date: item.tdvsp_date ? item.tdvsp_date.split("T")[0] : "",
       tdvsp_description: item.tdvsp_description ?? "",
       tdvsp_taskstatus: item.tdvsp_taskstatus != null ? String(item.tdvsp_taskstatus) : "",
-      tdvsp_taskpriority: item.tdvsp_taskpriority != null ? String(item.tdvsp_taskpriority) : "",
+      tdvsp_priority: item.tdvsp_priority != null ? String(item.tdvsp_priority) : "",
       customerAccountId: item.tdvsp_Customer?.accountid ?? "",
     });
     setDialogOpen(true);
@@ -246,14 +246,14 @@ export const Tasks: React.FC = () => {
         tdvsp_date: string;
         tdvsp_description?: string;
         tdvsp_taskstatus?: number;
-        tdvsp_taskpriority?: number;
+        tdvsp_priority?: number;
         "tdvsp_Customer@odata.bind"?: string;
       } = {
         tdvsp_name: formData.tdvsp_name,
         tdvsp_date: formData.tdvsp_date,
         tdvsp_description: formData.tdvsp_description || undefined,
         tdvsp_taskstatus: formData.tdvsp_taskstatus ? Number(formData.tdvsp_taskstatus) : undefined,
-        tdvsp_taskpriority: formData.tdvsp_taskpriority ? Number(formData.tdvsp_taskpriority) : undefined,
+        tdvsp_priority: formData.tdvsp_priority ? Number(formData.tdvsp_priority) : undefined,
       };
       if (formData.customerAccountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
@@ -326,12 +326,12 @@ export const Tasks: React.FC = () => {
     }),
     createTableColumn({
       columnId: "taskPriority",
-      compare: (a, b) => (a.tdvsp_taskpriority ?? 0) - (b.tdvsp_taskpriority ?? 0),
+      compare: (a, b) => (a.tdvsp_priority ?? 0) - (b.tdvsp_priority ?? 0),
       renderHeaderCell: () => "Priority",
       renderCell: (item) => (
         <Text>
-          {item.tdvsp_taskpriority != null
-            ? taskPriorityLabels[item.tdvsp_taskpriority as TaskPriority] ?? "--"
+          {item.tdvsp_priority != null
+            ? taskPriorityLabels[item.tdvsp_priority as TaskPriority] ?? "--"
             : "--"}
         </Text>
       ),
@@ -498,14 +498,14 @@ export const Tasks: React.FC = () => {
                     <Dropdown
                       placeholder="Select priority"
                       value={
-                        formData.tdvsp_taskpriority
-                          ? taskPriorityLabels[Number(formData.tdvsp_taskpriority) as TaskPriority] ?? ""
+                        formData.tdvsp_priority
+                          ? taskPriorityLabels[Number(formData.tdvsp_priority) as TaskPriority] ?? ""
                           : ""
                       }
                       onOptionSelect={(_, d) =>
                         setFormData({
                           ...formData,
-                          tdvsp_taskpriority: d.optionValue ?? "",
+                          tdvsp_priority: d.optionValue ?? "",
                         })
                       }
                     >
@@ -626,8 +626,8 @@ export const Tasks: React.FC = () => {
                       <div className={styles.viewField}>
                         <Label>Priority</Label>
                         <Text block size={400}>
-                          {viewingItem.tdvsp_taskpriority != null
-                            ? taskPriorityLabels[viewingItem.tdvsp_taskpriority as TaskPriority] ?? "--"
+                          {viewingItem.tdvsp_priority != null
+                            ? taskPriorityLabels[viewingItem.tdvsp_priority as TaskPriority] ?? "--"
                             : "--"}
                         </Text>
                       </div>

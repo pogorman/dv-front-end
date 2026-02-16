@@ -70,7 +70,7 @@ export interface ActionItem {
   tdvsp_date: string;
   tdvsp_description?: string;
   tdvsp_taskstatus?: TaskStatus;
-  tdvsp_taskpriority?: TaskPriority;
+  tdvsp_priority?: TaskPriority;
   createdon?: string;
   _tdvsp_customer_value?: string;
   tdvsp_Customer?: { accountid: string; name: string };
