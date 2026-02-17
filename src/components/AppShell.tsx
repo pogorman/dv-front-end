@@ -86,15 +86,7 @@ const useStyles = makeStyles({
   brandIcon: {
     width: "32px",
     height: "32px",
-    ...shorthands.borderRadius("6px"),
-    backgroundColor: "#0078d4",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     flexShrink: 0,
-    color: "white",
-    fontWeight: "bold",
-    fontSize: "11px",
   },
   navSection: {
     display: "flex",
@@ -341,7 +333,16 @@ export const AppShell: React.FC = () => {
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.brandArea}>
-            <div className={styles.brandIcon}>O'G</div>
+            <svg className={styles.brandIcon} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="shield-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style={{ stopColor: "#0078d4" }} />
+                  <stop offset="100%" style={{ stopColor: "#004578" }} />
+                </linearGradient>
+              </defs>
+              <path d="M32 2 L58 14 V36 C58 50 46 60 32 62 C18 60 6 50 6 36 V14 Z" fill="url(#shield-bg)" stroke="#fff" strokeWidth="2" />
+              <text x="32" y="44" fontFamily="Segoe UI,Arial,sans-serif" fontSize="26" fontWeight="800" fill="white" textAnchor="middle" letterSpacing="-1">OG</text>
+            </svg>
             {expanded && (
               <Text weight="semibold" size={400}>
                 O'G Central
