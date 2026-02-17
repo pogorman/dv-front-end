@@ -411,6 +411,7 @@ The application shell provides the persistent layout for all authenticated pages
 2. **O'G's Data:** Action Items, Projects, Meeting Summaries, Ideas
 3. **Impact:** High-Value Activities, Impacts
 4. **Core:** Accounts, Contacts
+5. **About this site** (bottom)
 
 **Features:**
 - Active route is highlighted with brand color background
@@ -534,7 +535,7 @@ The landing page providing an at-a-glance overview.
 
 **Sections:**
 1. **Welcome Banner** — Background image (`/images/banner-bg.png`) with greeting text
-2. **Quick Action Buttons** — Pill-shaped buttons to create any record type (Account, Contact, Project, Action Item, Idea, HVA, Impact, Meeting Summary) without leaving the dashboard
+2. **Quick Action Buttons** — Pill-shaped buttons ordered to match sidebar nav (Action Item, Project, Meeting Summary, Idea, HVA, Impact, Account, Contact) plus an About link — create any record type without leaving the dashboard
 3. **Top Priority Card** — Full-width card with red left accent border showing action items with "Top priority... no kidding!" priority. Displays name, due date, status, account, and overdue/upcoming badge. Only visible when top priority items exist.
 4. **Personal Card** — Full-width card with teal left accent border and Home icon showing action items with task type "Personal" that aren't complete. Designed for honey-do's and personal life tasks separate from work items. Each item shows a checkmark icon, name, due date, status, and overdue/upcoming badge. Only visible when incomplete personal items exist.
 5. **Stats Grid** — Four clickable stat cards:
@@ -638,7 +639,18 @@ Meeting documentation with extended text support.
 
 **Dialog width:** 700px (wider than standard to accommodate summary text)
 
-### 8.10 Login (`pages/Login.tsx`)
+### 8.10 About (`pages/About.tsx`)
+
+Static informational page about the application.
+
+**Layout:** Single card (max-width 720px) with rows showing:
+- Platform (React SPA on Azure Static Web Apps)
+- Backend (Microsoft Dataverse Web API)
+- Authentication (Azure AD / MSAL)
+- UI Framework (Fluent UI v9)
+- Domain (ohgeesolutions.com)
+
+### 8.11 Login (`pages/Login.tsx`)
 
 Displayed to unauthenticated users.
 
@@ -831,13 +843,14 @@ The **sidebar** (left) organizes pages into sections:
 | **O'G's Data** | Action Items, Projects, Meeting Summaries, Ideas |
 | **Impact** | High-Value Activities, Impacts |
 | **Core** | Accounts, Contacts |
+| *(Bottom)* | About this site |
 
 - Click the **chevron** at the top of the sidebar to collapse/expand it
 - The current page is highlighted in blue
 
 ### Dashboard
 
-- **Quick Action Buttons** — Create any record type directly from the dashboard
+- **Quick Action Buttons** — Create any record type directly from the dashboard (ordered to match sidebar nav), plus About link
 - **Top Priority** — Full-width card highlighting action items marked as "Top priority... no kidding!" with due dates and status badges (only appears when such items exist)
 - **Personal** — Full-width card (teal accent) showing personal/honey-do action items that aren't complete (only appears when incomplete personal items exist)
 - **Stat Cards** — Click any card to navigate to that page
@@ -922,7 +935,7 @@ src/
 │   └── NotesTimeline.tsx # Reusable notes with attachments + pinning
 ├── context/            # React context providers
 │   └── ThemeContext.tsx # Dark/light mode state and persistence
-├── pages/              # Route-level page components (one per entity)
+├── pages/              # Route-level page components (one per entity + About)
 ├── services/           # API layer
 │   └── dataverseService.ts # All Dataverse Web API calls
 ├── types/              # TypeScript interfaces and type definitions

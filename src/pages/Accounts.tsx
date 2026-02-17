@@ -38,7 +38,7 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Account, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import { NotesTimeline } from "../components/NotesTimeline";
 import {
@@ -211,7 +211,7 @@ export const Accounts: React.FC = () => {
 
   // Form data for add new dialogs
   const [newContact, setNewContact] = useState({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "" });
-  const [newActionItem, setNewActionItem] = useState({ tdvsp_name: "", tdvsp_date: "" });
+  const [newActionItem, setNewActionItem] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
   const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string });
   const [newActivity, setNewActivity] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
   const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
@@ -358,10 +358,13 @@ export const Accounts: React.FC = () => {
       await createActionItem({
         tdvsp_name: newActionItem.tdvsp_name,
         tdvsp_date: newActionItem.tdvsp_date || new Date().toISOString().split("T")[0],
+        tdvsp_taskstatus: newActionItem.tdvsp_taskstatus ? Number(newActionItem.tdvsp_taskstatus) : undefined,
+        tdvsp_priority: newActionItem.tdvsp_priority ? Number(newActionItem.tdvsp_priority) : undefined,
+        tdvsp_tasktype: newActionItem.tdvsp_tasktype ? Number(newActionItem.tdvsp_tasktype) : undefined,
         "tdvsp_Customer@odata.bind": `/accounts(${viewingAccount.accountid})`,
       });
       setAddActionItemOpen(false);
-      setNewActionItem({ tdvsp_name: "", tdvsp_date: "" });
+      setNewActionItem({ tdvsp_name: "", tdvsp_date: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
       loadRelatedRecords(viewingAccount.accountid);
     } catch (err) {
       console.error("Failed to add action item:", err);
@@ -640,7 +643,12 @@ export const Accounts: React.FC = () => {
                               {relatedTasks.map((t) => (
                                 <div key={t.tdvsp_actionitemid} className={styles.relatedItem}>
                                   <Text weight="semibold">{t.tdvsp_name}</Text>
-                                  {t.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(t.tdvsp_date)}</Caption1>}
+                                  <Caption1 style={{ marginLeft: 8, color: tokens.colorNeutralForeground3 }}>
+                                    {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                                    {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                                    {t.tdvsp_priority != null && ` · ${taskPriorityLabels[t.tdvsp_priority as TaskPriority] ?? ""}`}
+                                    {t.tdvsp_tasktype != null && ` · ${taskTypeLabels[t.tdvsp_tasktype as TaskType] ?? ""}`}
+                                  </Caption1>
                                 </div>
                               ))}
                             </div>
@@ -818,6 +826,44 @@ export const Accounts: React.FC = () => {
                 <div className={styles.formField}>
                   <Label>Date</Label>
                   <Input type="date" value={newActionItem.tdvsp_date} onChange={(_, d) => setNewActionItem({ ...newActionItem, tdvsp_date: d.value })} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                  <div className={styles.formField}>
+                    <Label>Status</Label>
+                    <Dropdown
+                      placeholder="Select status"
+                      value={newActionItem.tdvsp_taskstatus ? taskStatusLabels[Number(newActionItem.tdvsp_taskstatus) as TaskStatus] ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewActionItem({ ...newActionItem, tdvsp_taskstatus: d.optionValue ?? "" })}
+                    >
+                      {Object.entries(taskStatusLabels).map(([value, label]) => (
+                        <Option key={value} value={value} text={label}>{label}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div className={styles.formField}>
+                    <Label>Priority</Label>
+                    <Dropdown
+                      placeholder="Select priority"
+                      value={newActionItem.tdvsp_priority ? taskPriorityLabels[Number(newActionItem.tdvsp_priority) as TaskPriority] ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewActionItem({ ...newActionItem, tdvsp_priority: d.optionValue ?? "" })}
+                    >
+                      {Object.entries(taskPriorityLabels).map(([value, label]) => (
+                        <Option key={value} value={value} text={label}>{label}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div className={styles.formField}>
+                    <Label>Type</Label>
+                    <Dropdown
+                      placeholder="Select type"
+                      value={newActionItem.tdvsp_tasktype ? taskTypeLabels[Number(newActionItem.tdvsp_tasktype) as TaskType] ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewActionItem({ ...newActionItem, tdvsp_tasktype: d.optionValue ?? "" })}
+                    >
+                      {Object.entries(taskTypeLabels).map(([value, label]) => (
+                        <Option key={value} value={value} text={label}>{label}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
                 </div>
               </div>
             </DialogContent>

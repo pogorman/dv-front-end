@@ -39,7 +39,7 @@ import {
   Info16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType } from "../types";
+import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
 import {
   getActionItems,
   getAccounts,
@@ -308,7 +308,7 @@ export const Dashboard: React.FC = () => {
   const [newAccount, setNewAccount] = useState({ name: "", parentAccountId: "" });
   const [newContact, setNewContact] = useState({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "", accountId: "" });
   const [newProject, setNewProject] = useState({ tdvsp_name: "", tdvsp_description: "", accountId: "" });
-  const [newTask, setNewTask] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "" });
+  const [newTask, setNewTask] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
   const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string, accountId: "" });
   const [newHva, setNewHva] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
   const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
@@ -416,18 +416,24 @@ export const Dashboard: React.FC = () => {
         tdvsp_name: string;
         tdvsp_date: string;
         tdvsp_description?: string;
+        tdvsp_taskstatus?: number;
+        tdvsp_priority?: number;
+        tdvsp_tasktype?: number;
         "tdvsp_Customer@odata.bind"?: string;
       } = {
         tdvsp_name: newTask.tdvsp_name,
         tdvsp_date: newTask.tdvsp_date || new Date().toISOString().split("T")[0],
         tdvsp_description: newTask.tdvsp_description || undefined,
+        tdvsp_taskstatus: newTask.tdvsp_taskstatus ? Number(newTask.tdvsp_taskstatus) : undefined,
+        tdvsp_priority: newTask.tdvsp_priority ? Number(newTask.tdvsp_priority) : undefined,
+        tdvsp_tasktype: newTask.tdvsp_tasktype ? Number(newTask.tdvsp_tasktype) : undefined,
       };
       if (newTask.accountId) {
         payload["tdvsp_Customer@odata.bind"] = `/accounts(${newTask.accountId})`;
       }
       await createActionItem(payload);
       setAddTaskOpen(false);
-      setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "" });
+      setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
       getActionItems().then(setActionItems).catch(console.error);
     } catch (err) {
       console.error("Failed to add action item:", err);
@@ -1149,6 +1155,44 @@ export const Dashboard: React.FC = () => {
                       <Option value="" text="(None)">(None)</Option>
                       {accounts.map((a) => (
                         <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Status</Label>
+                    <Dropdown
+                      placeholder="Select status"
+                      value={newTask.tdvsp_taskstatus ? taskStatusLabels[Number(newTask.tdvsp_taskstatus) as TaskStatus] ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewTask({ ...newTask, tdvsp_taskstatus: d.optionValue ?? "" })}
+                    >
+                      {Object.entries(taskStatusLabels).map(([value, label]) => (
+                        <Option key={value} value={value} text={label}>{label}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Priority</Label>
+                    <Dropdown
+                      placeholder="Select priority"
+                      value={newTask.tdvsp_priority ? taskPriorityLabels[Number(newTask.tdvsp_priority) as TaskPriority] ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewTask({ ...newTask, tdvsp_priority: d.optionValue ?? "" })}
+                    >
+                      {Object.entries(taskPriorityLabels).map(([value, label]) => (
+                        <Option key={value} value={value} text={label}>{label}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Type</Label>
+                    <Dropdown
+                      placeholder="Select type"
+                      value={newTask.tdvsp_tasktype ? taskTypeLabels[Number(newTask.tdvsp_tasktype) as TaskType] ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewTask({ ...newTask, tdvsp_tasktype: d.optionValue ?? "" })}
+                    >
+                      {Object.entries(taskTypeLabels).map(([value, label]) => (
+                        <Option key={value} value={value} text={label}>{label}</Option>
                       ))}
                     </Dropdown>
                   </div>

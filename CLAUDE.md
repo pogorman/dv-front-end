@@ -33,6 +33,7 @@ src/
 │   ├── Ideas.tsx            # Ideas CRUD with category dropdown + view dialog with notes timeline
 │   ├── Projects.tsx         # Projects CRUD + view dialog with notes timeline
 │   ├── MeetingSummaries.tsx # Meeting Summaries CRUD
+│   ├── About.tsx            # About this site info page
 │   └── Login.tsx            # Unauthenticated login page
 ├── services/       # API layer (dataverseService.ts)
 ├── types/          # TypeScript interfaces (index.ts)
@@ -88,11 +89,13 @@ Values: 468510000 (Personal), 468510001 (Work)
   - O'G's Data: Action Items, Projects, Meeting Summaries, Ideas
   - Impact: High-Value Activities, Impacts
   - Core: Accounts, Contacts
+  - About this site (bottom)
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (HVAs, Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Quick action buttons at top open inline dialogs for creating any record type (stays on dashboard). Custom banner background image. "Top Priority" full-width card (red accent) shows action items with priority "Top priority... no kidding!" (only when they exist). "Personal" full-width card (teal accent, Home icon) shows action items with task type "Personal" that aren't complete — for honey-do's and life stuff. Stat tiles for Accounts, Contacts, Projects, Open Tasks. Section cards for Action Items (left) and Ideas (right) with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Dashboard** - Quick action buttons at top (ordered to match sidebar nav) open inline dialogs for creating any record type (stays on dashboard), plus About link. Custom banner background image. "Top Priority" and "Personal" cards side by side — Top Priority (red accent) shows action items with priority "Top priority... no kidding!"; Personal (teal accent, Home icon) shows action items with task type "Personal" that aren't complete — for honey-do's and life stuff. Stat tiles for Accounts, Contacts, Projects, Open Tasks. Section cards for Action Items (left) and Ideas (right) with clickable items and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by section "New" buttons, not dashboard quick actions).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
   - Add notes with optional file attachments (stored as base64 in Dataverse)

@@ -347,7 +347,7 @@ export async function getActivitiesByAccount(accountId: string): Promise<HighVal
 
 export async function getActionItemsByAccount(accountId: string): Promise<ActionItem[]> {
   const result = await apiRequest(
-    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
   );
   return result?.value ?? [];
 }

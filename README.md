@@ -44,6 +44,7 @@ npm test      # Run tests
 - **Copilot Chat** — floating AI assistant (bottom-right) connected to Copilot Studio via SSO
 - **Dark/Light Theme** toggle with system preference detection and localStorage persistence
 - **Collapsible Sidebar** navigation organized into sections
+- **About this site** page with app and platform info
 
 ## Project Structure
 
