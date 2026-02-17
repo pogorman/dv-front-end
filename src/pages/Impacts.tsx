@@ -42,6 +42,7 @@ import {
   deleteImpact,
   getAccounts,
 } from "../services/dataverseService";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -147,6 +148,7 @@ const emptyForm: FormData = {
 
 export const Impacts: React.FC = () => {
   const styles = useStyles();
+  const { notify } = useNotification();
   const [searchParams, setSearchParams] = useSearchParams();
   const [impacts, setImpacts] = useState<Impact[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -240,8 +242,10 @@ export const Impacts: React.FC = () => {
       setFormData(emptyForm);
       setEditingId(null);
       loadImpacts();
+      notify(editingId ? "Impact updated" : "Impact created");
     } catch (err) {
       console.error("Failed to save impact:", err);
+      notify("Failed to save impact", undefined, "error");
     }
   };
 
@@ -249,8 +253,10 @@ export const Impacts: React.FC = () => {
     try {
       await deleteImpact(id);
       loadImpacts();
+      notify("Impact deleted");
     } catch (err) {
       console.error("Failed to delete impact:", err);
+      notify("Failed to delete impact", undefined, "error");
     }
   };
 

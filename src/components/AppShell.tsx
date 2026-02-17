@@ -40,6 +40,7 @@ import {
 } from "@fluentui/react-icons";
 import { useMsal } from "@azure/msal-react";
 import { useTheme } from "../context/ThemeContext";
+import { NotificationProvider } from "../context/NotificationContext";
 import { CopilotChat } from "./CopilotChat";
 
 const SIDEBAR_WIDTH = 260;
@@ -456,7 +457,9 @@ export const AppShell: React.FC = () => {
           </div>
         </header>
         <main className={styles.pageContent}>
-          <Outlet />
+          <NotificationProvider>
+            <Outlet />
+          </NotificationProvider>
         </main>
       </div>
 

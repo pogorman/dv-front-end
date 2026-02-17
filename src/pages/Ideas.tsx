@@ -42,6 +42,7 @@ import {
   getCustomers,
 } from "../services/dataverseService";
 import { NotesTimeline } from "../components/NotesTimeline";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -181,6 +182,7 @@ const categoryOptions: { value: IdeaCategory; label: string }[] = [
 
 export const Ideas: React.FC = () => {
   const styles = useStyles();
+  const { notify } = useNotification();
   const [searchParams, setSearchParams] = useSearchParams();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -290,8 +292,10 @@ export const Ideas: React.FC = () => {
       setFormData(emptyForm);
       setEditingId(null);
       loadIdeas();
+      notify(editingId ? "Idea updated" : "Idea created");
     } catch (err) {
       console.error("Failed to save idea:", err);
+      notify("Failed to save idea", undefined, "error");
     }
   };
 
@@ -299,8 +303,10 @@ export const Ideas: React.FC = () => {
     try {
       await deleteIdea(id);
       loadIdeas();
+      notify("Idea deleted");
     } catch (err) {
       console.error("Failed to delete idea:", err);
+      notify("Failed to delete idea", undefined, "error");
     }
   };
 

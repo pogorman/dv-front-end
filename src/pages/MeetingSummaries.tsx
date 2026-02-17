@@ -42,6 +42,7 @@ import {
   deleteMeetingSummary,
   getAccounts,
 } from "../services/dataverseService";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -155,6 +156,7 @@ const emptyForm: FormData = {
 
 export const MeetingSummaries: React.FC = () => {
   const styles = useStyles();
+  const { notify } = useNotification();
   const [searchParams, setSearchParams] = useSearchParams();
   const [summaries, setSummaries] = useState<MeetingSummary[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -252,8 +254,10 @@ export const MeetingSummaries: React.FC = () => {
       setFormData(emptyForm);
       setEditingId(null);
       loadSummaries();
+      notify(editingId ? "Meeting summary updated" : "Meeting summary created");
     } catch (err) {
       console.error("Failed to save meeting summary:", err);
+      notify("Failed to save meeting summary", undefined, "error");
     }
   };
 
@@ -261,8 +265,10 @@ export const MeetingSummaries: React.FC = () => {
     try {
       await deleteMeetingSummary(id);
       loadSummaries();
+      notify("Meeting summary deleted");
     } catch (err) {
       console.error("Failed to delete meeting summary:", err);
+      notify("Failed to delete meeting summary", undefined, "error");
     }
   };
 

@@ -48,6 +48,7 @@ import {
   getAccounts,
 } from "../services/dataverseService";
 import { NotesTimeline } from "../components/NotesTimeline";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -170,6 +171,7 @@ const emptyForm: FormData = {
 
 export const Tasks: React.FC = () => {
   const styles = useStyles();
+  const { notify } = useNotification();
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<ActionItem[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -272,8 +274,10 @@ export const Tasks: React.FC = () => {
       setFormData(emptyForm);
       setEditingId(null);
       loadItems();
+      notify(editingId ? "Action item updated" : "Action item created");
     } catch (err) {
       console.error("Failed to save action item:", err);
+      notify("Failed to save action item", undefined, "error");
     }
   };
 
@@ -281,8 +285,10 @@ export const Tasks: React.FC = () => {
     try {
       await deleteActionItem(id);
       loadItems();
+      notify("Action item deleted");
     } catch (err) {
       console.error("Failed to delete action item:", err);
+      notify("Failed to delete action item", undefined, "error");
     }
   };
 

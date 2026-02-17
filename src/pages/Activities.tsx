@@ -42,6 +42,7 @@ import {
   deleteActivity,
   getAccounts,
 } from "../services/dataverseService";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -147,6 +148,7 @@ const emptyForm: FormData = {
 
 export const Activities: React.FC = () => {
   const styles = useStyles();
+  const { notify } = useNotification();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activities, setActivities] = useState<HighValueActivity[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -240,8 +242,10 @@ export const Activities: React.FC = () => {
       setFormData(emptyForm);
       setEditingId(null);
       loadActivities();
+      notify(editingId ? "Activity updated" : "Activity created");
     } catch (err) {
       console.error("Failed to save activity:", err);
+      notify("Failed to save activity", undefined, "error");
     }
   };
 
@@ -249,8 +253,10 @@ export const Activities: React.FC = () => {
     try {
       await deleteActivity(id);
       loadActivities();
+      notify("Activity deleted");
     } catch (err) {
       console.error("Failed to delete activity:", err);
+      notify("Failed to delete activity", undefined, "error");
     }
   };
 

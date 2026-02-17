@@ -45,6 +45,7 @@ import {
   getAccounts,
   getIdeasByContact,
 } from "../services/dataverseService";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -152,6 +153,7 @@ const emptyForm: FormData = {
 
 export const Contacts: React.FC = () => {
   const styles = useStyles();
+  const { notify } = useNotification();
   const [searchParams, setSearchParams] = useSearchParams();
   const [contacts, setContacts] = useState<Customer[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -273,8 +275,10 @@ export const Contacts: React.FC = () => {
       setFormData(emptyForm);
       setEditingId(null);
       loadContacts();
+      notify(editingId ? "Contact updated" : "Contact created");
     } catch (err) {
       console.error("Failed to save contact:", err);
+      notify("Failed to save contact", undefined, "error");
     }
   };
 
@@ -282,8 +286,10 @@ export const Contacts: React.FC = () => {
     try {
       await deleteCustomer(id);
       loadContacts();
+      notify("Contact deleted");
     } catch (err) {
       console.error("Failed to delete contact:", err);
+      notify("Failed to delete contact", undefined, "error");
     }
   };
 

@@ -22,7 +22,7 @@ src/
 │   ├── CopilotChat.tsx      # Floating Copilot Studio chat widget
 │   └── NotesTimeline.tsx    # Shared notes component with file attachments
 ├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat widget)
-├── context/        # React context providers (ThemeContext for dark/light mode)
+├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
 │   ├── Dashboard.tsx        # Stats tiles + Top Priority card + Personal card + Action Items & Ideas sections + pinned notes sidebar
 │   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, activities, tasks, impacts, ideas, summaries, notes)
@@ -104,6 +104,7 @@ Values: 468510000 (Personal), 468510001 (Work)
   - Delete notes
 - **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
 - **Copilot Chat** - Floating O'G logo button (bottom-right) opens chat panel connected to Copilot Studio agent. Uses `CopilotChat.tsx` with Bot Framework Web Chat. Authenticates via Direct Line secret (from `REACT_APP_COPILOT_DIRECT_LINE_SECRET` env var) and SSO token exchange (scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`). Bot avatar uses O'G logo (`/images/og_logo_white.png`). Sends `startConversation` event on connect to trigger bot greeting.
+- **Toast Notifications** - All CRUD operations show toast notifications (top-right) on success and error. Uses `NotificationContext` with Fluent UI `Toaster`. Success toasts auto-dismiss after 3s, errors after 5s.
 
 ## Coding Conventions
 
