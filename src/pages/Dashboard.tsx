@@ -220,6 +220,8 @@ const useStyles = makeStyles({
     ...shorthands.padding("20px"),
     ...shorthands.borderRadius("12px"),
     borderLeft: "4px solid #d13438",
+    flex: "1 1 0",
+    minWidth: 0,
   },
   topPriorityHeader: {
     display: "flex",
@@ -242,6 +244,8 @@ const useStyles = makeStyles({
     ...shorthands.padding("20px"),
     ...shorthands.borderRadius("12px"),
     borderLeft: "4px solid #0e7c7b",
+    flex: "1 1 0",
+    minWidth: 0,
   },
   personalHeader: {
     display: "flex",
@@ -265,12 +269,11 @@ const useStyles = makeStyles({
     minWidth: 0,
   },
   highlightRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    display: "flex",
     ...shorthands.gap("16px"),
     alignItems: "stretch",
     "@media (max-width: 900px)": {
-      gridTemplateColumns: "1fr",
+      flexDirection: "column",
     },
   },
 });
