@@ -63,7 +63,7 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("24px"),
+    ...shorthands.gap("14px"),
   },
   quickActions: {
     display: "flex",
@@ -76,7 +76,7 @@ const useStyles = makeStyles({
     fontWeight: "500",
   },
   welcomeCard: {
-    ...shorthands.padding("32px"),
+    ...shorthands.padding("20px"),
     backgroundImage: "url('/images/banner-bg.png')",
     backgroundSize: "cover",
     backgroundPosition: "center",
@@ -85,7 +85,7 @@ const useStyles = makeStyles({
   },
   dashboardBody: {
     display: "flex",
-    ...shorthands.gap("24px"),
+    ...shorthands.gap("16px"),
     alignItems: "flex-start",
   },
   dashboardMain: {
@@ -93,7 +93,7 @@ const useStyles = makeStyles({
     minWidth: 0,
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("24px"),
+    ...shorthands.gap("14px"),
   },
   statsGrid: {
     display: "grid",
@@ -101,8 +101,8 @@ const useStyles = makeStyles({
     ...shorthands.gap("12px"),
   },
   statCard: {
-    ...shorthands.padding("16px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.padding("12px"),
+    ...shorthands.borderRadius("10px"),
     cursor: "pointer",
     transition: "box-shadow 0.2s ease, transform 0.2s ease",
     ":hover": {
@@ -114,46 +114,46 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "8px",
+    marginBottom: "4px",
   },
   statIconWrap: {
-    width: "36px",
-    height: "36px",
-    ...shorthands.borderRadius("8px"),
+    width: "28px",
+    height: "28px",
+    ...shorthands.borderRadius("6px"),
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   statNumber: {
-    fontSize: "28px",
+    fontSize: "22px",
     fontWeight: "700",
     lineHeight: "1",
-    marginBottom: "4px",
+    marginBottom: "2px",
   },
   sectionGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    ...shorthands.gap("16px"),
+    ...shorthands.gap("12px"),
     "@media (max-width: 900px)": {
       gridTemplateColumns: "1fr",
     },
   },
   sectionCard: {
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.padding("14px"),
+    ...shorthands.borderRadius("10px"),
   },
   sectionHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "16px",
+    marginBottom: "8px",
   },
   listItem: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    ...shorthands.padding("10px", "0px"),
+    ...shorthands.padding("6px", "0px"),
     cursor: "pointer",
     ...shorthands.borderRadius("6px"),
     ":hover": {
@@ -170,8 +170,8 @@ const useStyles = makeStyles({
   pinnedPanel: {
     width: "280px",
     minWidth: "280px",
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.padding("14px"),
+    ...shorthands.borderRadius("10px"),
     display: "flex",
     flexDirection: "column",
     alignSelf: "stretch",
@@ -180,7 +180,7 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     ...shorthands.gap("8px"),
-    marginBottom: "16px",
+    marginBottom: "8px",
   },
   pinnedList: {
     display: "flex",
@@ -218,8 +218,8 @@ const useStyles = makeStyles({
     fontWeight: "600",
   },
   topPriorityCard: {
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.padding("14px"),
+    ...shorthands.borderRadius("10px"),
     borderLeft: "4px solid #d13438",
     flex: "1 1 0",
     minWidth: 0,
@@ -228,13 +228,13 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     ...shorthands.gap("8px"),
-    marginBottom: "12px",
+    marginBottom: "6px",
   },
   topPriorityItem: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    ...shorthands.padding("10px", "0px"),
+    ...shorthands.padding("5px", "0px"),
     cursor: "pointer",
     ...shorthands.borderRadius("6px"),
     ":hover": {
@@ -242,8 +242,8 @@ const useStyles = makeStyles({
     },
   },
   personalCard: {
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.padding("14px"),
+    ...shorthands.borderRadius("10px"),
     borderLeft: "4px solid #0e7c7b",
     flex: "1 1 0",
     minWidth: 0,
@@ -252,13 +252,13 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     ...shorthands.gap("8px"),
-    marginBottom: "12px",
+    marginBottom: "6px",
   },
   personalItem: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("10px"),
-    ...shorthands.padding("8px", "0px"),
+    ...shorthands.gap("8px"),
+    ...shorthands.padding("5px", "0px"),
     cursor: "pointer",
     ...shorthands.borderRadius("6px"),
     ":hover": {
@@ -271,7 +271,7 @@ const useStyles = makeStyles({
   },
   highlightRow: {
     display: "flex",
-    ...shorthands.gap("16px"),
+    ...shorthands.gap("12px"),
     alignItems: "stretch",
     "@media (max-width: 900px)": {
       flexDirection: "column",
