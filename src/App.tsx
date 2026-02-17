@@ -34,6 +34,7 @@ import { Ideas } from "./pages/Ideas";
 import { Projects } from "./pages/Projects";
 import { MeetingSummaries } from "./pages/MeetingSummaries";
 import { LoginPage } from "./pages/Login";
+import { About } from "./pages/About";
 
 // Microsoft-themed brand colors
 const microsoftBrand: BrandVariants = {
@@ -119,6 +120,7 @@ const ThemedApp: React.FC = () => {
                 <Route path="/ideas" element={<Ideas />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/summaries" element={<MeetingSummaries />} />
+                <Route path="/about" element={<About />} />
               </Route>
             </Routes>
           </TokenProviderSetup>

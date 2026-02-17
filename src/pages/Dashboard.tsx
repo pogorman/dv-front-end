@@ -36,6 +36,7 @@ import {
   Warning24Filled,
   Home24Filled,
   CheckmarkCircle16Filled,
+  Info16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType } from "../types";
@@ -571,16 +572,17 @@ export const Dashboard: React.FC = () => {
         </Text>
       </div>
 
-      {/* Quick Action Buttons */}
+      {/* Quick Action Buttons — matches sidebar nav order */}
       <div className={styles.quickActions}>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddIdeaOpen(true)}>Idea</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddHvaOpen(true)}>HVA</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
+        <Button className={styles.quickActionBtn} appearance="outline" icon={<Info16Regular />} onClick={() => navigate("/about")}>About</Button>
       </div>
 
       {/* Top Priority & Personal Cards — side by side */}

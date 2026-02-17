@@ -35,6 +35,8 @@ import {
   ChevronLeft24Regular,
   WeatherMoon24Regular,
   WeatherSunny24Regular,
+  Info24Regular,
+  Info24Filled,
 } from "@fluentui/react-icons";
 import { useMsal } from "@azure/msal-react";
 import { useTheme } from "../context/ThemeContext";
@@ -279,6 +281,18 @@ const navSections: NavSection[] = [
       },
     ],
   },
+  {
+    label: "",
+    items: [
+      {
+        key: "about",
+        label: "About this site",
+        path: "/about",
+        icon: <Info24Regular />,
+        iconActive: <Info24Filled />,
+      },
+    ],
+  },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -291,6 +305,7 @@ const pageTitles: Record<string, string> = {
   "/activities": "High-Value Activities",
   "/impacts": "Impacts",
   "/summaries": "Meeting Summaries",
+  "/about": "About this site",
 };
 
 export const AppShell: React.FC = () => {
@@ -361,10 +376,10 @@ export const AppShell: React.FC = () => {
           </Tooltip>
 
           {/* Sections */}
-          {navSections.map((section) => (
-            <React.Fragment key={section.label}>
+          {navSections.map((section, idx) => (
+            <React.Fragment key={section.label || `section-${idx}`}>
               <Divider className={styles.sectionDivider} />
-              {expanded && (
+              {expanded && section.label && (
                 <div className={styles.sectionLabel}>{section.label}</div>
               )}
               {section.items.map((item) => {
