@@ -24,7 +24,7 @@ src/
 ├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat widget)
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
-│   ├── Dashboard.tsx        # Stats tiles + Work/Personal cards + Action Items & Ideas sections + pinned notes sidebar
+│   ├── Dashboard.tsx        # Quick create bar, Work/Personal cards (maximize), stat tiles, Action Items & Ideas sections, pinned notes sidebar
 │   ├── Accounts.tsx         # CRUD + inline edit view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + inline edit view dialog with related ideas
 │   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + inline edit view dialog with notes timeline
@@ -32,6 +32,7 @@ src/
 │   ├── Ideas.tsx            # Ideas CRUD with category dropdown + inline edit view dialog with notes timeline (200px fixed tile height)
 │   ├── Projects.tsx         # Projects CRUD + inline edit view dialog with notes timeline
 │   ├── MeetingSummaries.tsx # Meeting Summaries CRUD + inline edit view dialog
+│   ├── Activities.tsx       # (ORPHANED — not routed) High-Value Activities CRUD, kept for potential future use
 │   ├── About.tsx            # About this site info page
 │   └── Login.tsx            # Unauthenticated login page
 ├── services/       # API layer (dataverseService.ts)
@@ -60,6 +61,7 @@ The app works with these Dataverse tables:
 | Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup) |
 | Projects | `tdvsp_projects` | tdvsp_projectid, tdvsp_name, tdvsp_description, tdvsp_Account (account lookup) |
 | Meeting Summaries | `tdvsp_meetingsummaries` | tdvsp_meetingsummaryid, tdvsp_name, tdvsp_date, tdvsp_summary, tdvsp_Account (account lookup) |
+| High-Value Activities | `tdvsp_hvas` | tdvsp_hvaid, tdvsp_name, tdvsp_description, tdvsp_date, tdvsp_Customer (account lookup) — **orphaned**: API functions & type exist but page not routed |
 | Annotations (Notes) | `annotations` | annotationid, subject, notetext, createdon, objectid (polymorphic lookup), filename, mimetype, documentbody (base64 file), isdocument |
 
 Custom tables use the `tdvsp_` prefix (publisher prefix).
@@ -82,18 +84,25 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 ## Key Features
 
-- **Sidebar Navigation** (195px, collapsible) - Organized into sections with subtle dividers:
+- **Sidebar Navigation** (195px expanded, 56px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
   - Dashboard (top)
   - Core: Accounts, Contacts, Projects, Meeting Summaries
   - Activity: Action Items, Ideas, Impacts
   - About this site (bottom)
+  - User area at bottom with avatar, name, Sign out button
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Thin "Quick Create" bar with compact pill buttons for creating any record type (stays on dashboard). Custom banner background image. "Work" and "Personal" cards side by side — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items with a "Top Priority" sub-section at the top; Personal card (teal accent, Home icon) shows all non-complete personal action items with a "Top Priority" sub-section at the top. Both cards have max-height (180px) with scroll for overflow (~4 items visible). All 4 cards (Work, Personal, Action Items, Ideas) have maximize icons that expand them into a centered overlay dialog (70vw x 80vh) showing full content without height constraints. 7 compact stat tiles in a fixed row: Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts (quick-launch navigation to each view). Section cards for Action Items (left) and Ideas (right) with clickable items (navigate to record view dialog) and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Dashboard** - Layout from top to bottom:
+  1. **Welcome Banner** - Background image (`/images/banner-bg.png`) with white text
+  2. **Quick Create Bar** - Compact pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard)
+  3. **Work & Personal Cards** (side by side) — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (teal accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), and maximize icons that expand into centered overlay dialog (70vw x 80vh)
+  4. **Stat Tiles** - 7 compact tiles in a row: Accounts, Contacts, Projects, Summaries, Actions, Ideas, Impacts (click navigates to each view)
+  5. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, and maximize icons
+  6. **Pinned Notes Sidebar** - Right panel (280px, appears when notes are pinned)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
-- **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by section "New" buttons, not dashboard quick actions). Tasks and Ideas also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items).
+- **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by dashboard section "New" buttons). Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items and Work/Personal card items).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
   - Add notes with optional file attachments (stored as base64 in Dataverse)
   - Pin notes to dashboard
@@ -112,7 +121,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 - API calls go through `dataverseService.ts` using a shared `apiRequest` helper
 - Dataverse lookups use `@odata.bind` syntax for setting relationships (e.g., `"parentcustomerid_account@odata.bind": "/accounts(guid)"`)
 - Dataverse lookup values are read via `_fieldname_value` properties and `$expand` for navigation properties
-- View dialogs open on name click; editing happens inline in the view dialog (isEditing state toggles fields between read-only Text and editable Input/Dropdown/Textarea). Separate "New" dialog is kept only for creating new records. Pattern: `openEdit` sets `isEditing(true)` and populates `formData` while keeping view dialog open; `handleSaveEdit` updates record and refreshes the viewed entity; `handleSaveNew` creates from the separate new dialog.
+- **Inline Edit Pattern** (all 7 entity pages): View dialogs open on name click; editing happens inline in the view dialog (`isEditing` state toggles fields between read-only `<Text>` and editable `<Input>`/`<Dropdown>`/`<Textarea>`). Separate "New" dialog is kept only for creating new records. Standard functions: `openEdit` sets `isEditing(true)` and populates `formData`; `buildPayload` extracts shared payload construction; `handleSaveEdit` updates record and refreshes viewed entity; `handleSaveNew` creates from the new dialog. DialogActions toggle between Edit button (view mode) and Save/Cancel (edit mode). `onOpenChange` resets `isEditing` and `editingId` when dialog closes.
 
 ## Authentication Flow
 
