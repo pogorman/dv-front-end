@@ -158,22 +158,26 @@ const useStyles = makeStyles({
     },
   },
   sectionCard: {
-    ...shorthands.padding("14px"),
+    ...shorthands.padding("10px"),
     ...shorthands.borderRadius("10px"),
   },
   sectionHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "8px",
+    marginBottom: "4px",
+  },
+  sectionScrollArea: {
+    maxHeight: "180px",
+    overflowY: "auto" as const,
   },
   listItem: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    ...shorthands.padding("6px", "0px"),
+    ...shorthands.padding("2px", "0px"),
     cursor: "pointer",
-    ...shorthands.borderRadius("6px"),
+    ...shorthands.borderRadius("4px"),
     ":hover": {
       backgroundColor: tokens.colorNeutralBackground1Hover,
     },
@@ -815,16 +819,17 @@ export const Dashboard: React.FC = () => {
                   New
                 </Button>
               </div>
+              <div className={styles.sectionScrollArea}>
               {actionItems.length === 0 ? (
                 <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
                   No action items
                 </Body1>
               ) : (
-                actionItems.slice(0, 4).map((t, i) => (
+                actionItems.slice(0, 8).map((t, i) => (
                   <React.Fragment key={t.tdvsp_actionitemid}>
                     {i > 0 && <Divider />}
                     <div className={styles.listItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                      <div>
+                      <div style={{ minWidth: 0 }}>
                         <Text weight="semibold" block className={styles.nameLink}>
                           {t.tdvsp_name}
                         </Text>
@@ -859,6 +864,7 @@ export const Dashboard: React.FC = () => {
                   </React.Fragment>
                 ))
               )}
+              </div>
             </Card>
 
             <Card className={styles.sectionCard}>
@@ -874,12 +880,13 @@ export const Dashboard: React.FC = () => {
                   New
                 </Button>
               </div>
+              <div className={styles.sectionScrollArea}>
               {ideas.length === 0 ? (
                 <Body1 style={{ color: tokens.colorNeutralForeground3 }}>
                   No ideas yet
                 </Body1>
               ) : (
-                ideas.slice(0, 5).map((idea, i) => (
+                ideas.slice(0, 8).map((idea, i) => (
                   <React.Fragment key={idea.tdvsp_ideaid}>
                     {i > 0 && <Divider />}
                     <div className={styles.listItem} onClick={() => navigate(`/ideas?view=${idea.tdvsp_ideaid}`)} style={{ flexDirection: "column", alignItems: "flex-start" }}>
@@ -905,6 +912,7 @@ export const Dashboard: React.FC = () => {
                   </React.Fragment>
                 ))
               )}
+              </div>
             </Card>
           </div>
         </div>
