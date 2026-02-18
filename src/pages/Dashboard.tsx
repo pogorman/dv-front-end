@@ -43,6 +43,7 @@ import {
   Bookmark16Regular,
   Bookmark16Filled,
   Bookmark24Regular,
+  Delete16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
@@ -62,6 +63,8 @@ import {
   createIdea,
   createImpact,
   createMeetingSummary,
+  deleteActionItem,
+  deleteIdea,
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
@@ -419,6 +422,30 @@ export const Dashboard: React.FC = () => {
       parkItem(ref);
     }
     setParkedItems(getParkedItems());
+  };
+
+  // Dashboard delete handler
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" } | null>(null);
+  const handleDashboardDelete = async () => {
+    if (!deleteConfirm) return;
+    setSaving(true);
+    try {
+      if (deleteConfirm.type === "actionitem") {
+        await deleteActionItem(deleteConfirm.id);
+        getActionItems().then(setActionItems);
+      } else {
+        await deleteIdea(deleteConfirm.id);
+        getIdeas().then(setIdeas);
+      }
+      unparkItem(deleteConfirm.id);
+      setParkedItems(getParkedItems());
+      notify(`Deleted "${deleteConfirm.name}"`, "success");
+    } catch {
+      notify("Failed to delete record", "error");
+    } finally {
+      setSaving(false);
+      setDeleteConfirm(null);
+    }
   };
 
   // Quick add handlers
@@ -792,6 +819,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -826,6 +854,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -874,6 +903,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -907,6 +937,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -970,6 +1001,7 @@ export const Dashboard: React.FC = () => {
                           onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                           title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                         />
+                        <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
                         {t.tdvsp_date && (
                           <Badge
                             appearance="filled"
@@ -1047,6 +1079,7 @@ export const Dashboard: React.FC = () => {
                         title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
                         style={{ flexShrink: 0 }}
                       />
+                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Delete" style={{ flexShrink: 0 }} />
                     </div>
                   </React.Fragment>
                 ))
@@ -1573,6 +1606,24 @@ export const Dashboard: React.FC = () => {
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddSummaryOpen(false)}>Cancel</Button>
               <Button appearance="primary" onClick={handleAddSummary} disabled={saving || !newSummary.tdvsp_name.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={(_, d) => { if (!d.open) setDeleteConfirm(null); }}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Delete Record</DialogTitle>
+            <DialogContent>
+              Are you sure you want to delete <strong>{deleteConfirm?.name}</strong>? This cannot be undone.
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setDeleteConfirm(null)} disabled={saving}>Cancel</Button>
+              <Button appearance="primary" onClick={handleDashboardDelete} disabled={saving} style={{ backgroundColor: "#d13438" }}>
+                {saving ? <><Spinner size="tiny" /> Deleting...</> : "Delete"}
+              </Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
