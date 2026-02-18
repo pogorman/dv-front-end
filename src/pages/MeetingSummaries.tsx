@@ -287,17 +287,17 @@ export const MeetingSummaries: React.FC = () => {
         <Input
           className={styles.searchBox}
           contentBefore={<Search24Regular />}
-          placeholder="Search meeting summaries..."
+          placeholder="Search summaries..."
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
-            New Meeting Summary
+            New Summary
           </Button>
           <DialogSurface style={{ maxWidth: "700px", width: "700px" }}>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Meeting Summary" : "New Meeting Summary"}</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Summary" : "New Summary"}</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -374,14 +374,14 @@ export const MeetingSummaries: React.FC = () => {
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-          <Spinner label="Loading meeting summaries..." />
+          <Spinner label="Loading summaries..." />
         </div>
       ) : filtered.length === 0 ? (
         <div className={styles.emptyState}>
           <Notebook24Filled style={{ fontSize: 48, color: "#0078d4", marginBottom: 16 }} />
-          <Subtitle1>No meeting summaries found</Subtitle1>
+          <Subtitle1>No summaries found</Subtitle1>
           <Caption1 style={{ marginTop: 8 }}>
-            Create your first meeting summary to start tracking.
+            Create your first summary to start tracking.
           </Caption1>
         </div>
       ) : (
@@ -452,7 +452,7 @@ export const MeetingSummaries: React.FC = () => {
                 />
               }
             >
-              Meeting Summary Details
+              Summary Details
             </DialogTitle>
             <DialogContent>
               {viewingSummary && (

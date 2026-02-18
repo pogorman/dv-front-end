@@ -1336,7 +1336,7 @@ export const Dashboard: React.FC = () => {
       <Dialog open={addSummaryOpen} onOpenChange={(_, d) => setAddSummaryOpen(d.open)}>
         <DialogSurface style={{ maxWidth: "600px", width: "600px" }}>
           <DialogBody>
-            <DialogTitle>New Meeting Summary</DialogTitle>
+            <DialogTitle>New Summary</DialogTitle>
             <DialogContent>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>

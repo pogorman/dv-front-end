@@ -227,7 +227,7 @@ const navSections: NavSection[] = [
       },
       {
         key: "summaries",
-        label: "Meeting Summaries",
+        label: "Summaries",
         path: "/summaries",
         icon: <Notebook24Regular />,
         iconActive: <Notebook24Filled />,
@@ -282,7 +282,7 @@ const pageTitles: Record<string, string> = {
   "/ideas": "Ideas",
   "/projects": "Projects",
   "/impacts": "Impacts",
-  "/summaries": "Meeting Summaries",
+  "/summaries": "Summaries",
   "/about": "About this site",
 };
 

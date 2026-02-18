@@ -726,12 +726,12 @@ export const Accounts: React.FC = () => {
                         {/* Meeting Summaries */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
-                            <Subtitle1>Meeting Summaries</Subtitle1>
+                            <Subtitle1>Summaries</Subtitle1>
                             <span className={styles.badge}>{relatedSummaries.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Add</Button>
                           </div>
                           {relatedSummaries.length === 0 ? (
-                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No meeting summaries</Caption1>
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No summaries</Caption1>
                           ) : (
                             <div className={styles.relatedList}>
                               {relatedSummaries.map((s) => (
@@ -974,7 +974,7 @@ export const Accounts: React.FC = () => {
       <Dialog open={addSummaryOpen} onOpenChange={(_, d) => setAddSummaryOpen(d.open)}>
         <DialogSurface style={{ maxWidth: "600px", width: "600px" }}>
           <DialogBody>
-            <DialogTitle>Add Meeting Summary to {viewingAccount?.name}</DialogTitle>
+            <DialogTitle>Add Summary to {viewingAccount?.name}</DialogTitle>
             <DialogContent>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div className={styles.formField}>
