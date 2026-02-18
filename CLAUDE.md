@@ -37,7 +37,7 @@ src/
 │   └── Login.tsx            # Unauthenticated login page
 ├── services/       # API layer (dataverseService.ts)
 ├── types/          # TypeScript interfaces (index.ts)
-└── utils/          # Helper functions (formatDate.ts, pinnedNotes.ts)
+└── utils/          # Helper functions (formatDate.ts, pinnedNotes.ts, parkingLot.ts)
 ```
 
 ## Commands
@@ -94,13 +94,15 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Layout from top to bottom:
+- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). Right sidebar spans full height from welcome banner to bottom. Layout from top to bottom in main column:
   1. **Welcome Banner** - Background image (`/images/banner-bg.png`) with white text
-  2. **Quick Create Bar** - Compact pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard)
-  3. **Work & Personal Cards** (side by side) — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (teal accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), and maximize icons that expand into centered overlay dialog (70vw x 80vh)
+  2. **Quick Create Bar** - Compact pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Save buttons disable with spinner during save.
+  3. **Work & Personal Cards** (side by side, full width of main column) — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (teal accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), maximize icons, and bookmark icons per item for Parking Lot.
   4. **Stat Tiles** - 7 compact tiles in a row: Accounts, Contacts, Projects, Summaries, Actions, Ideas, Impacts (click navigates to each view)
-  5. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, maximize icons, 180px max-height with scroll (matching Work/Personal card density)
-  6. **Pinned Notes Sidebar** - Right panel (280px, appears when notes are pinned)
+  5. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, maximize icons, 180px max-height with scroll, bookmark icons per item for Parking Lot.
+  Right sidebar (top to bottom):
+  6. **Parking Lot Panel** - Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X removes. `parkingLot.ts` stores refs in localStorage.
+  7. **Pinned Notes Panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by dashboard section "New" buttons). Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items and Work/Personal card items).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
@@ -108,6 +110,7 @@ Values: 468510000 (Personal), 468510001 (Work)
   - Pin notes to dashboard
   - Download attached files
   - Delete notes
+- **Parking Lot** - Dashboard bookmarking feature. Any record visible on the dashboard (Work, Personal, Action Items, Ideas cards) can be "parked" via a bookmark icon. Parked items appear in the right sidebar Parking Lot panel. Click navigates to the record, X button removes it. `parkingLot.ts` stores `ParkedItemRef { id, name, entityType, route }` in localStorage. Entity types: actionitem, idea, account, contact, project, impact, summary.
 - **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
 - **Copilot Chat** - Floating O'G logo button (bottom-right) opens chat panel connected to Copilot Studio agent. Uses `CopilotChat.tsx` with Bot Framework Web Chat. Authenticates via Direct Line secret (from `REACT_APP_COPILOT_DIRECT_LINE_SECRET` env var) and SSO token exchange (scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`). Bot avatar uses O'G logo (`/images/og_logo_white.png`). Sends `startConversation` event on connect to trigger bot greeting.
 - **Toast Notifications** - All CRUD operations show toast notifications (top-right) on success and error. Uses `NotificationContext` with Fluent UI `Toaster`. Success toasts auto-dismiss after 3s, errors after 5s.
@@ -121,7 +124,8 @@ Values: 468510000 (Personal), 468510001 (Work)
 - API calls go through `dataverseService.ts` using a shared `apiRequest` helper
 - Dataverse lookups use `@odata.bind` syntax for setting relationships (e.g., `"parentcustomerid_account@odata.bind": "/accounts(guid)"`)
 - Dataverse lookup values are read via `_fieldname_value` properties and `$expand` for navigation properties
-- **Inline Edit Pattern** (all 7 entity pages): View dialogs open on name click; editing happens inline in the view dialog (`isEditing` state toggles fields between read-only `<Text>` and editable `<Input>`/`<Dropdown>`/`<Textarea>`). Separate "New" dialog is kept only for creating new records. Standard functions: `openEdit` sets `isEditing(true)` and populates `formData`; `buildPayload` extracts shared payload construction; `handleSaveEdit` updates record and refreshes viewed entity; `handleSaveNew` creates from the new dialog. DialogActions toggle between Edit button (view mode) and Save/Cancel (edit mode). `onOpenChange` resets `isEditing` and `editingId` when dialog closes.
+- **Inline Edit Pattern** (all 7 entity pages): View dialogs open on name click; editing happens inline in the view dialog (`isEditing` state toggles fields between read-only `<Text>` and editable `<Input>`/`<Dropdown>`/`<Textarea>`). Separate "New" dialog is kept only for creating new records. Standard functions: `openEdit` sets `isEditing(true)` and populates `formData`; `buildPayload` extracts shared payload construction; `handleSaveEdit` updates record and refreshes viewed entity; `handleSaveNew` creates from the new dialog. DialogActions toggle between Edit button (view mode) and Save/Cancel (edit mode). `onOpenChange` resets `isEditing` and `editingId` when dialog closes. `openView` always resets `isEditing(false)` and `editingId(null)` to prevent edit state leaking between records.
+- **Save Progress Pattern** (all entity pages + Dashboard): Every save/update/delete handler uses `saving` state: `setSaving(true)` at start, `setSaving(false)` in `finally` block. Save/Delete buttons show `disabled={saving}` with `<Spinner size="tiny" /> Saving...` content while in progress. Prevents double-submissions and provides visual feedback. Combined with `notify()` toast calls for success/error.
 
 ## Authentication Flow
 
