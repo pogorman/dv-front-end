@@ -37,7 +37,7 @@ npm test      # Run tests
 
 ## Features
 
-- **Dashboard** with stat tiles, action items, ideas, quick-create buttons, top priority card, personal items card, and pinned notes sidebar
+- **Dashboard** with stat tiles, action items, ideas, quick-create buttons, Work card (with top priority sub-section), Personal card (with top priority sub-section), and pinned notes sidebar
 - **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, HVAs, Impacts, and Meeting Summaries
 - **Account View** with 3-column related records layout (contacts, tasks, ideas, HVAs, impacts, summaries, notes)
 - **Notes & Attachments** on Accounts, Action Items, Ideas, and Projects with file upload and pinning to dashboard
