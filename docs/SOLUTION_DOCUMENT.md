@@ -42,6 +42,7 @@ The application is secured with Azure Active Directory (Azure AD) authentication
 - **Impact Tracking** — Log and track business impacts
 - **Meeting Documentation** — Record and retrieve meeting summaries by account
 - **Notes & Attachments** — Attach notes with file uploads to accounts, tasks, ideas, and projects
+- **Parking Lot** — Bookmark any dashboard record for quick access in a persistent sidebar panel
 - **AI Assistant** — Conversational Copilot Studio agent embedded in the app via SSO
 - **Dark/Light Theme** — User-selectable theme with system preference detection
 
@@ -405,11 +406,11 @@ The application shell provides the persistent layout for all authenticated pages
 - **Main Content** — `<Outlet />` renders the active route's page component
 - **Copilot Chat** — Floating button (bottom-right) rendered outside the main content flow
 
-**Navigation Sections:**
-1. **Dashboard** (top, standalone)
-2. **Core:** Accounts, Contacts, Projects, Meeting Summaries
-3. **Activity:** Action Items, Ideas, Impacts
-4. **About this site** (bottom)
+**Navigation Sections & Icons:**
+1. **Dashboard** (top, standalone) — Home icon
+2. **Core:** Accounts (Building), Contacts (Person), Projects (Briefcase), Meeting Summaries (PeopleTeam)
+3. **Activity:** Action Items (CheckboxChecked), Ideas (LightbulbFilament), Impacts (Flash)
+4. **About this site** (bottom) — Info icon
 
 **Features:**
 - Active route is highlighted with brand color background
@@ -493,6 +494,15 @@ async function apiRequest(endpoint: string, method: string = "GET", body?: unkno
 - `isNotePinned(annotationid)` — Checks if a note is pinned
 - Storage key: `og-central-pinned-notes`
 
+**`utils/parkingLot.ts`** — Manages "parked" (bookmarked) item references in `localStorage`:
+- `ParkedItemRef { id, name, entityType, route }` — Reference to a parked record
+- `ParkedEntityType` — Union: `"actionitem" | "idea" | "account" | "contact" | "project" | "impact" | "summary"`
+- `getParkedItems()` — Retrieves all parked item references
+- `parkItem(ref)` — Adds an item to the parking lot (no duplicates)
+- `unparkItem(id)` — Removes an item from the parking lot
+- `isItemParked(id)` — Checks if an item is parked
+- Storage key: `og-central-parking-lot`
+
 ### 7.8 Type Definitions (`types/index.ts`)
 
 All TypeScript interfaces are centralized in a single file:
@@ -521,7 +531,9 @@ All pages follow consistent patterns:
 - **Fluent UI makeStyles** for scoped styles
 - **useState/useEffect** for data loading
 - **Search/filter** via text input
-- **Dialog-based CRUD** (New, View, Edit, Delete)
+- **Dialog-based CRUD** (New, View/inline Edit, Delete)
+- **Inline edit** in view dialogs — `isEditing` state toggles fields between read-only and editable; `openView` resets edit state to prevent leaking between records
+- **Save progress** — `saving` state disables buttons with spinner during save/update/delete, preventing double-submissions
 - **`?new=true` query parameter** to auto-open the create dialog
 - **Loading spinners** and **empty states** with icons
 
@@ -529,11 +541,13 @@ All pages follow consistent patterns:
 
 The landing page providing an at-a-glance overview.
 
-**Sections:**
+**Layout:** Two-column layout — `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). The right sidebar spans full height from the welcome banner to the bottom.
+
+**Main Column (top to bottom):**
 1. **Welcome Banner** — Background image (`/images/banner-bg.png`) with greeting text
-2. **Quick Create Bar** — Thin horizontal bar with "Quick Create" label and compact pill buttons (Action Item, Project, Summary, Idea, Impact, Account, Contact) — create any record type without leaving the dashboard
-3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, and overdue/upcoming badge. Only visible when matching items exist.
-4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, and overdue/upcoming badge. Only visible when incomplete personal items exist.
+2. **Quick Create Bar** — Thin horizontal bar with "Quick Create" label and compact pill buttons (Action Item, Project, Summary, Idea, Impact, Account, Contact) — create any record type without leaving the dashboard. Save buttons disable with spinner during save.
+3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, overdue/upcoming badge, and a bookmark icon for the Parking Lot. Only visible when matching items exist.
+4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, overdue/upcoming badge, and a bookmark icon for the Parking Lot. Only visible when incomplete personal items exist.
 5. **Stats Grid** — 7 compact quick-launch tiles in a fixed row:
    - Accounts (blue) — total count
    - Contacts (purple) — total count
@@ -542,12 +556,17 @@ The landing page providing an at-a-glance overview.
    - Action Items (green) — total count
    - Ideas (amber) — total count
    - Impacts (red) — total count
-6. **Section Cards** (2-column grid):
-   - **Action Items** — Latest 4 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete)
-   - **Ideas** — Latest 5 items showing name, category, account on line 1; description preview on line 2
-7. **Pinned Notes Sidebar** (280px, right) — Appears only when notes are pinned; shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog
+6. **Section Cards** (2-column grid, 180px max-height with scroll):
+   - **Action Items** — Latest 8 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete); bookmark icon per item
+   - **Ideas** — Latest 8 items showing name, category, account on line 1; description preview on line 2; bookmark icon per item
 
-**Data loaded on mount:** Accounts, Contacts, Projects, Action Items, Ideas, Impacts, Meeting Summaries, Pinned Annotations
+**Right Sidebar (top to bottom):**
+7. **Parking Lot Panel** — Bookmarked items for quick access. Items can be parked from any dashboard list via the bookmark icon (Bookmark16Regular/Filled). Shows entity type label and item name. Click navigates to the record; X button removes from lot. Uses `parkingLot.ts` for localStorage persistence.
+8. **Pinned Notes Panel** — Appears when notes are pinned; grows to fill remaining sidebar space. Shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog.
+
+**Save Progress:** All quick-create save buttons use the `saving` state pattern — disabled with `<Spinner size="tiny" /> Saving...` while in progress, preventing double-submissions.
+
+**Data loaded on mount:** Accounts, Contacts, Projects, Action Items, Ideas, Impacts, Meeting Summaries, Pinned Annotations, Parked Items (from localStorage)
 
 ### 8.2 Accounts (`pages/Accounts.tsx`)
 
@@ -838,13 +857,14 @@ The **sidebar** (left) organizes pages into sections:
 
 ### Dashboard
 
-- **Quick Create Bar** — Thin bar with compact buttons to create any record type without leaving the dashboard
+- **Quick Create Bar** — Thin bar with compact buttons to create any record type without leaving the dashboard. Save buttons show a spinner and disable while saving to prevent duplicates.
 - **Work** — Card (red accent) showing all non-complete work action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when work items exist)
 - **Personal** — Card (teal accent) showing all non-complete personal action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when personal items exist)
 - **Stat Tiles** — 7 compact quick-launch tiles (Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts) — click to navigate to that page
-- **Action Items** — Shows the 4 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete)
-- **Ideas** — Shows the 5 most recent ideas with category and account
-- **Pinned Notes** (right sidebar) — Appears when you have pinned notes; click to expand
+- **Action Items** — Shows the 8 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete); 180px scrollable area
+- **Ideas** — Shows the 8 most recent ideas with category and account; 180px scrollable area
+- **Parking Lot** (right sidebar, top) — Bookmark any item from Work, Personal, Action Items, or Ideas cards using the bookmark icon. Parked items appear here for quick access — click to navigate, X to remove.
+- **Pinned Notes** (right sidebar, bottom) — Appears when you have pinned notes; click to expand
 
 ### Working with Records
 
@@ -859,8 +879,9 @@ The **sidebar** (left) organizes pages into sections:
 - View dialogs show all details plus related records (where applicable)
 
 **Editing a record:**
-- Open the view dialog, then click **Edit** — or click the **pencil icon** in the grid/card actions
-- Modify the fields and click **Save**
+- Open the view dialog, then click **Edit** — fields switch inline from read-only to editable
+- Modify the fields and click **Save** — button disables with a spinner while saving
+- Click **Cancel** to discard changes and return to view mode
 
 **Deleting a record:**
 - Click the **trash icon** in the grid/card actions
@@ -930,7 +951,8 @@ src/
 │   └── index.ts        # All entity interfaces + choice field types
 ├── utils/              # Utility functions
 │   ├── formatDate.ts   # Date formatting helper
-│   └── pinnedNotes.ts  # Pinned notes localStorage management
+│   ├── pinnedNotes.ts  # Pinned notes localStorage management
+│   └── parkingLot.ts   # Parking lot (bookmarks) localStorage management
 ├── App.tsx             # Root component (providers + routing)
 └── index.tsx           # React DOM entry point
 ```
@@ -944,6 +966,8 @@ src/
 - **Dataverse lookups** use `@odata.bind` syntax for writes, `$expand` for reads
 - **Minimal abstractions** — straightforward code preferred over complex patterns
 - **makeStyles** for component-scoped styles (Griffel CSS-in-JS)
+- **Inline Edit Pattern** — View dialogs toggle between read-only and editable mode via `isEditing` state. `openView` resets `isEditing(false)` and `editingId(null)` to prevent edit state leaking between records.
+- **Save Progress Pattern** — All save/update/delete handlers use `saving` state: `setSaving(true)` at start, `setSaving(false)` in `finally`. Buttons show `disabled={saving}` with `<Spinner size="tiny" /> Saving...` to prevent double-submissions.
 
 ### Adding a New Entity Page
 
