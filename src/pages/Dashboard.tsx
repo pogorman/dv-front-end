@@ -36,6 +36,7 @@ import {
   Warning24Filled,
   Home24Filled,
   CheckmarkCircle16Filled,
+  Warning16Filled,
   Info16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
@@ -592,17 +593,17 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Top Priority & Personal Cards — side by side */}
-      {(actionItems.filter((t) => t.tdvsp_priority === 468510002).length > 0 ||
+      {(actionItems.filter((t) => t.tdvsp_priority === 468510002 && t.tdvsp_taskstatus !== (468510005 as TaskStatus) && t.tdvsp_tasktype !== (468510000 as TaskType)).length > 0 ||
         actionItems.filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)).length > 0) && (
         <div className={styles.highlightRow}>
-          {actionItems.filter((t) => t.tdvsp_priority === 468510002).length > 0 && (
+          {actionItems.filter((t) => t.tdvsp_priority === 468510002 && t.tdvsp_taskstatus !== (468510005 as TaskStatus) && t.tdvsp_tasktype !== (468510000 as TaskType)).length > 0 && (
             <Card className={styles.topPriorityCard}>
               <div className={styles.topPriorityHeader}>
                 <Warning24Filled style={{ color: "#d13438" }} />
                 <Subtitle1>Top Priority</Subtitle1>
               </div>
               {actionItems
-                .filter((t) => t.tdvsp_priority === 468510002)
+                .filter((t) => t.tdvsp_priority === 468510002 && t.tdvsp_taskstatus !== (468510005 as TaskStatus) && t.tdvsp_tasktype !== (468510000 as TaskType))
                 .map((t, i) => (
                   <React.Fragment key={t.tdvsp_actionitemid}>
                     {i > 0 && <Divider />}
@@ -652,16 +653,25 @@ export const Dashboard: React.FC = () => {
               </div>
               {actionItems
                 .filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+                .sort((a, b) => {
+                  const aTop = a.tdvsp_priority === 468510002 ? 0 : 1;
+                  const bTop = b.tdvsp_priority === 468510002 ? 0 : 1;
+                  return aTop - bTop;
+                })
                 .map((t, i) => (
                   <React.Fragment key={t.tdvsp_actionitemid}>
                     {i > 0 && <Divider />}
                     <div className={styles.personalItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                      <CheckmarkCircle16Filled
-                        style={{
-                          color: t.tdvsp_taskstatus === (468510005 as TaskStatus) ? "#107c10" : tokens.colorNeutralForeground3,
-                          flexShrink: 0,
-                        }}
-                      />
+                      {t.tdvsp_priority === 468510002 ? (
+                        <Warning16Filled style={{ color: "#d13438", flexShrink: 0 }} />
+                      ) : (
+                        <CheckmarkCircle16Filled
+                          style={{
+                            color: tokens.colorNeutralForeground3,
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
                       <div className={styles.personalItemContent}>
                         <Text weight="semibold" block className={styles.nameLink}>
                           {t.tdvsp_name}
