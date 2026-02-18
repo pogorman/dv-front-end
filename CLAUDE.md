@@ -25,13 +25,13 @@ src/
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
 │   ├── Dashboard.tsx        # Stats tiles + Work/Personal cards + Action Items & Ideas sections + pinned notes sidebar
-│   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
-│   ├── Contacts.tsx         # CRUD + view dialog with related ideas
-│   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + view dialog with notes timeline
-│   ├── Impacts.tsx          # Impacts CRUD
-│   ├── Ideas.tsx            # Ideas CRUD with category dropdown + view dialog with notes timeline
-│   ├── Projects.tsx         # Projects CRUD + view dialog with notes timeline
-│   ├── MeetingSummaries.tsx # Meeting Summaries CRUD
+│   ├── Accounts.tsx         # CRUD + inline edit view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
+│   ├── Contacts.tsx         # CRUD + inline edit view dialog with related ideas
+│   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + inline edit view dialog with notes timeline
+│   ├── Impacts.tsx          # Impacts CRUD + inline edit view dialog
+│   ├── Ideas.tsx            # Ideas CRUD with category dropdown + inline edit view dialog with notes timeline (200px fixed tile height)
+│   ├── Projects.tsx         # Projects CRUD + inline edit view dialog with notes timeline
+│   ├── MeetingSummaries.tsx # Meeting Summaries CRUD + inline edit view dialog
 │   ├── About.tsx            # About this site info page
 │   └── Login.tsx            # Unauthenticated login page
 ├── services/       # API layer (dataverseService.ts)
@@ -91,7 +91,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Thin "Quick Create" bar with compact pill buttons for creating any record type (stays on dashboard). Custom banner background image. "Work" and "Personal" cards side by side — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items with a "Top Priority" sub-section at the top; Personal card (teal accent, Home icon) shows all non-complete personal action items with a "Top Priority" sub-section at the top. Both cards have max-height (180px) with scroll for overflow (~4 items visible). 7 compact stat tiles in a fixed row: Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts (quick-launch navigation to each view). Section cards for Action Items (left) and Ideas (right) with clickable items (navigate to record view dialog) and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Dashboard** - Thin "Quick Create" bar with compact pill buttons for creating any record type (stays on dashboard). Custom banner background image. "Work" and "Personal" cards side by side — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items with a "Top Priority" sub-section at the top; Personal card (teal accent, Home icon) shows all non-complete personal action items with a "Top Priority" sub-section at the top. Both cards have max-height (180px) with scroll for overflow (~4 items visible). All 4 cards (Work, Personal, Action Items, Ideas) have maximize icons that expand them into a centered overlay dialog (70vw x 80vh) showing full content without height constraints. 7 compact stat tiles in a fixed row: Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts (quick-launch navigation to each view). Section cards for Action Items (left) and Ideas (right) with clickable items (navigate to record view dialog) and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by section "New" buttons, not dashboard quick actions). Tasks and Ideas also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
@@ -112,7 +112,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 - API calls go through `dataverseService.ts` using a shared `apiRequest` helper
 - Dataverse lookups use `@odata.bind` syntax for setting relationships (e.g., `"parentcustomerid_account@odata.bind": "/accounts(guid)"`)
 - Dataverse lookup values are read via `_fieldname_value` properties and `$expand` for navigation properties
-- View dialogs open on name click, Edit dialogs open from view dialog or grid action buttons
+- View dialogs open on name click; editing happens inline in the view dialog (isEditing state toggles fields between read-only Text and editable Input/Dropdown/Textarea). Separate "New" dialog is kept only for creating new records. Pattern: `openEdit` sets `isEditing(true)` and populates `formData` while keeping view dialog open; `handleSaveEdit` updates record and refreshes the viewed entity; `handleSaveNew` creates from the separate new dialog.
 
 ## Authentication Flow
 
