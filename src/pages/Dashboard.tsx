@@ -36,22 +36,25 @@ import {
   Home24Filled,
   Warning16Filled,
   LightbulbFilament24Filled,
+  Notebook24Filled,
+  Flash24Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
+import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
 import {
   getActionItems,
   getAccounts,
   getCustomers,
   getProjects,
   getIdeas,
+  getImpacts,
+  getMeetingSummaries,
   getAnnotationsByIds,
   createAccount,
   createCustomer,
   createProject,
   createActionItem,
   createIdea,
-  createActivity,
   createImpact,
   createMeetingSummary,
 } from "../services/dataverseService";
@@ -108,8 +111,11 @@ const useStyles = makeStyles({
   },
   statsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
-    ...shorthands.gap("8px"),
+    gridTemplateColumns: "repeat(7, 1fr)",
+    ...shorthands.gap("6px"),
+    "@media (max-width: 900px)": {
+      gridTemplateColumns: "repeat(4, 1fr)",
+    },
   },
   statCard: {
     ...shorthands.padding("6px", "8px"),
@@ -293,6 +299,8 @@ export const Dashboard: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [impacts, setImpacts] = useState<Impact[]>([]);
+  const [meetingSummaries, setMeetingSummaries] = useState<MeetingSummary[]>([]);
 
   // Pinned notes state
   const [pinnedRefs, setPinnedRefs] = useState<PinnedNoteRef[]>(() => getPinnedNoteRefs());
@@ -306,7 +314,6 @@ export const Dashboard: React.FC = () => {
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [addIdeaOpen, setAddIdeaOpen] = useState(false);
-  const [addHvaOpen, setAddHvaOpen] = useState(false);
   const [addImpactOpen, setAddImpactOpen] = useState(false);
   const [addSummaryOpen, setAddSummaryOpen] = useState(false);
 
@@ -316,7 +323,6 @@ export const Dashboard: React.FC = () => {
   const [newProject, setNewProject] = useState({ tdvsp_name: "", tdvsp_description: "", accountId: "" });
   const [newTask, setNewTask] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
   const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string, accountId: "" });
-  const [newHva, setNewHva] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
   const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
   const [newSummary, setNewSummary] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "" });
 
@@ -326,6 +332,8 @@ export const Dashboard: React.FC = () => {
     getProjects().then(setProjects).catch(console.error);
     getActionItems().then(setActionItems).catch(console.error);
     getIdeas().then(setIdeas).catch(console.error);
+    getImpacts().then(setImpacts).catch(console.error);
+    getMeetingSummaries().then(setMeetingSummaries).catch(console.error);
   }, []);
 
   const loadPinnedAnnotations = useCallback(async () => {
@@ -472,30 +480,6 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleAddHva = async () => {
-    if (!newHva.tdvsp_name) return;
-    try {
-      const payload: {
-        tdvsp_name: string;
-        tdvsp_description: string;
-        tdvsp_date: string;
-        "tdvsp_Customer@odata.bind"?: string;
-      } = {
-        tdvsp_name: newHva.tdvsp_name,
-        tdvsp_description: newHva.tdvsp_description,
-        tdvsp_date: newHva.tdvsp_date || new Date().toISOString().split("T")[0],
-      };
-      if (newHva.accountId) {
-        payload["tdvsp_Customer@odata.bind"] = `/accounts(${newHva.accountId})`;
-      }
-      await createActivity(payload);
-      setAddHvaOpen(false);
-      setNewHva({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
-    } catch (err) {
-      console.error("Failed to add HVA:", err);
-    }
-  };
-
   const handleAddImpact = async () => {
     if (!newImpact.tdvsp_name) return;
     try {
@@ -605,7 +589,6 @@ export const Dashboard: React.FC = () => {
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddProjectOpen(true)}>Project</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddSummaryOpen(true)}>Summary</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddIdeaOpen(true)}>Idea</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddHvaOpen(true)}>HVA</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddImpactOpen(true)}>Impact</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddAccountOpen(true)}>Account</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddContactOpen(true)}>Contact</Button>
@@ -746,81 +729,70 @@ export const Dashboard: React.FC = () => {
       {/* Main body with optional pinned notes sidebar */}
       <div className={styles.dashboardBody}>
         <div className={styles.dashboardMain}>
-          {/* Stats Cards */}
+          {/* Stats Tiles */}
           <div className={styles.statsGrid}>
             <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
               <div className={styles.statHeader}>
                 <Caption1>Accounts</Caption1>
-                <div
-                  className={styles.statIconWrap}
-                  style={{ backgroundColor: "#e8f0fe" }}
-                >
-                  <Building24Filled style={{ color: "#0078d4", fontSize: 16 }} />
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
+                  <Building24Filled style={{ color: "#0078d4", fontSize: 14 }} />
                 </div>
               </div>
-              <div className={styles.statNumber} style={{ color: "#0078d4" }}>
-                {accounts.length}
-              </div>
+              <div className={styles.statNumber} style={{ color: "#0078d4" }}>{accounts.length}</div>
             </Card>
-
             <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
               <div className={styles.statHeader}>
                 <Caption1>Contacts</Caption1>
-                <div
-                  className={styles.statIconWrap}
-                  style={{ backgroundColor: "#e8e0f0" }}
-                >
-                  <ContactCard24Filled style={{ color: "#7c3aed", fontSize: 16 }} />
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8e0f0" }}>
+                  <ContactCard24Filled style={{ color: "#7c3aed", fontSize: 14 }} />
                 </div>
               </div>
-              <div className={styles.statNumber} style={{ color: "#7c3aed" }}>
-                {contacts.length}
-              </div>
+              <div className={styles.statNumber} style={{ color: "#7c3aed" }}>{contacts.length}</div>
             </Card>
-
             <Card className={styles.statCard} onClick={() => navigate("/projects")}>
               <div className={styles.statHeader}>
                 <Caption1>Projects</Caption1>
-                <div
-                  className={styles.statIconWrap}
-                  style={{ backgroundColor: "#e8f0fe" }}
-                >
-                  <Briefcase24Filled style={{ color: "#5b5fc7", fontSize: 16 }} />
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
+                  <Briefcase24Filled style={{ color: "#5b5fc7", fontSize: 14 }} />
                 </div>
               </div>
-              <div className={styles.statNumber} style={{ color: "#5b5fc7" }}>
-                {projects.length}
-              </div>
+              <div className={styles.statNumber} style={{ color: "#5b5fc7" }}>{projects.length}</div>
             </Card>
-
+            <Card className={styles.statCard} onClick={() => navigate("/summaries")}>
+              <div className={styles.statHeader}>
+                <Caption1>Summaries</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0f0" }}>
+                  <Notebook24Filled style={{ color: "#0e7c7b", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#0e7c7b" }}>{meetingSummaries.length}</div>
+            </Card>
             <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
               <div className={styles.statHeader}>
-                <Caption1>Action Items</Caption1>
-                <div
-                  className={styles.statIconWrap}
-                  style={{ backgroundColor: "#e6f4ea" }}
-                >
-                  <TaskListSquareLtr24Filled style={{ color: "#107c10", fontSize: 16 }} />
+                <Caption1>Actions</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e6f4ea" }}>
+                  <TaskListSquareLtr24Filled style={{ color: "#107c10", fontSize: 14 }} />
                 </div>
               </div>
-              <div className={styles.statNumber} style={{ color: "#107c10" }}>
-                {actionItems.length}
-              </div>
+              <div className={styles.statNumber} style={{ color: "#107c10" }}>{actionItems.length}</div>
             </Card>
-
             <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
               <div className={styles.statHeader}>
                 <Caption1>Ideas</Caption1>
-                <div
-                  className={styles.statIconWrap}
-                  style={{ backgroundColor: "#fff8e1" }}
-                >
-                  <LightbulbFilament24Filled style={{ color: "#c59a00", fontSize: 16 }} />
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#fff8e1" }}>
+                  <LightbulbFilament24Filled style={{ color: "#c59a00", fontSize: 14 }} />
                 </div>
               </div>
-              <div className={styles.statNumber} style={{ color: "#c59a00" }}>
-                {ideas.length}
+              <div className={styles.statNumber} style={{ color: "#c59a00" }}>{ideas.length}</div>
+            </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/impacts")}>
+              <div className={styles.statHeader}>
+                <Caption1>Impacts</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#fce4ec" }}>
+                  <Flash24Filled style={{ color: "#d13438", fontSize: 14 }} />
+                </div>
               </div>
+              <div className={styles.statNumber} style={{ color: "#d13438" }}>{impacts.length}</div>
             </Card>
           </div>
 
@@ -1311,50 +1283,6 @@ export const Dashboard: React.FC = () => {
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddIdeaOpen(false)}>Cancel</Button>
               <Button appearance="primary" onClick={handleAddIdea} disabled={!newIdea.tdvsp_name}>Save</Button>
-            </DialogActions>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
-
-      {/* Add HVA Dialog */}
-      <Dialog open={addHvaOpen} onOpenChange={(_, d) => setAddHvaOpen(d.open)}>
-        <DialogSurface>
-          <DialogBody>
-            <DialogTitle>New High-Value Activity</DialogTitle>
-            <DialogContent>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <Label required>Name</Label>
-                  <Input value={newHva.tdvsp_name} onChange={(_, d) => setNewHva({ ...newHva, tdvsp_name: d.value })} />
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <Label>Date</Label>
-                    <Input type="date" value={newHva.tdvsp_date} onChange={(_, d) => setNewHva({ ...newHva, tdvsp_date: d.value })} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <Label>Account</Label>
-                    <Dropdown
-                      placeholder="Select account"
-                      value={newHva.accountId ? accounts.find((a) => a.accountid === newHva.accountId)?.name ?? "" : ""}
-                      onOptionSelect={(_, d) => setNewHva({ ...newHva, accountId: d.optionValue ?? "" })}
-                    >
-                      <Option value="" text="(None)">(None)</Option>
-                      {accounts.map((a) => (
-                        <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
-                      ))}
-                    </Dropdown>
-                  </div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <Label>Description</Label>
-                  <Textarea value={newHva.tdvsp_description} onChange={(_, d) => setNewHva({ ...newHva, tdvsp_description: d.value })} rows={3} />
-                </div>
-              </div>
-            </DialogContent>
-            <DialogActions>
-              <Button appearance="secondary" onClick={() => setAddHvaOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddHva} disabled={!newHva.tdvsp_name}>Save</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>

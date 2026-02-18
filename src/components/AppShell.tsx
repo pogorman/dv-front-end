@@ -18,8 +18,6 @@ import {
   Building24Filled,
   ContactCard24Regular,
   ContactCard24Filled,
-  Star24Regular,
-  Star24Filled,
   TaskListSquareLtr24Regular,
   TaskListSquareLtr24Filled,
   Flash24Regular,
@@ -43,7 +41,7 @@ import { useTheme } from "../context/ThemeContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { CopilotChat } from "./CopilotChat";
 
-const SIDEBAR_WIDTH = 260;
+const SIDEBAR_WIDTH = 195;
 const SIDEBAR_COLLAPSED = 56;
 
 const useStyles = makeStyles({
@@ -204,58 +202,6 @@ const dashboardItem: NavItem = {
 
 const navSections: NavSection[] = [
   {
-    label: "O'G's Data",
-    items: [
-      {
-        key: "tasks",
-        label: "Action Items",
-        path: "/tasks",
-        icon: <TaskListSquareLtr24Regular />,
-        iconActive: <TaskListSquareLtr24Filled />,
-      },
-      {
-        key: "projects",
-        label: "Projects",
-        path: "/projects",
-        icon: <Briefcase24Regular />,
-        iconActive: <Briefcase24Filled />,
-      },
-      {
-        key: "summaries",
-        label: "Meeting Summaries",
-        path: "/summaries",
-        icon: <Notebook24Regular />,
-        iconActive: <Notebook24Filled />,
-      },
-      {
-        key: "ideas",
-        label: "Ideas",
-        path: "/ideas",
-        icon: <Lightbulb24Regular />,
-        iconActive: <Lightbulb24Filled />,
-      },
-    ],
-  },
-  {
-    label: "Impact",
-    items: [
-      {
-        key: "activities",
-        label: "High-Value Activities",
-        path: "/activities",
-        icon: <Star24Regular />,
-        iconActive: <Star24Filled />,
-      },
-      {
-        key: "impacts",
-        label: "Impacts",
-        path: "/impacts",
-        icon: <Flash24Regular />,
-        iconActive: <Flash24Filled />,
-      },
-    ],
-  },
-  {
     label: "Core",
     items: [
       {
@@ -271,6 +217,46 @@ const navSections: NavSection[] = [
         path: "/contacts",
         icon: <ContactCard24Regular />,
         iconActive: <ContactCard24Filled />,
+      },
+      {
+        key: "projects",
+        label: "Projects",
+        path: "/projects",
+        icon: <Briefcase24Regular />,
+        iconActive: <Briefcase24Filled />,
+      },
+      {
+        key: "summaries",
+        label: "Meeting Summaries",
+        path: "/summaries",
+        icon: <Notebook24Regular />,
+        iconActive: <Notebook24Filled />,
+      },
+    ],
+  },
+  {
+    label: "Activity",
+    items: [
+      {
+        key: "tasks",
+        label: "Action Items",
+        path: "/tasks",
+        icon: <TaskListSquareLtr24Regular />,
+        iconActive: <TaskListSquareLtr24Filled />,
+      },
+      {
+        key: "ideas",
+        label: "Ideas",
+        path: "/ideas",
+        icon: <Lightbulb24Regular />,
+        iconActive: <Lightbulb24Filled />,
+      },
+      {
+        key: "impacts",
+        label: "Impacts",
+        path: "/impacts",
+        icon: <Flash24Regular />,
+        iconActive: <Flash24Filled />,
       },
     ],
   },
@@ -295,7 +281,6 @@ const pageTitles: Record<string, string> = {
   "/tasks": "Action Items",
   "/ideas": "Ideas",
   "/projects": "Projects",
-  "/activities": "High-Value Activities",
   "/impacts": "Impacts",
   "/summaries": "Meeting Summaries",
   "/about": "About this site",
