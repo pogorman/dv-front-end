@@ -85,10 +85,10 @@ Values: 468510000 (Personal), 468510001 (Work)
 ## Key Features
 
 - **Sidebar Navigation** (195px expanded, 56px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
-  - Dashboard (top)
-  - Core: Accounts, Contacts, Projects, Meeting Summaries
-  - Activity: Action Items, Ideas, Impacts
-  - About this site (bottom)
+  - Dashboard (top, Home icon)
+  - Core: Accounts (Building), Contacts (Person), Projects (Briefcase), Summaries (PeopleTeam)
+  - Activity: Action Items (CheckboxChecked), Ideas (LightbulbFilament), Impacts (Flash)
+  - About this site (bottom, Info icon)
   - User area at bottom with avatar, name, Sign out button
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
@@ -99,7 +99,7 @@ Values: 468510000 (Personal), 468510001 (Work)
   2. **Quick Create Bar** - Compact pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard)
   3. **Work & Personal Cards** (side by side) — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (teal accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), and maximize icons that expand into centered overlay dialog (70vw x 80vh)
   4. **Stat Tiles** - 7 compact tiles in a row: Accounts, Contacts, Projects, Summaries, Actions, Ideas, Impacts (click navigates to each view)
-  5. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, and maximize icons
+  5. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, maximize icons, 180px max-height with scroll (matching Work/Personal card density)
   6. **Pinned Notes Sidebar** - Right panel (280px, appears when notes are pinned)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by dashboard section "New" buttons). Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items and Work/Personal card items).
