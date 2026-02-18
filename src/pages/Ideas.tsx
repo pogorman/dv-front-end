@@ -68,11 +68,19 @@ const useStyles = makeStyles({
   ideaCard: {
     ...shorthands.padding("20px"),
     ...shorthands.borderRadius("12px"),
+    height: "200px",
+    display: "flex",
+    flexDirection: "column",
     transition: "box-shadow 0.15s ease, transform 0.15s ease",
     ":hover": {
       boxShadow: tokens.shadow8,
       transform: "translateY(-2px)",
     },
+  },
+  cardBody: {
+    flexGrow: 1,
+    overflowY: "auto" as const,
+    minHeight: 0,
   },
   cardHeader: {
     display: "flex",
@@ -194,6 +202,7 @@ export const Ideas: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingIdea, setViewingIdea] = useState<Idea | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadIdeas = useCallback(async () => {
     setLoading(true);
@@ -260,8 +269,8 @@ export const Ideas: React.FC = () => {
   };
 
   const openEdit = (idea: Idea) => {
-    setViewDialogOpen(false);
-    setViewingIdea(null);
+    setViewingIdea(idea);
+    setViewDialogOpen(true);
     setEditingId(idea.tdvsp_ideaid ?? null);
     setFormData({
       tdvsp_name: idea.tdvsp_name,
@@ -270,38 +279,54 @@ export const Ideas: React.FC = () => {
       accountId: idea.tdvsp_Account?.accountid ?? "",
       contactId: idea.tdvsp_Contact?.contactid ?? "",
     });
-    setDialogOpen(true);
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const buildIdeaPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_description?: string;
+      tdvsp_category?: IdeaCategory;
+      "tdvsp_Account@odata.bind"?: string;
+      "tdvsp_Contact@odata.bind"?: string;
+    } = {
+      tdvsp_name: formData.tdvsp_name,
+      tdvsp_description: formData.tdvsp_description || undefined,
+      tdvsp_category: formData.tdvsp_category || undefined,
+    };
+    if (formData.accountId) {
+      payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
+    }
+    if (formData.contactId) {
+      payload["tdvsp_Contact@odata.bind"] = `/contacts(${formData.contactId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveNew = async () => {
     try {
-      const payload: {
-        tdvsp_name: string;
-        tdvsp_description?: string;
-        tdvsp_category?: IdeaCategory;
-        "tdvsp_Account@odata.bind"?: string;
-        "tdvsp_Contact@odata.bind"?: string;
-      } = {
-        tdvsp_name: formData.tdvsp_name,
-        tdvsp_description: formData.tdvsp_description || undefined,
-        tdvsp_category: formData.tdvsp_category || undefined,
-      };
-      if (formData.accountId) {
-        payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
-      }
-      if (formData.contactId) {
-        payload["tdvsp_Contact@odata.bind"] = `/contacts(${formData.contactId})`;
-      }
-      if (editingId) {
-        await updateIdea(editingId, payload);
-      } else {
-        await createIdea(payload);
-      }
+      await createIdea(buildIdeaPayload());
       setDialogOpen(false);
       setFormData(emptyForm);
-      setEditingId(null);
       loadIdeas();
-      notify(editingId ? "Idea updated" : "Idea created");
+      notify("Idea created");
+    } catch (err) {
+      console.error("Failed to save idea:", err);
+      notify("Failed to save idea", undefined, "error");
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      await updateIdea(editingId, buildIdeaPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedIdeas = await getIdeas();
+      setIdeas(updatedIdeas);
+      const updated = updatedIdeas.find((i) => i.tdvsp_ideaid === viewingIdea?.tdvsp_ideaid);
+      if (updated) setViewingIdea(updated);
+      notify("Idea updated");
     } catch (err) {
       console.error("Failed to save idea:", err);
       notify("Failed to save idea", undefined, "error");
@@ -345,7 +370,7 @@ export const Ideas: React.FC = () => {
           </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Idea" : "New Idea"}</DialogTitle>
+              <DialogTitle>New Idea</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -443,7 +468,7 @@ export const Ideas: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSave}>
+                <Button appearance="primary" onClick={handleSaveNew}>
                   Save
                 </Button>
               </DialogActions>
@@ -495,12 +520,14 @@ export const Ideas: React.FC = () => {
                   />
                 </div>
               </div>
-              {idea.tdvsp_description && (
-                <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
-                  {idea.tdvsp_description}
-                </Body1>
-              )}
-              <Divider style={{ margin: "12px 0" }} />
+              <div className={styles.cardBody}>
+                {idea.tdvsp_description && (
+                  <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
+                    {idea.tdvsp_description}
+                  </Body1>
+                )}
+              </div>
+              <Divider style={{ margin: "8px 0", flexShrink: 0 }} />
               <div className={styles.cardMeta}>
                 {idea.tdvsp_category && (
                   <span className={styles.categoryBadge}>
@@ -522,7 +549,7 @@ export const Ideas: React.FC = () => {
       )}
 
       {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
           <DialogBody>
             <DialogTitle
@@ -542,38 +569,84 @@ export const Ideas: React.FC = () => {
                   <div className={styles.viewDetails}>
                     <div className={styles.viewField}>
                       <Label>Name</Label>
-                      <Text block size={400} weight="semibold">
-                        {viewingIdea.tdvsp_name}
-                      </Text>
+                      {isEditing ? (
+                        <Input value={formData.tdvsp_name} onChange={(_, d) => setFormData({ ...formData, tdvsp_name: d.value })} />
+                      ) : (
+                        <Text block size={400} weight="semibold">
+                          {viewingIdea.tdvsp_name}
+                        </Text>
+                      )}
                     </div>
                     <div className={styles.viewField}>
                       <Label>Description</Label>
-                      <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
-                        {viewingIdea.tdvsp_description || "--"}
-                      </Text>
+                      {isEditing ? (
+                        <Textarea value={formData.tdvsp_description} onChange={(_, d) => setFormData({ ...formData, tdvsp_description: d.value })} rows={4} />
+                      ) : (
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
+                          {viewingIdea.tdvsp_description || "--"}
+                        </Text>
+                      )}
                     </div>
                     <div className={styles.viewGrid}>
                       <div className={styles.viewField}>
                         <Label>Category</Label>
-                        <Text block size={400}>
-                          {viewingIdea.tdvsp_category
-                            ? ideaCategoryLabels[viewingIdea.tdvsp_category]
-                            : "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select category"
+                            value={formData.tdvsp_category ? ideaCategoryLabels[formData.tdvsp_category] : ""}
+                            onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_category: d.optionValue ? (Number(d.optionValue) as IdeaCategory) : "" })}
+                          >
+                            {categoryOptions.map((cat) => (
+                              <Option key={cat.value} value={String(cat.value)}>{cat.label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>
+                            {viewingIdea.tdvsp_category
+                              ? ideaCategoryLabels[viewingIdea.tdvsp_category]
+                              : "--"}
+                          </Text>
+                        )}
                       </div>
                       <div className={styles.viewField}>
                         <Label>Account</Label>
-                        <Text block size={400}>
-                          {viewingIdea.tdvsp_Account?.name || "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select account"
+                            value={accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""}
+                            onOptionSelect={(_, d) => setFormData({ ...formData, accountId: d.optionValue ?? "" })}
+                          >
+                            <Option value="" text="(None)">(None)</Option>
+                            {accounts.map((a) => (
+                              <Option key={a.accountid} value={a.accountid!}>{a.name}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>
+                            {viewingIdea.tdvsp_Account?.name || "--"}
+                          </Text>
+                        )}
                       </div>
                       <div className={styles.viewField}>
                         <Label>Contact</Label>
-                        <Text block size={400}>
-                          {viewingIdea.tdvsp_Contact
-                            ? `${viewingIdea.tdvsp_Contact.firstname} ${viewingIdea.tdvsp_Contact.lastname}`
-                            : "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select contact"
+                            value={contacts.find((c) => c.contactid === formData.contactId) ? `${contacts.find((c) => c.contactid === formData.contactId)!.firstname} ${contacts.find((c) => c.contactid === formData.contactId)!.lastname}` : ""}
+                            onOptionSelect={(_, d) => setFormData({ ...formData, contactId: d.optionValue ?? "" })}
+                          >
+                            <Option value="" text="(None)">(None)</Option>
+                            {contacts.map((c) => (
+                              <Option key={c.contactid} value={c.contactid!} text={`${c.firstname} ${c.lastname}`}>{c.firstname} {c.lastname}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>
+                            {viewingIdea.tdvsp_Contact
+                              ? `${viewingIdea.tdvsp_Contact.firstname} ${viewingIdea.tdvsp_Contact.lastname}`
+                              : "--"}
+                          </Text>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -590,13 +663,20 @@ export const Ideas: React.FC = () => {
               )}
             </DialogContent>
             <DialogActions>
-              <Button
-                appearance="primary"
-                icon={<Edit24Regular />}
-                onClick={() => viewingIdea && openEdit(viewingIdea)}
-              >
-                Edit
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" onClick={() => setIsEditing(false)}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                </>
+              ) : (
+                <Button
+                  appearance="primary"
+                  icon={<Edit24Regular />}
+                  onClick={() => viewingIdea && openEdit(viewingIdea)}
+                >
+                  Edit
+                </Button>
+              )}
             </DialogActions>
           </DialogBody>
         </DialogSurface>

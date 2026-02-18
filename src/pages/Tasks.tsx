@@ -182,6 +182,7 @@ export const Tasks: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingItem, setViewingItem] = useState<ActionItem | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -238,8 +239,8 @@ export const Tasks: React.FC = () => {
   };
 
   const openEdit = (item: ActionItem) => {
-    setViewDialogOpen(false);
-    setViewingItem(null);
+    setViewingItem(item);
+    setViewDialogOpen(true);
     setEditingId(item.tdvsp_actionitemid ?? null);
     setFormData({
       tdvsp_name: item.tdvsp_name,
@@ -250,40 +251,56 @@ export const Tasks: React.FC = () => {
       tdvsp_tasktype: item.tdvsp_tasktype != null ? String(item.tdvsp_tasktype) : "",
       customerAccountId: item.tdvsp_Customer?.accountid ?? "",
     });
-    setDialogOpen(true);
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const buildTaskPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_date: string;
+      tdvsp_description?: string;
+      tdvsp_taskstatus?: number;
+      tdvsp_priority?: number;
+      tdvsp_tasktype?: number;
+      "tdvsp_Customer@odata.bind"?: string;
+    } = {
+      tdvsp_name: formData.tdvsp_name,
+      tdvsp_date: formData.tdvsp_date,
+      tdvsp_description: formData.tdvsp_description || undefined,
+      tdvsp_taskstatus: formData.tdvsp_taskstatus ? Number(formData.tdvsp_taskstatus) : undefined,
+      tdvsp_priority: formData.tdvsp_priority ? Number(formData.tdvsp_priority) : undefined,
+      tdvsp_tasktype: formData.tdvsp_tasktype ? Number(formData.tdvsp_tasktype) : undefined,
+    };
+    if (formData.customerAccountId) {
+      payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveNew = async () => {
     try {
-      const payload: {
-        tdvsp_name: string;
-        tdvsp_date: string;
-        tdvsp_description?: string;
-        tdvsp_taskstatus?: number;
-        tdvsp_priority?: number;
-        tdvsp_tasktype?: number;
-        "tdvsp_Customer@odata.bind"?: string;
-      } = {
-        tdvsp_name: formData.tdvsp_name,
-        tdvsp_date: formData.tdvsp_date,
-        tdvsp_description: formData.tdvsp_description || undefined,
-        tdvsp_taskstatus: formData.tdvsp_taskstatus ? Number(formData.tdvsp_taskstatus) : undefined,
-        tdvsp_priority: formData.tdvsp_priority ? Number(formData.tdvsp_priority) : undefined,
-        tdvsp_tasktype: formData.tdvsp_tasktype ? Number(formData.tdvsp_tasktype) : undefined,
-      };
-      if (formData.customerAccountId) {
-        payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
-      }
-      if (editingId) {
-        await updateActionItem(editingId, payload);
-      } else {
-        await createActionItem(payload);
-      }
+      await createActionItem(buildTaskPayload());
       setDialogOpen(false);
       setFormData(emptyForm);
-      setEditingId(null);
       loadItems();
-      notify(editingId ? "Action item updated" : "Action item created");
+      notify("Action item created");
+    } catch (err) {
+      console.error("Failed to save action item:", err);
+      notify("Failed to save action item", undefined, "error");
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      await updateActionItem(editingId, buildTaskPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedItems = await getActionItems();
+      setItems(updatedItems);
+      const updated = updatedItems.find((t) => t.tdvsp_actionitemid === viewingItem?.tdvsp_actionitemid);
+      if (updated) setViewingItem(updated);
+      notify("Action item updated");
     } catch (err) {
       console.error("Failed to save action item:", err);
       notify("Failed to save action item", undefined, "error");
@@ -442,7 +459,7 @@ export const Tasks: React.FC = () => {
           </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Action Item" : "New Action Item"}</DialogTitle>
+              <DialogTitle>New Action Item</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -581,7 +598,7 @@ export const Tasks: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSave}>
+                <Button appearance="primary" onClick={handleSaveNew}>
                   Save
                 </Button>
               </DialogActions>
@@ -633,7 +650,7 @@ export const Tasks: React.FC = () => {
       </Card>
 
       {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
           <DialogBody>
             <DialogTitle
@@ -653,54 +670,124 @@ export const Tasks: React.FC = () => {
                   <div className={styles.viewDetails}>
                     <div className={styles.viewField}>
                       <Label>Name</Label>
-                      <Text block size={400} weight="semibold">
-                        {viewingItem.tdvsp_name}
-                      </Text>
-                    </div>
-                    {viewingItem.tdvsp_description && (
-                      <div className={styles.viewField}>
-                        <Label>Description</Label>
-                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
-                          {viewingItem.tdvsp_description}
+                      {isEditing ? (
+                        <Input
+                          value={formData.tdvsp_name}
+                          onChange={(_, d) => setFormData({ ...formData, tdvsp_name: d.value })}
+                        />
+                      ) : (
+                        <Text block size={400} weight="semibold">
+                          {viewingItem.tdvsp_name}
                         </Text>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Description</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={formData.tdvsp_description}
+                          onChange={(_, d) => setFormData({ ...formData, tdvsp_description: d.value })}
+                          rows={4}
+                          resize="vertical"
+                        />
+                      ) : (
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
+                          {viewingItem.tdvsp_description || "--"}
+                        </Text>
+                      )}
+                    </div>
                     <div className={styles.viewGrid}>
                       <div className={styles.viewField}>
                         <Label>Date</Label>
-                        <Text block size={400}>
-                          {viewingItem.tdvsp_date ? formatDate(viewingItem.tdvsp_date) : "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Input
+                            type="date"
+                            value={formData.tdvsp_date}
+                            onChange={(_, d) => setFormData({ ...formData, tdvsp_date: d.value })}
+                          />
+                        ) : (
+                          <Text block size={400}>
+                            {viewingItem.tdvsp_date ? formatDate(viewingItem.tdvsp_date) : "--"}
+                          </Text>
+                        )}
                       </div>
                       <div className={styles.viewField}>
                         <Label>Task Status</Label>
-                        <Text block size={400}>
-                          {viewingItem.tdvsp_taskstatus != null
-                            ? taskStatusLabels[viewingItem.tdvsp_taskstatus as TaskStatus] ?? "--"
-                            : "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select status"
+                            value={formData.tdvsp_taskstatus ? taskStatusLabels[Number(formData.tdvsp_taskstatus) as TaskStatus] ?? "" : ""}
+                            onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_taskstatus: d.optionValue ?? "" })}
+                          >
+                            {(Object.entries(taskStatusLabels) as [string, string][]).map(([value, label]) => (
+                              <Option key={value} value={value}>{label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>
+                            {viewingItem.tdvsp_taskstatus != null
+                              ? taskStatusLabels[viewingItem.tdvsp_taskstatus as TaskStatus] ?? "--"
+                              : "--"}
+                          </Text>
+                        )}
                       </div>
                       <div className={styles.viewField}>
                         <Label>Priority</Label>
-                        <Text block size={400}>
-                          {viewingItem.tdvsp_priority != null
-                            ? taskPriorityLabels[viewingItem.tdvsp_priority as TaskPriority] ?? "--"
-                            : "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select priority"
+                            value={formData.tdvsp_priority ? taskPriorityLabels[Number(formData.tdvsp_priority) as TaskPriority] ?? "" : ""}
+                            onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_priority: d.optionValue ?? "" })}
+                          >
+                            {(Object.entries(taskPriorityLabels) as [string, string][]).map(([value, label]) => (
+                              <Option key={value} value={value}>{label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>
+                            {viewingItem.tdvsp_priority != null
+                              ? taskPriorityLabels[viewingItem.tdvsp_priority as TaskPriority] ?? "--"
+                              : "--"}
+                          </Text>
+                        )}
                       </div>
                       <div className={styles.viewField}>
                         <Label>Task Type</Label>
-                        <Text block size={400}>
-                          {viewingItem.tdvsp_tasktype != null
-                            ? taskTypeLabels[viewingItem.tdvsp_tasktype as TaskType] ?? "--"
-                            : "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select type"
+                            value={formData.tdvsp_tasktype ? taskTypeLabels[Number(formData.tdvsp_tasktype) as TaskType] ?? "" : ""}
+                            onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_tasktype: d.optionValue ?? "" })}
+                          >
+                            {(Object.entries(taskTypeLabels) as [string, string][]).map(([value, label]) => (
+                              <Option key={value} value={value}>{label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>
+                            {viewingItem.tdvsp_tasktype != null
+                              ? taskTypeLabels[viewingItem.tdvsp_tasktype as TaskType] ?? "--"
+                              : "--"}
+                          </Text>
+                        )}
                       </div>
                       <div className={styles.viewField}>
                         <Label>Customer</Label>
-                        <Text block size={400}>
-                          {viewingItem.tdvsp_Customer?.name || "--"}
-                        </Text>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select account"
+                            value={accounts.find((a) => a.accountid === formData.customerAccountId)?.name ?? ""}
+                            onOptionSelect={(_, d) => setFormData({ ...formData, customerAccountId: d.optionValue ?? "" })}
+                          >
+                            {accounts.map((a) => (
+                              <Option key={a.accountid} value={a.accountid!}>{a.name}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>
+                            {viewingItem.tdvsp_Customer?.name || "--"}
+                          </Text>
+                        )}
                       </div>
                       <div className={styles.viewField}>
                         <Label>Created On</Label>
@@ -723,13 +810,20 @@ export const Tasks: React.FC = () => {
               )}
             </DialogContent>
             <DialogActions>
-              <Button
-                appearance="primary"
-                icon={<Edit24Regular />}
-                onClick={() => viewingItem && openEdit(viewingItem)}
-              >
-                Edit
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                </>
+              ) : (
+                <Button
+                  appearance="primary"
+                  icon={<Edit24Regular />}
+                  onClick={() => viewingItem && openEdit(viewingItem)}
+                >
+                  Edit
+                </Button>
+              )}
             </DialogActions>
           </DialogBody>
         </DialogSurface>

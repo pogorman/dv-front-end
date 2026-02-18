@@ -38,7 +38,7 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { Account, Customer, HighValueActivity, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
+import { Account, Customer, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import { NotesTimeline } from "../components/NotesTimeline";
 import {
@@ -47,14 +47,12 @@ import {
   updateAccount,
   deleteAccount,
   getContactsByAccount,
-  getActivitiesByAccount,
   getActionItemsByAccount,
   getImpactsByAccount,
   getIdeasByAccount,
   getMeetingSummariesByAccount,
   createCustomer,
   createActionItem,
-  createActivity,
   createImpact,
   createIdea,
   createMeetingSummary,
@@ -194,18 +192,17 @@ export const Accounts: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
   const [relatedContacts, setRelatedContacts] = useState<Customer[]>([]);
-  const [relatedActivities, setRelatedActivities] = useState<HighValueActivity[]>([]);
   const [relatedTasks, setRelatedTasks] = useState<ActionItem[]>([]);
   const [relatedImpacts, setRelatedImpacts] = useState<Impact[]>([]);
   const [relatedIdeas, setRelatedIdeas] = useState<Idea[]>([]);
   const [relatedSummaries, setRelatedSummaries] = useState<MeetingSummary[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Add new dialogs state
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [addActionItemOpen, setAddActionItemOpen] = useState(false);
   const [addIdeaOpen, setAddIdeaOpen] = useState(false);
-  const [addActivityOpen, setAddActivityOpen] = useState(false);
   const [addImpactOpen, setAddImpactOpen] = useState(false);
   const [addSummaryOpen, setAddSummaryOpen] = useState(false);
 
@@ -213,7 +210,6 @@ export const Accounts: React.FC = () => {
   const [newContact, setNewContact] = useState({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "" });
   const [newActionItem, setNewActionItem] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
   const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string });
-  const [newActivity, setNewActivity] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
   const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
   const [newSummary, setNewSummary] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "" });
 
@@ -254,37 +250,46 @@ export const Accounts: React.FC = () => {
   };
 
   const openEdit = (account: Account) => {
-    setViewDialogOpen(false);
-    setViewingAccount(null);
+    setViewingAccount(account);
+    setViewDialogOpen(true);
     setEditingId(account.accountid ?? null);
     setName(account.name);
     setParentAccountId(account._parentaccountid_value ?? "");
-    setDialogOpen(true);
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const handleSaveNew = async () => {
     try {
-      const payload: {
-        name: string;
-        "parentaccountid@odata.bind"?: string | null;
-      } = { name };
-
+      const payload: { name: string; "parentaccountid@odata.bind"?: string } = { name };
       if (parentAccountId) {
         payload["parentaccountid@odata.bind"] = `/accounts(${parentAccountId})`;
-      } else if (editingId) {
-        payload["parentaccountid@odata.bind"] = null;
       }
-
-      if (editingId) {
-        await updateAccount(editingId, payload);
-      } else {
-        await createAccount(payload);
-      }
+      await createAccount(payload);
       setDialogOpen(false);
       setName("");
       setParentAccountId("");
-      setEditingId(null);
       loadAccounts();
+    } catch (err) {
+      console.error("Failed to save account:", err);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      const payload: { name: string; "parentaccountid@odata.bind"?: string | null } = { name };
+      if (parentAccountId) {
+        payload["parentaccountid@odata.bind"] = `/accounts(${parentAccountId})`;
+      } else {
+        payload["parentaccountid@odata.bind"] = null;
+      }
+      await updateAccount(editingId, payload);
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedAccounts = await getAccounts();
+      setAccounts(updatedAccounts);
+      const updated = updatedAccounts.find((a) => a.accountid === viewingAccount?.accountid);
+      if (updated) setViewingAccount(updated);
     } catch (err) {
       console.error("Failed to save account:", err);
     }
@@ -302,16 +307,14 @@ export const Accounts: React.FC = () => {
   const loadRelatedRecords = useCallback(async (accountId: string) => {
     setLoadingRelated(true);
     try {
-      const [contacts, activities, tasks, impacts, ideas, summaries] = await Promise.all([
+      const [contacts, tasks, impacts, ideas, summaries] = await Promise.all([
         getContactsByAccount(accountId),
-        getActivitiesByAccount(accountId),
         getActionItemsByAccount(accountId),
         getImpactsByAccount(accountId),
         getIdeasByAccount(accountId),
         getMeetingSummariesByAccount(accountId),
       ]);
       setRelatedContacts(contacts);
-      setRelatedActivities(activities);
       setRelatedTasks(tasks);
       setRelatedImpacts(impacts);
       setRelatedIdeas(ideas);
@@ -328,7 +331,6 @@ export const Accounts: React.FC = () => {
       loadRelatedRecords(viewingAccount.accountid);
     } else {
       setRelatedContacts([]);
-      setRelatedActivities([]);
       setRelatedTasks([]);
       setRelatedImpacts([]);
       setRelatedIdeas([]);
@@ -385,23 +387,6 @@ export const Accounts: React.FC = () => {
       loadRelatedRecords(viewingAccount.accountid);
     } catch (err) {
       console.error("Failed to add idea:", err);
-    }
-  };
-
-  const handleAddActivity = async () => {
-    if (!newActivity.tdvsp_name || !viewingAccount?.accountid) return;
-    try {
-      await createActivity({
-        tdvsp_name: newActivity.tdvsp_name,
-        tdvsp_description: newActivity.tdvsp_description,
-        tdvsp_date: newActivity.tdvsp_date || new Date().toISOString().split("T")[0],
-        "tdvsp_Customer@odata.bind": `/accounts(${viewingAccount.accountid})`,
-      });
-      setAddActivityOpen(false);
-      setNewActivity({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
-      loadRelatedRecords(viewingAccount.accountid);
-    } catch (err) {
-      console.error("Failed to add activity:", err);
     }
   };
 
@@ -508,7 +493,7 @@ export const Accounts: React.FC = () => {
           </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Account" : "New Account"}</DialogTitle>
+              <DialogTitle>New Account</DialogTitle>
               <DialogContent>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div className={styles.formField}>
@@ -557,7 +542,7 @@ export const Accounts: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSave}>
+                <Button appearance="primary" onClick={handleSaveNew}>
                   Save
                 </Button>
               </DialogActions>
@@ -567,7 +552,7 @@ export const Accounts: React.FC = () => {
       </div>
 
       {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface style={{ maxWidth: "80vw", width: "80vw" }}>
           <DialogBody>
             <DialogTitle
@@ -590,15 +575,33 @@ export const Accounts: React.FC = () => {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
                     <div className={styles.viewField}>
                       <Label>Account Name</Label>
-                      <Text block size={500} weight="semibold">
-                        {viewingAccount.name}
-                      </Text>
+                      {isEditing ? (
+                        <Input value={name} onChange={(_, d) => setName(d.value)} />
+                      ) : (
+                        <Text block size={500} weight="semibold">
+                          {viewingAccount.name}
+                        </Text>
+                      )}
                     </div>
                     <div className={styles.viewField}>
                       <Label>Parent Account</Label>
-                      <Text block size={400}>
-                        {viewingAccount.parentaccountid?.name || "--"}
-                      </Text>
+                      {isEditing ? (
+                        <Dropdown
+                          placeholder="Select parent account"
+                          value={parentAccountId ? accounts.find((a) => a.accountid === parentAccountId)?.name ?? "" : ""}
+                          selectedOptions={parentAccountId ? [parentAccountId] : []}
+                          onOptionSelect={(_, d) => setParentAccountId(d.optionValue ?? "")}
+                        >
+                          <Option value="" text="(None)">(None)</Option>
+                          {accounts.filter((a) => a.accountid !== editingId).map((a) => (
+                            <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                          ))}
+                        </Dropdown>
+                      ) : (
+                        <Text block size={400}>
+                          {viewingAccount.parentaccountid?.name || "--"}
+                        </Text>
+                      )}
                     </div>
                   </div>
 
@@ -679,29 +682,8 @@ export const Accounts: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Column 2: High-Value Activities, Impacts */}
+                      {/* Column 2: Impacts, Summaries */}
                       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                        {/* High-Value Activities */}
-                        <div className={styles.relatedSection} style={{ marginTop: 0 }}>
-                          <div className={styles.relatedHeader}>
-                            <Subtitle1>High-Value Activities</Subtitle1>
-                            <span className={styles.badge}>{relatedActivities.length}</span>
-                            <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddActivityOpen(true)}>Add</Button>
-                          </div>
-                          {relatedActivities.length === 0 ? (
-                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>No activities</Caption1>
-                          ) : (
-                            <div className={styles.relatedList}>
-                              {relatedActivities.map((a) => (
-                                <div key={a.tdvsp_hvaid} className={styles.relatedItem}>
-                                  <Text weight="semibold">{a.tdvsp_name}</Text>
-                                  {a.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(a.tdvsp_date)}</Caption1>}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
                         {/* Impacts */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
@@ -761,13 +743,20 @@ export const Accounts: React.FC = () => {
               )}
             </DialogContent>
             <DialogActions>
-              <Button
-                appearance="primary"
-                icon={<Edit24Regular />}
-                onClick={() => viewingAccount && openEdit(viewingAccount)}
-              >
-                Edit
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" onClick={() => setIsEditing(false)}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                </>
+              ) : (
+                <Button
+                  appearance="primary"
+                  icon={<Edit24Regular />}
+                  onClick={() => viewingAccount && openEdit(viewingAccount)}
+                >
+                  Edit
+                </Button>
+              )}
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -907,35 +896,6 @@ export const Accounts: React.FC = () => {
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddIdeaOpen(false)}>Cancel</Button>
               <Button appearance="primary" onClick={handleAddIdea} disabled={!newIdea.tdvsp_name}>Save</Button>
-            </DialogActions>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
-
-      {/* Add High-Value Activity Dialog */}
-      <Dialog open={addActivityOpen} onOpenChange={(_, d) => setAddActivityOpen(d.open)}>
-        <DialogSurface>
-          <DialogBody>
-            <DialogTitle>Add High-Value Activity to {viewingAccount?.name}</DialogTitle>
-            <DialogContent>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div className={styles.formField}>
-                  <Label required>Name</Label>
-                  <Input value={newActivity.tdvsp_name} onChange={(_, d) => setNewActivity({ ...newActivity, tdvsp_name: d.value })} />
-                </div>
-                <div className={styles.formField}>
-                  <Label>Date</Label>
-                  <Input type="date" value={newActivity.tdvsp_date} onChange={(_, d) => setNewActivity({ ...newActivity, tdvsp_date: d.value })} />
-                </div>
-                <div className={styles.formField}>
-                  <Label>Description</Label>
-                  <Textarea value={newActivity.tdvsp_description} onChange={(_, d) => setNewActivity({ ...newActivity, tdvsp_description: d.value })} rows={3} />
-                </div>
-              </div>
-            </DialogContent>
-            <DialogActions>
-              <Button appearance="secondary" onClick={() => setAddActivityOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddActivity} disabled={!newActivity.tdvsp_name}>Save</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>

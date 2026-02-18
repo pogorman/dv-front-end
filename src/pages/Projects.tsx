@@ -158,6 +158,7 @@ export const Projects: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -205,40 +206,56 @@ export const Projects: React.FC = () => {
   };
 
   const openEdit = (project: Project) => {
-    setViewDialogOpen(false);
-    setViewingProject(null);
+    setViewingProject(project);
+    setViewDialogOpen(true);
     setEditingId(project.tdvsp_projectid ?? null);
     setFormData({
       tdvsp_name: project.tdvsp_name,
       tdvsp_description: project.tdvsp_description ?? "",
       accountId: project.tdvsp_Account?.accountid ?? "",
     });
-    setDialogOpen(true);
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const buildProjectPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_description?: string;
+      "tdvsp_Account@odata.bind"?: string;
+    } = {
+      tdvsp_name: formData.tdvsp_name,
+      tdvsp_description: formData.tdvsp_description || undefined,
+    };
+    if (formData.accountId) {
+      payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveNew = async () => {
     try {
-      const payload: {
-        tdvsp_name: string;
-        tdvsp_description?: string;
-        "tdvsp_Account@odata.bind"?: string;
-      } = {
-        tdvsp_name: formData.tdvsp_name,
-        tdvsp_description: formData.tdvsp_description || undefined,
-      };
-      if (formData.accountId) {
-        payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
-      }
-      if (editingId) {
-        await updateProject(editingId, payload);
-      } else {
-        await createProject(payload);
-      }
+      await createProject(buildProjectPayload());
       setDialogOpen(false);
       setFormData(emptyForm);
-      setEditingId(null);
       loadProjects();
-      notify(editingId ? "Project updated" : "Project created");
+      notify("Project created");
+    } catch (err) {
+      console.error("Failed to save project:", err);
+      notify("Failed to save project", undefined, "error");
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      await updateProject(editingId, buildProjectPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedProjects = await getProjects();
+      setProjects(updatedProjects);
+      const updated = updatedProjects.find((p) => p.tdvsp_projectid === viewingProject?.tdvsp_projectid);
+      if (updated) setViewingProject(updated);
+      notify("Project updated");
     } catch (err) {
       console.error("Failed to save project:", err);
       notify("Failed to save project", undefined, "error");
@@ -281,7 +298,7 @@ export const Projects: React.FC = () => {
           </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Project" : "New Project"}</DialogTitle>
+              <DialogTitle>New Project</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -339,7 +356,7 @@ export const Projects: React.FC = () => {
                 </Button>
                 <Button
                   appearance="primary"
-                  onClick={handleSave}
+                  onClick={handleSaveNew}
                   disabled={!formData.tdvsp_name.trim()}
                 >
                   Save
@@ -423,7 +440,7 @@ export const Projects: React.FC = () => {
       )}
 
       {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
           <DialogBody>
             <DialogTitle
@@ -443,23 +460,50 @@ export const Projects: React.FC = () => {
                   <div className={styles.viewDetails}>
                     <div className={styles.viewField}>
                       <Label>Name</Label>
-                      <Text block size={400} weight="semibold">
-                        {viewingProject.tdvsp_name}
-                      </Text>
-                    </div>
-                    {viewingProject.tdvsp_description && (
-                      <div className={styles.viewField}>
-                        <Label>Description</Label>
-                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
-                          {viewingProject.tdvsp_description}
+                      {isEditing ? (
+                        <Input
+                          value={formData.tdvsp_name}
+                          onChange={(_, d) => setFormData({ ...formData, tdvsp_name: d.value })}
+                        />
+                      ) : (
+                        <Text block size={400} weight="semibold">
+                          {viewingProject.tdvsp_name}
                         </Text>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Description</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={formData.tdvsp_description}
+                          onChange={(_, d) => setFormData({ ...formData, tdvsp_description: d.value })}
+                          rows={3}
+                          resize="vertical"
+                        />
+                      ) : (
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>
+                          {viewingProject.tdvsp_description || "--"}
+                        </Text>
+                      )}
+                    </div>
                     <div className={styles.viewField}>
                       <Label>Account</Label>
-                      <Text block size={400}>
-                        {viewingProject.tdvsp_Account?.name || "--"}
-                      </Text>
+                      {isEditing ? (
+                        <Dropdown
+                          placeholder="Select account"
+                          value={accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""}
+                          onOptionSelect={(_, d) => setFormData({ ...formData, accountId: d.optionValue ?? "" })}
+                        >
+                          <Option value="" text="(None)">(None)</Option>
+                          {accounts.map((a) => (
+                            <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                          ))}
+                        </Dropdown>
+                      ) : (
+                        <Text block size={400}>
+                          {viewingProject.tdvsp_Account?.name || "--"}
+                        </Text>
+                      )}
                     </div>
                   </div>
                   <div className={styles.viewNotes}>
@@ -475,13 +519,20 @@ export const Projects: React.FC = () => {
               )}
             </DialogContent>
             <DialogActions>
-              <Button
-                appearance="primary"
-                icon={<Edit24Regular />}
-                onClick={() => viewingProject && openEdit(viewingProject)}
-              >
-                Edit
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                </>
+              ) : (
+                <Button
+                  appearance="primary"
+                  icon={<Edit24Regular />}
+                  onClick={() => viewingProject && openEdit(viewingProject)}
+                >
+                  Edit
+                </Button>
+              )}
             </DialogActions>
           </DialogBody>
         </DialogSurface>

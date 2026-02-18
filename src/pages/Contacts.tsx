@@ -166,6 +166,7 @@ export const Contacts: React.FC = () => {
   const [viewingContact, setViewingContact] = useState<Customer | null>(null);
   const [relatedIdeas, setRelatedIdeas] = useState<Idea[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadContacts = useCallback(async () => {
     setLoading(true);
@@ -233,8 +234,8 @@ export const Contacts: React.FC = () => {
   };
 
   const openEdit = (contact: Customer) => {
-    setViewDialogOpen(false);
-    setViewingContact(null);
+    setViewingContact(contact);
+    setViewDialogOpen(true);
     setEditingId(contact.contactid ?? null);
     setFormData({
       firstname: contact.firstname,
@@ -244,38 +245,54 @@ export const Contacts: React.FC = () => {
       jobtitle: contact.jobtitle,
       accountId: contact.parentcustomerid_account?.accountid ?? "",
     });
-    setDialogOpen(true);
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const buildContactPayload = () => {
+    const payload: {
+      firstname: string;
+      lastname: string;
+      emailaddress1: string;
+      telephone1: string;
+      jobtitle: string;
+      "parentcustomerid_account@odata.bind"?: string;
+    } = {
+      firstname: formData.firstname,
+      lastname: formData.lastname,
+      emailaddress1: formData.emailaddress1,
+      telephone1: formData.telephone1,
+      jobtitle: formData.jobtitle,
+    };
+    if (formData.accountId) {
+      payload["parentcustomerid_account@odata.bind"] = `/accounts(${formData.accountId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveNew = async () => {
     try {
-      const payload: {
-        firstname: string;
-        lastname: string;
-        emailaddress1: string;
-        telephone1: string;
-        jobtitle: string;
-        "parentcustomerid_account@odata.bind"?: string;
-      } = {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        emailaddress1: formData.emailaddress1,
-        telephone1: formData.telephone1,
-        jobtitle: formData.jobtitle,
-      };
-      if (formData.accountId) {
-        payload["parentcustomerid_account@odata.bind"] = `/accounts(${formData.accountId})`;
-      }
-      if (editingId) {
-        await updateCustomer(editingId, payload);
-      } else {
-        await createCustomer(payload);
-      }
+      await createCustomer(buildContactPayload());
       setDialogOpen(false);
       setFormData(emptyForm);
-      setEditingId(null);
       loadContacts();
-      notify(editingId ? "Contact updated" : "Contact created");
+      notify("Contact created");
+    } catch (err) {
+      console.error("Failed to save contact:", err);
+      notify("Failed to save contact", undefined, "error");
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      await updateCustomer(editingId, buildContactPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedContacts = await getCustomers();
+      setContacts(updatedContacts);
+      const updated = updatedContacts.find((c) => c.contactid === viewingContact?.contactid);
+      if (updated) setViewingContact(updated);
+      notify("Contact updated");
     } catch (err) {
       console.error("Failed to save contact:", err);
       notify("Failed to save contact", undefined, "error");
@@ -380,7 +397,7 @@ export const Contacts: React.FC = () => {
           </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Contact" : "New Contact"}</DialogTitle>
+              <DialogTitle>New Contact</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formField}>
@@ -467,7 +484,7 @@ export const Contacts: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSave}>
+                <Button appearance="primary" onClick={handleSaveNew}>
                   Save
                 </Button>
               </DialogActions>
@@ -477,7 +494,7 @@ export const Contacts: React.FC = () => {
       </div>
 
       {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface>
           <DialogBody>
             <DialogTitle
@@ -496,39 +513,88 @@ export const Contacts: React.FC = () => {
                 <div className={styles.viewGrid}>
                   <div className={styles.viewField}>
                     <Label>First Name</Label>
-                    <Text block size={400} weight="semibold">
-                      {viewingContact.firstname || "--"}
-                    </Text>
+                    {isEditing ? (
+                      <Input
+                        value={formData.firstname}
+                        onChange={(_, d) => setFormData({ ...formData, firstname: d.value })}
+                      />
+                    ) : (
+                      <Text block size={400} weight="semibold">
+                        {viewingContact.firstname || "--"}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewField}>
                     <Label>Last Name</Label>
-                    <Text block size={400} weight="semibold">
-                      {viewingContact.lastname || "--"}
-                    </Text>
+                    {isEditing ? (
+                      <Input
+                        value={formData.lastname}
+                        onChange={(_, d) => setFormData({ ...formData, lastname: d.value })}
+                      />
+                    ) : (
+                      <Text block size={400} weight="semibold">
+                        {viewingContact.lastname || "--"}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewField}>
                     <Label>Email</Label>
-                    <Text block size={400}>
-                      {viewingContact.emailaddress1 || "--"}
-                    </Text>
+                    {isEditing ? (
+                      <Input
+                        type="email"
+                        value={formData.emailaddress1}
+                        onChange={(_, d) => setFormData({ ...formData, emailaddress1: d.value })}
+                      />
+                    ) : (
+                      <Text block size={400}>
+                        {viewingContact.emailaddress1 || "--"}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewField}>
                     <Label>Phone</Label>
-                    <Text block size={400}>
-                      {viewingContact.telephone1 || "--"}
-                    </Text>
+                    {isEditing ? (
+                      <Input
+                        type="tel"
+                        value={formData.telephone1}
+                        onChange={(_, d) => setFormData({ ...formData, telephone1: d.value })}
+                      />
+                    ) : (
+                      <Text block size={400}>
+                        {viewingContact.telephone1 || "--"}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewField}>
                     <Label>Job Title</Label>
-                    <Text block size={400}>
-                      {viewingContact.jobtitle || "--"}
-                    </Text>
+                    {isEditing ? (
+                      <Input
+                        value={formData.jobtitle}
+                        onChange={(_, d) => setFormData({ ...formData, jobtitle: d.value })}
+                      />
+                    ) : (
+                      <Text block size={400}>
+                        {viewingContact.jobtitle || "--"}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewField}>
                     <Label>Account</Label>
-                    <Text block size={400}>
-                      {viewingContact.parentcustomerid_account?.name || "--"}
-                    </Text>
+                    {isEditing ? (
+                      <Dropdown
+                        placeholder="Select account"
+                        value={accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""}
+                        onOptionSelect={(_, d) => setFormData({ ...formData, accountId: d.optionValue ?? "" })}
+                      >
+                        {accounts.map((a) => (
+                          <Option key={a.accountid} value={a.accountid!}>{a.name}</Option>
+                        ))}
+                      </Dropdown>
+                    ) : (
+                      <Text block size={400}>
+                        {viewingContact.parentcustomerid_account?.name || "--"}
+                      </Text>
+                    )}
                   </div>
 
                   {/* Related Ideas */}
@@ -558,13 +624,20 @@ export const Contacts: React.FC = () => {
               )}
             </DialogContent>
             <DialogActions>
-              <Button
-                appearance="primary"
-                icon={<Edit24Regular />}
-                onClick={() => viewingContact && openEdit(viewingContact)}
-              >
-                Edit
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                </>
+              ) : (
+                <Button
+                  appearance="primary"
+                  icon={<Edit24Regular />}
+                  onClick={() => viewingContact && openEdit(viewingContact)}
+                >
+                  Edit
+                </Button>
+              )}
             </DialogActions>
           </DialogBody>
         </DialogSurface>

@@ -35,6 +35,7 @@ import {
   Attach16Regular,
   Home24Filled,
   Warning16Filled,
+  ArrowMaximize16Regular,
   LightbulbFilament24Filled,
   Notebook24Filled,
   Flash24Filled,
@@ -316,6 +317,7 @@ export const Dashboard: React.FC = () => {
   const [addIdeaOpen, setAddIdeaOpen] = useState(false);
   const [addImpactOpen, setAddImpactOpen] = useState(false);
   const [addSummaryOpen, setAddSummaryOpen] = useState(false);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Form data for quick add dialogs
   const [newAccount, setNewAccount] = useState({ name: "", parentAccountId: "" });
@@ -602,7 +604,8 @@ export const Dashboard: React.FC = () => {
             <Card className={styles.topPriorityCard}>
               <div className={styles.topPriorityHeader}>
                 <Briefcase24Filled style={{ color: "#d13438" }} />
-                <Subtitle1>Work</Subtitle1>
+                <Subtitle1 style={{ flexGrow: 1 }}>Work</Subtitle1>
+                <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("work"); }} title="Expand" />
               </div>
               <div className={styles.cardScrollArea}>
                 {topPriorityWork.length > 0 && (
@@ -666,7 +669,8 @@ export const Dashboard: React.FC = () => {
             <Card className={styles.personalCard}>
               <div className={styles.personalHeader}>
                 <Home24Filled style={{ color: "#0e7c7b" }} />
-                <Subtitle1>Personal</Subtitle1>
+                <Subtitle1 style={{ flexGrow: 1 }}>Personal</Subtitle1>
+                <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("personal"); }} title="Expand" />
               </div>
               <div className={styles.cardScrollArea}>
                 {topPriorityPersonal.length > 0 && (
@@ -800,7 +804,8 @@ export const Dashboard: React.FC = () => {
           <div className={styles.sectionGrid}>
             <Card className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
-                <Subtitle1>Action Items</Subtitle1>
+                <Subtitle1 style={{ flexGrow: 1 }}>Action Items</Subtitle1>
+                <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={() => setExpandedCard("actionItems")} title="Expand" />
                 <Button
                   appearance="subtle"
                   size="small"
@@ -858,7 +863,8 @@ export const Dashboard: React.FC = () => {
 
             <Card className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
-                <Subtitle1>Ideas</Subtitle1>
+                <Subtitle1 style={{ flexGrow: 1 }}>Ideas</Subtitle1>
+                <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={() => setExpandedCard("ideas")} title="Expand" />
                 <Button
                   appearance="subtle"
                   size="small"
@@ -1382,6 +1388,213 @@ export const Dashboard: React.FC = () => {
               <Button appearance="secondary" onClick={() => setAddSummaryOpen(false)}>Cancel</Button>
               <Button appearance="primary" onClick={handleAddSummary} disabled={!newSummary.tdvsp_name}>Save</Button>
             </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Expanded Card Dialog */}
+      <Dialog open={!!expandedCard} onOpenChange={(_, d) => !d.open && setExpandedCard(null)}>
+        <DialogSurface style={{ maxWidth: "70vw", width: "70vw", maxHeight: "80vh" }}>
+          <DialogBody style={{ maxHeight: "80vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            <DialogTitle
+              action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setExpandedCard(null)} />}
+            >
+              {expandedCard === "work" && <><Briefcase24Filled style={{ color: "#d13438", marginRight: 8, verticalAlign: "middle" }} />Work</>}
+              {expandedCard === "personal" && <><Home24Filled style={{ color: "#0e7c7b", marginRight: 8, verticalAlign: "middle" }} />Personal</>}
+              {expandedCard === "actionItems" && "Action Items"}
+              {expandedCard === "ideas" && "Ideas"}
+            </DialogTitle>
+            <DialogContent style={{ flexGrow: 1, overflowY: "auto" }}>
+              {expandedCard === "work" && (
+                <>
+                  {topPriorityWork.length > 0 && (
+                    <>
+                      <div className={styles.subSectionLabel}>
+                        <Warning16Filled style={{ color: "#d13438" }} />
+                        <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
+                      </div>
+                      {topPriorityWork.map((t, i) => (
+                        <React.Fragment key={t.tdvsp_actionitemid}>
+                          {i > 0 && <Divider />}
+                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
+                            <div style={{ minWidth: 0 }}>
+                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                                {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                              </Caption1>
+                            </div>
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </>
+                  )}
+                  {otherWork.length > 0 && (
+                    <>
+                      {topPriorityWork.length > 0 && <Divider style={{ margin: "8px 0" }} />}
+                      {otherWork.map((t, i) => (
+                        <React.Fragment key={t.tdvsp_actionitemid}>
+                          {i > 0 && <Divider />}
+                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
+                            <div style={{ minWidth: 0 }}>
+                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                                {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                              </Caption1>
+                            </div>
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </>
+                  )}
+                  {workItems.length === 0 && <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No work items</Body1>}
+                </>
+              )}
+              {expandedCard === "personal" && (
+                <>
+                  {topPriorityPersonal.length > 0 && (
+                    <>
+                      <div className={styles.subSectionLabel}>
+                        <Warning16Filled style={{ color: "#d13438" }} />
+                        <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
+                      </div>
+                      {topPriorityPersonal.map((t, i) => (
+                        <React.Fragment key={t.tdvsp_actionitemid}>
+                          {i > 0 && <Divider />}
+                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
+                            <div style={{ minWidth: 0 }}>
+                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                              </Caption1>
+                            </div>
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </>
+                  )}
+                  {otherPersonal.length > 0 && (
+                    <>
+                      {topPriorityPersonal.length > 0 && <Divider style={{ margin: "8px 0" }} />}
+                      {otherPersonal.map((t, i) => (
+                        <React.Fragment key={t.tdvsp_actionitemid}>
+                          {i > 0 && <Divider />}
+                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
+                            <div style={{ minWidth: 0 }}>
+                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                              </Caption1>
+                            </div>
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </>
+                  )}
+                  {personalFilteredItems.length === 0 && <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No personal items</Body1>}
+                </>
+              )}
+              {expandedCard === "actionItems" && (
+                <>
+                  {actionItems.length === 0 ? (
+                    <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No action items</Body1>
+                  ) : (
+                    actionItems.map((t, i) => (
+                      <React.Fragment key={t.tdvsp_actionitemid}>
+                        {i > 0 && <Divider />}
+                        <div className={styles.listItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
+                          <div>
+                            <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                              {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
+                              {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                              {t.tdvsp_priority != null && ` · ${taskPriorityLabels[t.tdvsp_priority as TaskPriority] ?? ""}`}
+                              {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                            </Caption1>
+                          </div>
+                          {t.tdvsp_date && (
+                            <Badge
+                              appearance="filled"
+                              color={
+                                t.tdvsp_taskstatus === 468510005
+                                  ? "success"
+                                  : new Date(t.tdvsp_date) < new Date()
+                                    ? "danger"
+                                    : "informative"
+                              }
+                            >
+                              {t.tdvsp_taskstatus === 468510005
+                                ? "Complete"
+                                : new Date(t.tdvsp_date) < new Date()
+                                  ? "Overdue"
+                                  : "Upcoming"}
+                            </Badge>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))
+                  )}
+                </>
+              )}
+              {expandedCard === "ideas" && (
+                <>
+                  {ideas.length === 0 ? (
+                    <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas yet</Body1>
+                  ) : (
+                    ideas.map((idea, i) => (
+                      <React.Fragment key={idea.tdvsp_ideaid}>
+                        {i > 0 && <Divider />}
+                        <div className={styles.listItem} onClick={() => { setExpandedCard(null); navigate(`/ideas?view=${idea.tdvsp_ideaid}`); }} style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                          <Text weight="semibold" className={styles.nameLink}>
+                            {idea.tdvsp_name}
+                            {idea.tdvsp_category != null && (
+                              <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
+                                {" "}&ndash; {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] ?? ""}
+                              </span>
+                            )}
+                            {idea.tdvsp_Account?.name && (
+                              <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
+                                {" "}&ndash; {idea.tdvsp_Account.name}
+                              </span>
+                            )}
+                          </Text>
+                          {idea.tdvsp_description && (
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                              {idea.tdvsp_description}
+                            </Caption1>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))
+                  )}
+                </>
+              )}
+            </DialogContent>
           </DialogBody>
         </DialogSurface>
       </Dialog>

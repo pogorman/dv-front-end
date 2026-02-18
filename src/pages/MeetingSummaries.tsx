@@ -167,6 +167,7 @@ export const MeetingSummaries: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingSummary, setViewingSummary] = useState<MeetingSummary | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadSummaries = useCallback(async () => {
     setLoading(true);
@@ -214,8 +215,8 @@ export const MeetingSummaries: React.FC = () => {
   };
 
   const openEdit = (summary: MeetingSummary) => {
-    setViewDialogOpen(false);
-    setViewingSummary(null);
+    setViewingSummary(summary);
+    setViewDialogOpen(true);
     setEditingId(summary.tdvsp_meetingsummaryid ?? null);
     setFormData({
       tdvsp_name: summary.tdvsp_name,
@@ -223,38 +224,54 @@ export const MeetingSummaries: React.FC = () => {
       tdvsp_summary: summary.tdvsp_summary ?? "",
       accountId: summary.tdvsp_Account?.accountid ?? "",
     });
-    setDialogOpen(true);
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const buildSummaryPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_date?: string;
+      tdvsp_summary?: string;
+      "tdvsp_Account@odata.bind"?: string;
+    } = {
+      tdvsp_name: formData.tdvsp_name,
+    };
+    if (formData.tdvsp_date) {
+      payload.tdvsp_date = formData.tdvsp_date;
+    }
+    if (formData.tdvsp_summary) {
+      payload.tdvsp_summary = formData.tdvsp_summary;
+    }
+    if (formData.accountId) {
+      payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveNew = async () => {
     try {
-      const payload: {
-        tdvsp_name: string;
-        tdvsp_date?: string;
-        tdvsp_summary?: string;
-        "tdvsp_Account@odata.bind"?: string;
-      } = {
-        tdvsp_name: formData.tdvsp_name,
-      };
-      if (formData.tdvsp_date) {
-        payload.tdvsp_date = formData.tdvsp_date;
-      }
-      if (formData.tdvsp_summary) {
-        payload.tdvsp_summary = formData.tdvsp_summary;
-      }
-      if (formData.accountId) {
-        payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
-      }
-      if (editingId) {
-        await updateMeetingSummary(editingId, payload);
-      } else {
-        await createMeetingSummary(payload);
-      }
+      await createMeetingSummary(buildSummaryPayload());
       setDialogOpen(false);
       setFormData(emptyForm);
-      setEditingId(null);
       loadSummaries();
-      notify(editingId ? "Meeting summary updated" : "Meeting summary created");
+      notify("Meeting summary created");
+    } catch (err) {
+      console.error("Failed to save meeting summary:", err);
+      notify("Failed to save meeting summary", undefined, "error");
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      await updateMeetingSummary(editingId, buildSummaryPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedSummaries = await getMeetingSummaries();
+      setSummaries(updatedSummaries);
+      const updated = updatedSummaries.find((s) => s.tdvsp_meetingsummaryid === viewingSummary?.tdvsp_meetingsummaryid);
+      if (updated) setViewingSummary(updated);
+      notify("Meeting summary updated");
     } catch (err) {
       console.error("Failed to save meeting summary:", err);
       notify("Failed to save meeting summary", undefined, "error");
@@ -297,7 +314,7 @@ export const MeetingSummaries: React.FC = () => {
           </Button>
           <DialogSurface style={{ maxWidth: "700px", width: "700px" }}>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Summary" : "New Summary"}</DialogTitle>
+              <DialogTitle>New Summary</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -363,7 +380,7 @@ export const MeetingSummaries: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSave}>
+                <Button appearance="primary" onClick={handleSaveNew}>
                   Save
                 </Button>
               </DialogActions>
@@ -440,7 +457,7 @@ export const MeetingSummaries: React.FC = () => {
       )}
 
       {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface style={{ maxWidth: "700px", width: "700px" }}>
           <DialogBody>
             <DialogTitle
@@ -459,43 +476,92 @@ export const MeetingSummaries: React.FC = () => {
                 <>
                   <div className={styles.viewField}>
                     <Label>Name</Label>
-                    <Text block size={400} weight="semibold">
-                      {viewingSummary.tdvsp_name}
-                    </Text>
+                    {isEditing ? (
+                      <Input
+                        value={formData.tdvsp_name}
+                        onChange={(_, d) => setFormData({ ...formData, tdvsp_name: d.value })}
+                      />
+                    ) : (
+                      <Text block size={400} weight="semibold">
+                        {viewingSummary.tdvsp_name}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewGrid}>
                     <div className={styles.viewField}>
                       <Label>Date</Label>
-                      <Text block size={400}>
-                        {viewingSummary.tdvsp_date ? formatDate(viewingSummary.tdvsp_date) : "--"}
-                      </Text>
+                      {isEditing ? (
+                        <Input
+                          type="date"
+                          value={formData.tdvsp_date}
+                          onChange={(_, d) => setFormData({ ...formData, tdvsp_date: d.value })}
+                        />
+                      ) : (
+                        <Text block size={400}>
+                          {viewingSummary.tdvsp_date ? formatDate(viewingSummary.tdvsp_date) : "--"}
+                        </Text>
+                      )}
                     </div>
                     <div className={styles.viewField}>
                       <Label>Account</Label>
-                      <Text block size={400}>
-                        {viewingSummary.tdvsp_Account?.name || "--"}
-                      </Text>
+                      {isEditing ? (
+                        <Dropdown
+                          placeholder="Select account"
+                          value={accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""}
+                          onOptionSelect={(_, d) => setFormData({ ...formData, accountId: d.optionValue ?? "" })}
+                        >
+                          {accounts.map((a) => (
+                            <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                          ))}
+                        </Dropdown>
+                      ) : (
+                        <Text block size={400}>
+                          {viewingSummary.tdvsp_Account?.name || "--"}
+                        </Text>
+                      )}
                     </div>
                   </div>
                   <div className={styles.viewField}>
                     <Label>Summary</Label>
-                    <div className={styles.summaryText}>
-                      <Text size={400}>
-                        {viewingSummary.tdvsp_summary || "--"}
-                      </Text>
-                    </div>
+                    {isEditing ? (
+                      <>
+                        <Textarea
+                          value={formData.tdvsp_summary}
+                          onChange={(_, d) => setFormData({ ...formData, tdvsp_summary: d.value })}
+                          rows={10}
+                          style={{ resize: "vertical", minHeight: "200px" }}
+                          maxLength={5000}
+                        />
+                        <Caption1 style={{ color: tokens.colorNeutralForeground3, textAlign: "right" }}>
+                          {formData.tdvsp_summary.length} / 5000
+                        </Caption1>
+                      </>
+                    ) : (
+                      <div className={styles.summaryText}>
+                        <Text size={400}>
+                          {viewingSummary.tdvsp_summary || "--"}
+                        </Text>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
             </DialogContent>
             <DialogActions>
-              <Button
-                appearance="primary"
-                icon={<Edit24Regular />}
-                onClick={() => viewingSummary && openEdit(viewingSummary)}
-              >
-                Edit
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                </>
+              ) : (
+                <Button
+                  appearance="primary"
+                  icon={<Edit24Regular />}
+                  onClick={() => viewingSummary && openEdit(viewingSummary)}
+                >
+                  Edit
+                </Button>
+              )}
             </DialogActions>
           </DialogBody>
         </DialogSurface>

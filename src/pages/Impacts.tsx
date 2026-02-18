@@ -159,6 +159,7 @@ export const Impacts: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingImpact, setViewingImpact] = useState<Impact | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadImpacts = useCallback(async () => {
     setLoading(true);
@@ -206,8 +207,8 @@ export const Impacts: React.FC = () => {
   };
 
   const openEdit = (impact: Impact) => {
-    setViewDialogOpen(false);
-    setViewingImpact(null);
+    setViewingImpact(impact);
+    setViewDialogOpen(true);
     setEditingId(impact.tdvsp_impactid ?? null);
     setFormData({
       tdvsp_name: impact.tdvsp_name,
@@ -215,34 +216,50 @@ export const Impacts: React.FC = () => {
       tdvsp_date: impact.tdvsp_date ? impact.tdvsp_date.split("T")[0] : "",
       customerAccountId: impact.tdvsp_Customer?.accountid ?? "",
     });
-    setDialogOpen(true);
+    setIsEditing(true);
   };
 
-  const handleSave = async () => {
+  const buildImpactPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_description: string;
+      tdvsp_date: string;
+      "tdvsp_Customer@odata.bind"?: string;
+    } = {
+      tdvsp_name: formData.tdvsp_name,
+      tdvsp_description: formData.tdvsp_description,
+      tdvsp_date: formData.tdvsp_date,
+    };
+    if (formData.customerAccountId) {
+      payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveNew = async () => {
     try {
-      const payload: {
-        tdvsp_name: string;
-        tdvsp_description: string;
-        tdvsp_date: string;
-        "tdvsp_Customer@odata.bind"?: string;
-      } = {
-        tdvsp_name: formData.tdvsp_name,
-        tdvsp_description: formData.tdvsp_description,
-        tdvsp_date: formData.tdvsp_date,
-      };
-      if (formData.customerAccountId) {
-        payload["tdvsp_Customer@odata.bind"] = `/accounts(${formData.customerAccountId})`;
-      }
-      if (editingId) {
-        await updateImpact(editingId, payload);
-      } else {
-        await createImpact(payload);
-      }
+      await createImpact(buildImpactPayload());
       setDialogOpen(false);
       setFormData(emptyForm);
-      setEditingId(null);
       loadImpacts();
-      notify(editingId ? "Impact updated" : "Impact created");
+      notify("Impact created");
+    } catch (err) {
+      console.error("Failed to save impact:", err);
+      notify("Failed to save impact", undefined, "error");
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    try {
+      await updateImpact(editingId, buildImpactPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedImpacts = await getImpacts();
+      setImpacts(updatedImpacts);
+      const updated = updatedImpacts.find((i) => i.tdvsp_impactid === viewingImpact?.tdvsp_impactid);
+      if (updated) setViewingImpact(updated);
+      notify("Impact updated");
     } catch (err) {
       console.error("Failed to save impact:", err);
       notify("Failed to save impact", undefined, "error");
@@ -285,7 +302,7 @@ export const Impacts: React.FC = () => {
           </Button>
           <DialogSurface>
             <DialogBody>
-              <DialogTitle>{editingId ? "Edit Impact" : "New Impact"}</DialogTitle>
+              <DialogTitle>New Impact</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -348,7 +365,7 @@ export const Impacts: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSave}>
+                <Button appearance="primary" onClick={handleSaveNew}>
                   Save
                 </Button>
               </DialogActions>
@@ -423,7 +440,7 @@ export const Impacts: React.FC = () => {
       )}
 
       {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => setViewDialogOpen(d.open)}>
+      <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface>
           <DialogBody>
             <DialogTitle
@@ -442,41 +459,83 @@ export const Impacts: React.FC = () => {
                 <>
                   <div className={styles.viewField}>
                     <Label>Name</Label>
-                    <Text block size={400} weight="semibold">
-                      {viewingImpact.tdvsp_name}
-                    </Text>
+                    {isEditing ? (
+                      <Input
+                        value={formData.tdvsp_name}
+                        onChange={(_, d) => setFormData({ ...formData, tdvsp_name: d.value })}
+                      />
+                    ) : (
+                      <Text block size={400} weight="semibold">
+                        {viewingImpact.tdvsp_name}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewField}>
                     <Label>Description</Label>
-                    <Text block size={400}>
-                      {viewingImpact.tdvsp_description || "--"}
-                    </Text>
+                    {isEditing ? (
+                      <Textarea
+                        value={formData.tdvsp_description}
+                        onChange={(_, d) => setFormData({ ...formData, tdvsp_description: d.value })}
+                        rows={4}
+                      />
+                    ) : (
+                      <Text block size={400}>
+                        {viewingImpact.tdvsp_description || "--"}
+                      </Text>
+                    )}
                   </div>
                   <div className={styles.viewGrid}>
                     <div className={styles.viewField}>
                       <Label>Date</Label>
-                      <Text block size={400}>
-                        {viewingImpact.tdvsp_date ? formatDate(viewingImpact.tdvsp_date) : "--"}
-                      </Text>
+                      {isEditing ? (
+                        <Input
+                          type="date"
+                          value={formData.tdvsp_date}
+                          onChange={(_, d) => setFormData({ ...formData, tdvsp_date: d.value })}
+                        />
+                      ) : (
+                        <Text block size={400}>
+                          {viewingImpact.tdvsp_date ? formatDate(viewingImpact.tdvsp_date) : "--"}
+                        </Text>
+                      )}
                     </div>
                     <div className={styles.viewField}>
                       <Label>Customer</Label>
-                      <Text block size={400}>
-                        {viewingImpact.tdvsp_Customer?.name || "--"}
-                      </Text>
+                      {isEditing ? (
+                        <Dropdown
+                          placeholder="Select account"
+                          value={accounts.find((a) => a.accountid === formData.customerAccountId)?.name ?? ""}
+                          onOptionSelect={(_, d) => setFormData({ ...formData, customerAccountId: d.optionValue ?? "" })}
+                        >
+                          {accounts.map((a) => (
+                            <Option key={a.accountid} value={a.accountid!}>{a.name}</Option>
+                          ))}
+                        </Dropdown>
+                      ) : (
+                        <Text block size={400}>
+                          {viewingImpact.tdvsp_Customer?.name || "--"}
+                        </Text>
+                      )}
                     </div>
                   </div>
                 </>
               )}
             </DialogContent>
             <DialogActions>
-              <Button
-                appearance="primary"
-                icon={<Edit24Regular />}
-                onClick={() => viewingImpact && openEdit(viewingImpact)}
-              >
-                Edit
-              </Button>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                </>
+              ) : (
+                <Button
+                  appearance="primary"
+                  icon={<Edit24Regular />}
+                  onClick={() => viewingImpact && openEdit(viewingImpact)}
+                >
+                  Edit
+                </Button>
+              )}
             </DialogActions>
           </DialogBody>
         </DialogSurface>
