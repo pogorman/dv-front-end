@@ -118,6 +118,11 @@ const useStyles = makeStyles({
   viewField: {
     marginBottom: "16px",
   },
+  viewGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("16px"),
+  },
   viewLayout: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -159,6 +164,7 @@ export const Projects: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -201,6 +207,8 @@ export const Projects: React.FC = () => {
   };
 
   const openView = (project: Project) => {
+    setIsEditing(false);
+    setEditingId(null);
     setViewingProject(project);
     setViewDialogOpen(true);
   };
@@ -233,6 +241,7 @@ export const Projects: React.FC = () => {
   };
 
   const handleSaveNew = async () => {
+    setSaving(true);
     try {
       await createProject(buildProjectPayload());
       setDialogOpen(false);
@@ -242,11 +251,14 @@ export const Projects: React.FC = () => {
     } catch (err) {
       console.error("Failed to save project:", err);
       notify("Failed to save project", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       await updateProject(editingId, buildProjectPayload());
       setIsEditing(false);
@@ -259,10 +271,13 @@ export const Projects: React.FC = () => {
     } catch (err) {
       console.error("Failed to save project:", err);
       notify("Failed to save project", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setSaving(true);
     try {
       await deleteProject(id);
       loadProjects();
@@ -270,6 +285,8 @@ export const Projects: React.FC = () => {
     } catch (err) {
       console.error("Failed to delete project:", err);
       notify("Failed to delete project", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -357,9 +374,9 @@ export const Projects: React.FC = () => {
                 <Button
                   appearance="primary"
                   onClick={handleSaveNew}
-                  disabled={!formData.tdvsp_name.trim()}
+                  disabled={saving || !formData.tdvsp_name.trim()}
                 >
-                  Save
+                  {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
                 </Button>
               </DialogActions>
             </DialogBody>
@@ -423,6 +440,7 @@ export const Projects: React.FC = () => {
                     icon={<Delete24Regular />}
                     size="small"
                     title="Delete"
+                    disabled={saving}
                     onClick={() =>
                       project.tdvsp_projectid && handleDelete(project.tdvsp_projectid)
                     }
@@ -521,8 +539,10 @@ export const Projects: React.FC = () => {
             <DialogActions>
               {isEditing ? (
                 <>
-                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
-                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit} disabled={saving}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
                 </>
               ) : (
                 <Button

@@ -203,6 +203,7 @@ export const Ideas: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingIdea, setViewingIdea] = useState<Idea | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const loadIdeas = useCallback(async () => {
     setLoading(true);
@@ -264,6 +265,8 @@ export const Ideas: React.FC = () => {
   };
 
   const openView = (idea: Idea) => {
+    setIsEditing(false);
+    setEditingId(null);
     setViewingIdea(idea);
     setViewDialogOpen(true);
   };
@@ -304,6 +307,7 @@ export const Ideas: React.FC = () => {
   };
 
   const handleSaveNew = async () => {
+    setSaving(true);
     try {
       await createIdea(buildIdeaPayload());
       setDialogOpen(false);
@@ -313,11 +317,14 @@ export const Ideas: React.FC = () => {
     } catch (err) {
       console.error("Failed to save idea:", err);
       notify("Failed to save idea", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       await updateIdea(editingId, buildIdeaPayload());
       setIsEditing(false);
@@ -330,10 +337,13 @@ export const Ideas: React.FC = () => {
     } catch (err) {
       console.error("Failed to save idea:", err);
       notify("Failed to save idea", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setSaving(true);
     try {
       await deleteIdea(id);
       loadIdeas();
@@ -341,6 +351,8 @@ export const Ideas: React.FC = () => {
     } catch (err) {
       console.error("Failed to delete idea:", err);
       notify("Failed to delete idea", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -468,8 +480,8 @@ export const Ideas: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSaveNew}>
-                  Save
+                <Button appearance="primary" onClick={handleSaveNew} disabled={saving || !formData.tdvsp_name.trim()}>
+                  {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
                 </Button>
               </DialogActions>
             </DialogBody>
@@ -514,6 +526,7 @@ export const Ideas: React.FC = () => {
                     icon={<Delete24Regular />}
                     size="small"
                     title="Delete"
+                    disabled={saving}
                     onClick={() =>
                       idea.tdvsp_ideaid && handleDelete(idea.tdvsp_ideaid)
                     }
@@ -665,8 +678,10 @@ export const Ideas: React.FC = () => {
             <DialogActions>
               {isEditing ? (
                 <>
-                  <Button appearance="secondary" onClick={() => setIsEditing(false)}>Cancel</Button>
-                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                  <Button appearance="secondary" disabled={saving} onClick={() => setIsEditing(false)}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit} disabled={saving || !formData.tdvsp_name.trim()}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
                 </>
               ) : (
                 <Button

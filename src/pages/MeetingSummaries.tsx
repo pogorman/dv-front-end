@@ -168,6 +168,7 @@ export const MeetingSummaries: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingSummary, setViewingSummary] = useState<MeetingSummary | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const loadSummaries = useCallback(async () => {
     setLoading(true);
@@ -210,6 +211,8 @@ export const MeetingSummaries: React.FC = () => {
   };
 
   const openView = (summary: MeetingSummary) => {
+    setIsEditing(false);
+    setEditingId(null);
     setViewingSummary(summary);
     setViewDialogOpen(true);
   };
@@ -249,6 +252,7 @@ export const MeetingSummaries: React.FC = () => {
   };
 
   const handleSaveNew = async () => {
+    setSaving(true);
     try {
       await createMeetingSummary(buildSummaryPayload());
       setDialogOpen(false);
@@ -258,11 +262,14 @@ export const MeetingSummaries: React.FC = () => {
     } catch (err) {
       console.error("Failed to save meeting summary:", err);
       notify("Failed to save meeting summary", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       await updateMeetingSummary(editingId, buildSummaryPayload());
       setIsEditing(false);
@@ -275,10 +282,13 @@ export const MeetingSummaries: React.FC = () => {
     } catch (err) {
       console.error("Failed to save meeting summary:", err);
       notify("Failed to save meeting summary", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setSaving(true);
     try {
       await deleteMeetingSummary(id);
       loadSummaries();
@@ -286,6 +296,8 @@ export const MeetingSummaries: React.FC = () => {
     } catch (err) {
       console.error("Failed to delete meeting summary:", err);
       notify("Failed to delete meeting summary", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -380,8 +392,8 @@ export const MeetingSummaries: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSaveNew}>
-                  Save
+                <Button appearance="primary" onClick={handleSaveNew} disabled={saving || !formData.tdvsp_name.trim()}>
+                  {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
                 </Button>
               </DialogActions>
             </DialogBody>
@@ -426,6 +438,7 @@ export const MeetingSummaries: React.FC = () => {
                     icon={<Delete24Regular />}
                     size="small"
                     title="Delete"
+                    disabled={saving}
                     onClick={() =>
                       summary.tdvsp_meetingsummaryid && handleDelete(summary.tdvsp_meetingsummaryid)
                     }
@@ -550,8 +563,10 @@ export const MeetingSummaries: React.FC = () => {
             <DialogActions>
               {isEditing ? (
                 <>
-                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
-                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit} disabled={saving}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
                 </>
               ) : (
                 <Button

@@ -160,6 +160,7 @@ export const Impacts: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingImpact, setViewingImpact] = useState<Impact | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const loadImpacts = useCallback(async () => {
     setLoading(true);
@@ -202,6 +203,8 @@ export const Impacts: React.FC = () => {
   };
 
   const openView = (impact: Impact) => {
+    setIsEditing(false);
+    setEditingId(null);
     setViewingImpact(impact);
     setViewDialogOpen(true);
   };
@@ -237,6 +240,7 @@ export const Impacts: React.FC = () => {
   };
 
   const handleSaveNew = async () => {
+    setSaving(true);
     try {
       await createImpact(buildImpactPayload());
       setDialogOpen(false);
@@ -246,11 +250,14 @@ export const Impacts: React.FC = () => {
     } catch (err) {
       console.error("Failed to save impact:", err);
       notify("Failed to save impact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       await updateImpact(editingId, buildImpactPayload());
       setIsEditing(false);
@@ -263,10 +270,13 @@ export const Impacts: React.FC = () => {
     } catch (err) {
       console.error("Failed to save impact:", err);
       notify("Failed to save impact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setSaving(true);
     try {
       await deleteImpact(id);
       loadImpacts();
@@ -274,6 +284,8 @@ export const Impacts: React.FC = () => {
     } catch (err) {
       console.error("Failed to delete impact:", err);
       notify("Failed to delete impact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -365,8 +377,8 @@ export const Impacts: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSaveNew}>
-                  Save
+                <Button appearance="primary" onClick={handleSaveNew} disabled={saving || !formData.tdvsp_name.trim()}>
+                  {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
                 </Button>
               </DialogActions>
             </DialogBody>
@@ -411,6 +423,7 @@ export const Impacts: React.FC = () => {
                     icon={<Delete24Regular />}
                     size="small"
                     title="Delete"
+                    disabled={saving}
                     onClick={() =>
                       impact.tdvsp_impactid && handleDelete(impact.tdvsp_impactid)
                     }
@@ -524,8 +537,10 @@ export const Impacts: React.FC = () => {
             <DialogActions>
               {isEditing ? (
                 <>
-                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
-                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit} disabled={saving}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
                 </>
               ) : (
                 <Button

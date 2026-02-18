@@ -167,6 +167,7 @@ export const Contacts: React.FC = () => {
   const [relatedIdeas, setRelatedIdeas] = useState<Idea[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const loadContacts = useCallback(async () => {
     setLoading(true);
@@ -229,6 +230,8 @@ export const Contacts: React.FC = () => {
   };
 
   const openView = (contact: Customer) => {
+    setIsEditing(false);
+    setEditingId(null);
     setViewingContact(contact);
     setViewDialogOpen(true);
   };
@@ -270,6 +273,7 @@ export const Contacts: React.FC = () => {
   };
 
   const handleSaveNew = async () => {
+    setSaving(true);
     try {
       await createCustomer(buildContactPayload());
       setDialogOpen(false);
@@ -279,11 +283,14 @@ export const Contacts: React.FC = () => {
     } catch (err) {
       console.error("Failed to save contact:", err);
       notify("Failed to save contact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       await updateCustomer(editingId, buildContactPayload());
       setIsEditing(false);
@@ -296,10 +303,13 @@ export const Contacts: React.FC = () => {
     } catch (err) {
       console.error("Failed to save contact:", err);
       notify("Failed to save contact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setSaving(true);
     try {
       await deleteCustomer(id);
       loadContacts();
@@ -307,6 +317,8 @@ export const Contacts: React.FC = () => {
     } catch (err) {
       console.error("Failed to delete contact:", err);
       notify("Failed to delete contact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -374,6 +386,7 @@ export const Contacts: React.FC = () => {
             icon={<Delete24Regular />}
             size="small"
             title="Delete"
+            disabled={saving}
             onClick={() => item.contactid && handleDelete(item.contactid)}
           />
         </div>
@@ -484,8 +497,8 @@ export const Contacts: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSaveNew}>
-                  Save
+                <Button appearance="primary" onClick={handleSaveNew} disabled={saving || !formData.firstname.trim() || !formData.lastname.trim()}>
+                  {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
                 </Button>
               </DialogActions>
             </DialogBody>
@@ -626,8 +639,10 @@ export const Contacts: React.FC = () => {
             <DialogActions>
               {isEditing ? (
                 <>
-                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
-                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit} disabled={saving || !formData.firstname.trim() || !formData.lastname.trim()}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
                 </>
               ) : (
                 <Button

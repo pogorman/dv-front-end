@@ -41,6 +41,7 @@ import {
 import { Account, Customer, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import { NotesTimeline } from "../components/NotesTimeline";
+import { useNotification } from "../context/NotificationContext";
 import {
   getAccounts,
   createAccount,
@@ -105,48 +106,20 @@ const useStyles = makeStyles({
   viewField: {
     marginBottom: "16px",
   },
-  viewDialogContent: {
+  viewGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("16px"),
+  },
+  viewThreeCol: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
     ...shorthands.gap("24px"),
-    minHeight: "400px",
   },
-  detailsPanel: {
+  viewColumn: {
     display: "flex",
     flexDirection: "column",
-  },
-  timelinePanel: {
-    display: "flex",
-    flexDirection: "column",
-    borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
-    paddingLeft: "24px",
-  },
-  timelineHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-  },
-  timelineList: {
-    flexGrow: 1,
-    overflowY: "auto",
-    maxHeight: "300px",
-    display: "flex",
-    flexDirection: "column",
-    ...shorthands.gap("12px"),
-  },
-  noteItem: {
-    ...shorthands.padding("12px"),
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
-  },
-  noteDate: {
-    fontSize: "12px",
-    color: tokens.colorNeutralForeground3,
-    marginBottom: "4px",
-  },
-  noteInput: {
-    marginTop: "12px",
+    ...shorthands.gap("20px"),
   },
   relatedSection: {
     marginTop: "20px",
@@ -181,6 +154,7 @@ const useStyles = makeStyles({
 
 export const Accounts: React.FC = () => {
   const styles = useStyles();
+  const { notify } = useNotification();
   const [searchParams, setSearchParams] = useSearchParams();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -198,6 +172,7 @@ export const Accounts: React.FC = () => {
   const [relatedSummaries, setRelatedSummaries] = useState<MeetingSummary[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Add new dialogs state
   const [addContactOpen, setAddContactOpen] = useState(false);
@@ -245,6 +220,8 @@ export const Accounts: React.FC = () => {
   };
 
   const openView = (account: Account) => {
+    setIsEditing(false);
+    setEditingId(null);
     setViewingAccount(account);
     setViewDialogOpen(true);
   };
@@ -259,6 +236,7 @@ export const Accounts: React.FC = () => {
   };
 
   const handleSaveNew = async () => {
+    setSaving(true);
     try {
       const payload: { name: string; "parentaccountid@odata.bind"?: string } = { name };
       if (parentAccountId) {
@@ -269,13 +247,18 @@ export const Accounts: React.FC = () => {
       setName("");
       setParentAccountId("");
       loadAccounts();
+      notify("Account created");
     } catch (err) {
       console.error("Failed to save account:", err);
+      notify("Failed to create account", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       const payload: { name: string; "parentaccountid@odata.bind"?: string | null } = { name };
       if (parentAccountId) {
@@ -290,17 +273,26 @@ export const Accounts: React.FC = () => {
       setAccounts(updatedAccounts);
       const updated = updatedAccounts.find((a) => a.accountid === viewingAccount?.accountid);
       if (updated) setViewingAccount(updated);
+      notify("Account updated");
     } catch (err) {
       console.error("Failed to save account:", err);
+      notify("Failed to update account", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setSaving(true);
     try {
       await deleteAccount(id);
       loadAccounts();
+      notify("Account deleted");
     } catch (err) {
       console.error("Failed to delete account:", err);
+      notify("Failed to delete account", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -341,6 +333,7 @@ export const Accounts: React.FC = () => {
   // Handlers for adding new related records
   const handleAddContact = async () => {
     if (!newContact.firstname || !newContact.lastname || !viewingAccount?.accountid) return;
+    setSaving(true);
     try {
       await createCustomer({
         ...newContact,
@@ -349,13 +342,18 @@ export const Accounts: React.FC = () => {
       setAddContactOpen(false);
       setNewContact({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "" });
       loadRelatedRecords(viewingAccount.accountid);
+      notify("Contact added");
     } catch (err) {
       console.error("Failed to add contact:", err);
+      notify("Failed to add contact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddActionItem = async () => {
     if (!newActionItem.tdvsp_name || !viewingAccount?.accountid) return;
+    setSaving(true);
     try {
       await createActionItem({
         tdvsp_name: newActionItem.tdvsp_name,
@@ -368,13 +366,18 @@ export const Accounts: React.FC = () => {
       setAddActionItemOpen(false);
       setNewActionItem({ tdvsp_name: "", tdvsp_date: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
       loadRelatedRecords(viewingAccount.accountid);
+      notify("Action item added");
     } catch (err) {
       console.error("Failed to add action item:", err);
+      notify("Failed to add action item", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddIdea = async () => {
     if (!newIdea.tdvsp_name || !viewingAccount?.accountid) return;
+    setSaving(true);
     try {
       await createIdea({
         tdvsp_name: newIdea.tdvsp_name,
@@ -385,13 +388,18 @@ export const Accounts: React.FC = () => {
       setAddIdeaOpen(false);
       setNewIdea({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" });
       loadRelatedRecords(viewingAccount.accountid);
+      notify("Idea added");
     } catch (err) {
       console.error("Failed to add idea:", err);
+      notify("Failed to add idea", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddImpact = async () => {
     if (!newImpact.tdvsp_name || !viewingAccount?.accountid) return;
+    setSaving(true);
     try {
       await createImpact({
         tdvsp_name: newImpact.tdvsp_name,
@@ -402,13 +410,18 @@ export const Accounts: React.FC = () => {
       setAddImpactOpen(false);
       setNewImpact({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "" });
       loadRelatedRecords(viewingAccount.accountid);
+      notify("Impact added");
     } catch (err) {
       console.error("Failed to add impact:", err);
+      notify("Failed to add impact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddSummary = async () => {
     if (!newSummary.tdvsp_name || !viewingAccount?.accountid) return;
+    setSaving(true);
     try {
       await createMeetingSummary({
         tdvsp_name: newSummary.tdvsp_name,
@@ -419,8 +432,12 @@ export const Accounts: React.FC = () => {
       setAddSummaryOpen(false);
       setNewSummary({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "" });
       loadRelatedRecords(viewingAccount.accountid);
+      notify("Meeting summary added");
     } catch (err) {
       console.error("Failed to add meeting summary:", err);
+      notify("Failed to add meeting summary", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -470,6 +487,7 @@ export const Accounts: React.FC = () => {
             icon={<Delete24Regular />}
             size="small"
             title="Delete"
+            disabled={saving}
             onClick={() => item.accountid && handleDelete(item.accountid)}
           />
         </div>
@@ -542,8 +560,8 @@ export const Accounts: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSaveNew}>
-                  Save
+                <Button appearance="primary" onClick={handleSaveNew} disabled={saving || !name}>
+                  {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
                 </Button>
               </DialogActions>
             </DialogBody>
@@ -570,9 +588,9 @@ export const Accounts: React.FC = () => {
             </DialogTitle>
             <DialogContent>
               {viewingAccount && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
                   {/* Account Name and Parent Account */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+                  <div className={styles.viewGrid}>
                     <div className={styles.viewField}>
                       <Label>Account Name</Label>
                       {isEditing ? (
@@ -608,9 +626,9 @@ export const Accounts: React.FC = () => {
                   {loadingRelated ? (
                     <Spinner size="small" label="Loading related records..." />
                   ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
+                    <div className={styles.viewThreeCol}>
                       {/* Column 1: Contacts, Tasks, Ideas */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                      <div className={styles.viewColumn}>
                         {/* Contacts */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
@@ -683,7 +701,7 @@ export const Accounts: React.FC = () => {
                       </div>
 
                       {/* Column 2: Impacts, Summaries */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                      <div className={styles.viewColumn}>
                         {/* Impacts */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
@@ -728,7 +746,7 @@ export const Accounts: React.FC = () => {
                       </div>
 
                       {/* Column 3: Notes */}
-                      <div style={{ display: "flex", flexDirection: "column" }}>
+                      <div className={styles.viewColumn}>
                         <NotesTimeline
                           entityId={viewingAccount.accountid!}
                           entityName={viewingAccount.name}
@@ -746,7 +764,7 @@ export const Accounts: React.FC = () => {
               {isEditing ? (
                 <>
                   <Button appearance="secondary" onClick={() => setIsEditing(false)}>Cancel</Button>
-                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit} disabled={saving || !name}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
                 </>
               ) : (
                 <Button
@@ -795,7 +813,7 @@ export const Accounts: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddContactOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddContact} disabled={!newContact.firstname || !newContact.lastname}>Save</Button>
+              <Button appearance="primary" onClick={handleAddContact} disabled={saving || !newContact.firstname || !newContact.lastname}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -858,7 +876,7 @@ export const Accounts: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddActionItemOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddActionItem} disabled={!newActionItem.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddActionItem} disabled={saving || !newActionItem.tdvsp_name}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -895,7 +913,7 @@ export const Accounts: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddIdeaOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddIdea} disabled={!newIdea.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddIdea} disabled={saving || !newIdea.tdvsp_name}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -924,7 +942,7 @@ export const Accounts: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddImpactOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddImpact} disabled={!newImpact.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddImpact} disabled={saving || !newImpact.tdvsp_name}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -963,7 +981,7 @@ export const Accounts: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddSummaryOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddSummary} disabled={!newSummary.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddSummary} disabled={saving || !newSummary.tdvsp_name}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>

@@ -183,6 +183,7 @@ export const Tasks: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingItem, setViewingItem] = useState<ActionItem | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -234,6 +235,8 @@ export const Tasks: React.FC = () => {
   };
 
   const openView = (item: ActionItem) => {
+    setIsEditing(false);
+    setEditingId(null);
     setViewingItem(item);
     setViewDialogOpen(true);
   };
@@ -278,6 +281,7 @@ export const Tasks: React.FC = () => {
   };
 
   const handleSaveNew = async () => {
+    setSaving(true);
     try {
       await createActionItem(buildTaskPayload());
       setDialogOpen(false);
@@ -287,11 +291,14 @@ export const Tasks: React.FC = () => {
     } catch (err) {
       console.error("Failed to save action item:", err);
       notify("Failed to save action item", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    setSaving(true);
     try {
       await updateActionItem(editingId, buildTaskPayload());
       setIsEditing(false);
@@ -304,10 +311,13 @@ export const Tasks: React.FC = () => {
     } catch (err) {
       console.error("Failed to save action item:", err);
       notify("Failed to save action item", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setSaving(true);
     try {
       await deleteActionItem(id);
       loadItems();
@@ -315,6 +325,8 @@ export const Tasks: React.FC = () => {
     } catch (err) {
       console.error("Failed to delete action item:", err);
       notify("Failed to delete action item", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -433,6 +445,7 @@ export const Tasks: React.FC = () => {
             icon={<Delete24Regular />}
             size="small"
             title="Delete"
+            disabled={saving}
             onClick={() =>
               item.tdvsp_actionitemid &&
               handleDelete(item.tdvsp_actionitemid)
@@ -598,8 +611,8 @@ export const Tasks: React.FC = () => {
                 <Button appearance="secondary" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button appearance="primary" onClick={handleSaveNew}>
-                  Save
+                <Button appearance="primary" onClick={handleSaveNew} disabled={saving || !formData.tdvsp_name.trim()}>
+                  {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
                 </Button>
               </DialogActions>
             </DialogBody>
@@ -812,8 +825,10 @@ export const Tasks: React.FC = () => {
             <DialogActions>
               {isEditing ? (
                 <>
-                  <Button appearance="secondary" onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
-                  <Button appearance="primary" onClick={handleSaveEdit}>Save</Button>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEdit} disabled={saving || !formData.tdvsp_name.trim()}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
                 </>
               ) : (
                 <Button

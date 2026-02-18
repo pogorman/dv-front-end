@@ -22,6 +22,7 @@ import {
   Dropdown,
   Option,
   Textarea,
+  Spinner,
 } from "@fluentui/react-components";
 import {
   Building24Filled,
@@ -39,6 +40,9 @@ import {
   LightbulbFilament24Filled,
   Notebook24Filled,
   Flash24Filled,
+  Bookmark16Regular,
+  Bookmark16Filled,
+  Bookmark24Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
@@ -61,6 +65,8 @@ import {
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
+import { getParkedItems, parkItem, unparkItem, isItemParked, ParkedItemRef } from "../utils/parkingLot";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -189,14 +195,47 @@ const useStyles = makeStyles({
       textDecoration: "underline",
     },
   },
-  pinnedPanel: {
+  rightSidebar: {
     width: "280px",
     minWidth: "280px",
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("12px"),
+    alignSelf: "stretch",
+  },
+  parkingLotPanel: {
     ...shorthands.padding("14px"),
     ...shorthands.borderRadius("10px"),
     display: "flex",
     flexDirection: "column",
-    alignSelf: "stretch",
+    flexShrink: 0,
+  },
+  parkingLotHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("8px"),
+    marginBottom: "8px",
+  },
+  parkingLotItem: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    ...shorthands.padding("6px", "8px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("6px"),
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
+  },
+  pinnedPanel: {
+    ...shorthands.padding("14px"),
+    ...shorthands.borderRadius("10px"),
+    display: "flex",
+    flexDirection: "column",
+    flexGrow: 1,
+    minHeight: 0,
   },
   pinnedHeader: {
     display: "flex",
@@ -296,9 +335,22 @@ const useStyles = makeStyles({
   },
 });
 
+const parkedEntityLabels: Record<string, string> = {
+  actionitem: "Action Item",
+  idea: "Idea",
+  account: "Account",
+  contact: "Contact",
+  project: "Project",
+  impact: "Impact",
+  summary: "Summary",
+};
+
 export const Dashboard: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
+  const { notify } = useNotification();
+  const [saving, setSaving] = useState(false);
+  const [parkedItems, setParkedItems] = useState<ParkedItemRef[]>(() => getParkedItems());
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Customer[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -360,9 +412,20 @@ export const Dashboard: React.FC = () => {
     loadPinnedAnnotations();
   }, [loadPinnedAnnotations]);
 
+  // Parking lot handler
+  const handleTogglePark = (ref: ParkedItemRef) => {
+    if (isItemParked(ref.id)) {
+      unparkItem(ref.id);
+    } else {
+      parkItem(ref);
+    }
+    setParkedItems(getParkedItems());
+  };
+
   // Quick add handlers
   const handleAddAccount = async () => {
     if (!newAccount.name) return;
+    setSaving(true);
     try {
       const payload: { name: string; "parentaccountid@odata.bind"?: string } = { name: newAccount.name };
       if (newAccount.parentAccountId) {
@@ -372,13 +435,18 @@ export const Dashboard: React.FC = () => {
       setAddAccountOpen(false);
       setNewAccount({ name: "", parentAccountId: "" });
       getAccounts().then(setAccounts).catch(console.error);
+      notify("Account created");
     } catch (err) {
       console.error("Failed to add account:", err);
+      notify("Failed to add account", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddContact = async () => {
     if (!newContact.firstname || !newContact.lastname) return;
+    setSaving(true);
     try {
       const payload: {
         firstname: string;
@@ -401,13 +469,18 @@ export const Dashboard: React.FC = () => {
       setAddContactOpen(false);
       setNewContact({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "", accountId: "" });
       getCustomers().then(setContacts).catch(console.error);
+      notify("Contact created");
     } catch (err) {
       console.error("Failed to add contact:", err);
+      notify("Failed to add contact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddProject = async () => {
     if (!newProject.tdvsp_name) return;
+    setSaving(true);
     try {
       const payload: {
         tdvsp_name: string;
@@ -424,13 +497,18 @@ export const Dashboard: React.FC = () => {
       setAddProjectOpen(false);
       setNewProject({ tdvsp_name: "", tdvsp_description: "", accountId: "" });
       getProjects().then(setProjects).catch(console.error);
+      notify("Project created");
     } catch (err) {
       console.error("Failed to add project:", err);
+      notify("Failed to add project", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddTask = async () => {
     if (!newTask.tdvsp_name) return;
+    setSaving(true);
     try {
       const payload: {
         tdvsp_name: string;
@@ -455,13 +533,18 @@ export const Dashboard: React.FC = () => {
       setAddTaskOpen(false);
       setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
       getActionItems().then(setActionItems).catch(console.error);
+      notify("Action item created");
     } catch (err) {
       console.error("Failed to add action item:", err);
+      notify("Failed to add action item", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddIdea = async () => {
     if (!newIdea.tdvsp_name) return;
+    setSaving(true);
     try {
       const payload: {
         tdvsp_name: string;
@@ -481,13 +564,19 @@ export const Dashboard: React.FC = () => {
       await createIdea(payload);
       setAddIdeaOpen(false);
       setNewIdea({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "", accountId: "" });
+      getIdeas().then(setIdeas).catch(console.error);
+      notify("Idea created");
     } catch (err) {
       console.error("Failed to add idea:", err);
+      notify("Failed to add idea", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddImpact = async () => {
     if (!newImpact.tdvsp_name) return;
+    setSaving(true);
     try {
       const payload: {
         tdvsp_name: string;
@@ -505,13 +594,19 @@ export const Dashboard: React.FC = () => {
       await createImpact(payload);
       setAddImpactOpen(false);
       setNewImpact({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
+      getImpacts().then(setImpacts).catch(console.error);
+      notify("Impact created");
     } catch (err) {
       console.error("Failed to add impact:", err);
+      notify("Failed to add impact", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAddSummary = async () => {
     if (!newSummary.tdvsp_name) return;
+    setSaving(true);
     try {
       const payload: {
         tdvsp_name: string;
@@ -529,8 +624,13 @@ export const Dashboard: React.FC = () => {
       await createMeetingSummary(payload);
       setAddSummaryOpen(false);
       setNewSummary({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "" });
+      getMeetingSummaries().then(setMeetingSummaries).catch(console.error);
+      notify("Meeting summary created");
     } catch (err) {
       console.error("Failed to add meeting summary:", err);
+      notify("Failed to add meeting summary", undefined, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -573,6 +673,8 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.dashboardBody}>
+        <div className={styles.dashboardMain}>
       {/* Welcome Banner */}
       <div className={styles.welcomeCard}>
         <Text
@@ -630,11 +732,20 @@ export const Dashboard: React.FC = () => {
                               {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                             </Caption1>
                           </div>
-                          {t.tdvsp_date && (
-                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                            </Badge>
-                          )}
+                          <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                              title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                            />
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </React.Fragment>
                     ))}
@@ -655,11 +766,20 @@ export const Dashboard: React.FC = () => {
                               {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                             </Caption1>
                           </div>
-                          {t.tdvsp_date && (
-                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                            </Badge>
-                          )}
+                          <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                              title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                            />
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </React.Fragment>
                     ))}
@@ -694,11 +814,20 @@ export const Dashboard: React.FC = () => {
                               {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
                             </Caption1>
                           </div>
-                          {t.tdvsp_date && (
-                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                            </Badge>
-                          )}
+                          <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                              title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                            />
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </React.Fragment>
                     ))}
@@ -718,11 +847,20 @@ export const Dashboard: React.FC = () => {
                               {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
                             </Caption1>
                           </div>
-                          {t.tdvsp_date && (
-                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                            </Badge>
-                          )}
+                          <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                              title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                            />
+                            {t.tdvsp_date && (
+                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </React.Fragment>
                     ))}
@@ -734,9 +872,6 @@ export const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Main body with optional pinned notes sidebar */}
-      <div className={styles.dashboardBody}>
-        <div className={styles.dashboardMain}>
           {/* Stats Tiles */}
           <div className={styles.statsGrid}>
             <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
@@ -842,24 +977,33 @@ export const Dashboard: React.FC = () => {
                           {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                         </Caption1>
                       </div>
-                      {t.tdvsp_date && (
-                        <Badge
-                          appearance="filled"
-                          color={
-                            t.tdvsp_taskstatus === 468510005
-                              ? "success"
+                      <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                        <Button
+                          appearance="subtle"
+                          size="small"
+                          icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                          onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                          title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                        />
+                        {t.tdvsp_date && (
+                          <Badge
+                            appearance="filled"
+                            color={
+                              t.tdvsp_taskstatus === 468510005
+                                ? "success"
+                                : new Date(t.tdvsp_date) < new Date()
+                                  ? "danger"
+                                  : "informative"
+                            }
+                          >
+                            {t.tdvsp_taskstatus === 468510005
+                              ? "Complete"
                               : new Date(t.tdvsp_date) < new Date()
-                                ? "danger"
-                                : "informative"
-                          }
-                        >
-                          {t.tdvsp_taskstatus === 468510005
-                            ? "Complete"
-                            : new Date(t.tdvsp_date) < new Date()
-                              ? "Overdue"
-                              : "Upcoming"}
-                        </Badge>
-                      )}
+                                ? "Overdue"
+                                : "Upcoming"}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </React.Fragment>
                 ))
@@ -889,25 +1033,35 @@ export const Dashboard: React.FC = () => {
                 ideas.slice(0, 8).map((idea, i) => (
                   <React.Fragment key={idea.tdvsp_ideaid}>
                     {i > 0 && <Divider />}
-                    <div className={styles.listItem} onClick={() => navigate(`/ideas?view=${idea.tdvsp_ideaid}`)} style={{ flexDirection: "column", alignItems: "flex-start" }}>
-                      <Text weight="semibold" className={styles.nameLink}>
-                        {idea.tdvsp_name}
-                        {idea.tdvsp_category != null && (
-                          <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
-                            {" "}&ndash; {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] ?? ""}
-                          </span>
+                    <div className={styles.listItem} onClick={() => navigate(`/ideas?view=${idea.tdvsp_ideaid}`)} style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <Text weight="semibold" className={styles.nameLink}>
+                          {idea.tdvsp_name}
+                          {idea.tdvsp_category != null && (
+                            <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
+                              {" "}&ndash; {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] ?? ""}
+                            </span>
+                          )}
+                          {idea.tdvsp_Account?.name && (
+                            <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
+                              {" "}&ndash; {idea.tdvsp_Account.name}
+                            </span>
+                          )}
+                        </Text>
+                        {idea.tdvsp_description && (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                            {idea.tdvsp_description}
+                          </Caption1>
                         )}
-                        {idea.tdvsp_Account?.name && (
-                          <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
-                            {" "}&ndash; {idea.tdvsp_Account.name}
-                          </span>
-                        )}
-                      </Text>
-                      {idea.tdvsp_description && (
-                        <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                          {idea.tdvsp_description}
-                        </Caption1>
-                      )}
+                      </div>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={isItemParked(idea.tdvsp_ideaid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                        onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
+                        title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
+                        style={{ flexShrink: 0 }}
+                      />
                     </div>
                   </React.Fragment>
                 ))
@@ -917,65 +1071,104 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Pinned Notes Panel */}
-        {pinnedRefs.length > 0 && (
-          <Card className={styles.pinnedPanel}>
-            <div className={styles.pinnedHeader}>
-              <Pin24Regular />
-              <Subtitle1 style={{ flexGrow: 1 }}>Pinned Notes</Subtitle1>
-              <Button
-                appearance="subtle"
-                size="small"
-                icon={<Add16Regular />}
-                onClick={() => navigate("/accounts")}
-                title="Add notes from an account"
-              />
-            </div>
-            <div className={styles.pinnedList}>
-              {pinnedAnnotations.map((note) => {
-                const entityInfo = getEntityInfo(note.annotationid!);
-                return (
-                  <div
-                    key={note.annotationid}
-                    className={styles.pinnedNoteItem}
-                    onClick={() => {
-                      setSelectedNote({
-                        annotation: note,
-                        entityName: entityInfo.entityName,
-                        entityType: entityInfo.entityType,
-                      });
-                      setNoteDialogOpen(true);
-                    }}
-                  >
-                    <div className={styles.pinnedNoteAccount}>
-                      <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
-                        {entityTypeLabels[entityInfo.entityType]}:
-                      </span>{" "}
-                      {entityInfo.entityName}
+        {/* Right Sidebar */}
+        {(parkedItems.length > 0 || pinnedRefs.length > 0) && (
+          <div className={styles.rightSidebar}>
+            {parkedItems.length > 0 && (
+              <Card className={styles.parkingLotPanel}>
+                <div className={styles.parkingLotHeader}>
+                  <Bookmark24Regular />
+                  <Subtitle1 style={{ flexGrow: 1 }}>Parking Lot</Subtitle1>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {parkedItems.map((item) => (
+                    <div
+                      key={`${item.entityType}-${item.id}`}
+                      className={styles.parkingLotItem}
+                      onClick={() => navigate(item.route)}
+                    >
+                      <div style={{ minWidth: 0, overflow: "hidden" }}>
+                        <Text weight="semibold" block truncate>{item.name}</Text>
+                        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                          {parkedEntityLabels[item.entityType]}
+                        </Caption1>
+                      </div>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<Dismiss24Regular />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          unparkItem(item.id);
+                          setParkedItems(getParkedItems());
+                        }}
+                        title="Remove"
+                      />
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      {note.createdon && (
-                        <div className={styles.pinnedNoteDate}>
-                          {formatDate(note.createdon)}
+                  ))}
+                </div>
+              </Card>
+            )}
+            {pinnedRefs.length > 0 && (
+              <Card className={styles.pinnedPanel}>
+                <div className={styles.pinnedHeader}>
+                  <Pin24Regular />
+                  <Subtitle1 style={{ flexGrow: 1 }}>Pinned Notes</Subtitle1>
+                  <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={<Add16Regular />}
+                    onClick={() => navigate("/accounts")}
+                    title="Add notes from an account"
+                  />
+                </div>
+                <div className={styles.pinnedList}>
+                  {pinnedAnnotations.map((note) => {
+                    const entityInfo = getEntityInfo(note.annotationid!);
+                    return (
+                      <div
+                        key={note.annotationid}
+                        className={styles.pinnedNoteItem}
+                        onClick={() => {
+                          setSelectedNote({
+                            annotation: note,
+                            entityName: entityInfo.entityName,
+                            entityType: entityInfo.entityType,
+                          });
+                          setNoteDialogOpen(true);
+                        }}
+                      >
+                        <div className={styles.pinnedNoteAccount}>
+                          <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
+                            {entityTypeLabels[entityInfo.entityType]}:
+                          </span>{" "}
+                          {entityInfo.entityName}
                         </div>
-                      )}
-                      {note.isdocument && (
-                        <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
-                      )}
-                    </div>
-                    {note.subject && (
-                      <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
-                        {note.subject}
-                      </Text>
-                    )}
-                    <div className={styles.pinnedNotePreview}>
-                      <Text size={200}>{note.notetext}</Text>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {note.createdon && (
+                            <div className={styles.pinnedNoteDate}>
+                              {formatDate(note.createdon)}
+                            </div>
+                          )}
+                          {note.isdocument && (
+                            <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
+                          )}
+                        </div>
+                        {note.subject && (
+                          <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
+                            {note.subject}
+                          </Text>
+                        )}
+                        <div className={styles.pinnedNotePreview}>
+                          <Text size={200}>{note.notetext}</Text>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+          </div>
         )}
       </div>
 
@@ -1070,7 +1263,7 @@ export const Dashboard: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddAccountOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddAccount} disabled={!newAccount.name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddAccount} disabled={saving || !newAccount.name.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -1124,7 +1317,7 @@ export const Dashboard: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddContactOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddContact} disabled={!newContact.firstname || !newContact.lastname}>Save</Button>
+              <Button appearance="primary" onClick={handleAddContact} disabled={saving || !newContact.firstname.trim() || !newContact.lastname.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -1162,7 +1355,7 @@ export const Dashboard: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddProjectOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddProject} disabled={!newProject.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddProject} disabled={saving || !newProject.tdvsp_name.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -1244,7 +1437,7 @@ export const Dashboard: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddTaskOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddTask} disabled={!newTask.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddTask} disabled={saving || !newTask.tdvsp_name.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -1296,7 +1489,7 @@ export const Dashboard: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddIdeaOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddIdea} disabled={!newIdea.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddIdea} disabled={saving || !newIdea.tdvsp_name.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -1340,7 +1533,7 @@ export const Dashboard: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddImpactOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddImpact} disabled={!newImpact.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddImpact} disabled={saving || !newImpact.tdvsp_name.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
@@ -1394,7 +1587,7 @@ export const Dashboard: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setAddSummaryOpen(false)}>Cancel</Button>
-              <Button appearance="primary" onClick={handleAddSummary} disabled={!newSummary.tdvsp_name}>Save</Button>
+              <Button appearance="primary" onClick={handleAddSummary} disabled={saving || !newSummary.tdvsp_name.trim()}>{saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>
