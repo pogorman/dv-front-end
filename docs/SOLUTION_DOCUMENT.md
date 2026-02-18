@@ -535,14 +535,15 @@ The landing page providing an at-a-glance overview.
 
 **Sections:**
 1. **Welcome Banner** — Background image (`/images/banner-bg.png`) with greeting text
-2. **Quick Action Buttons** — Pill-shaped buttons ordered to match sidebar nav (Action Item, Project, Meeting Summary, Idea, HVA, Impact, Account, Contact) plus an About link — create any record type without leaving the dashboard
+2. **Quick Create Bar** — Thin horizontal bar with "Quick Create" label and compact pill buttons (Action Item, Project, Summary, Idea, HVA, Impact, Account, Contact) — create any record type without leaving the dashboard
 3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, and overdue/upcoming badge. Only visible when matching items exist.
 4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, and overdue/upcoming badge. Only visible when incomplete personal items exist.
-5. **Stats Grid** — Four clickable stat cards:
+5. **Stats Grid** — Compact square-ish quick-launch tiles:
    - Accounts (blue) — total count
    - Contacts (purple) — total count
    - Projects (indigo) — total count
-   - Open Tasks (green) — total action items
+   - Action Items (green) — total count
+   - Ideas (amber) — total count
 6. **Section Cards** (2-column grid):
    - **Action Items** — Latest 4 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete)
    - **Ideas** — Latest 5 items showing name, category, account on line 1; description preview on line 2
@@ -850,10 +851,10 @@ The **sidebar** (left) organizes pages into sections:
 
 ### Dashboard
 
-- **Quick Action Buttons** — Create any record type directly from the dashboard (ordered to match sidebar nav), plus About link
+- **Quick Create Bar** — Thin bar with compact buttons to create any record type without leaving the dashboard
 - **Work** — Card (red accent) showing all non-complete work action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when work items exist)
 - **Personal** — Card (teal accent) showing all non-complete personal action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when personal items exist)
-- **Stat Cards** — Click any card to navigate to that page
+- **Stat Tiles** — Compact quick-launch tiles (Accounts, Contacts, Projects, Action Items, Ideas) — click to navigate to that page
 - **Action Items** — Shows the 4 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete)
 - **Ideas** — Shows the 5 most recent ideas with category and account
 - **Pinned Notes** (right sidebar) — Appears when you have pinned notes; click to expand
@@ -864,7 +865,7 @@ The **sidebar** (left) organizes pages into sections:
 1. Navigate to the relevant page (e.g., Action Items)
 2. Click the **"New"** button in the top-right
 3. Fill in the form fields and click **Save**
-4. Alternatively, use the Quick Action buttons on the Dashboard
+4. Alternatively, use the Quick Create bar on the Dashboard
 
 **Viewing a record:**
 - Click the **name** of any record (shown as a blue link) to open its view dialog
