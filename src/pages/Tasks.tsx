@@ -209,13 +209,22 @@ export const Tasks: React.FC = () => {
     loadAccounts();
   }, [loadItems, loadAccounts]);
 
-  // Auto-open new dialog if ?new=true
+  // Auto-open new dialog if ?new=true, or view dialog if ?view=<id>
   useEffect(() => {
     if (searchParams.get("new") === "true") {
       setDialogOpen(true);
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+    const viewId = searchParams.get("view");
+    if (viewId && items.length > 0) {
+      const item = items.find((t) => t.tdvsp_actionitemid === viewId);
+      if (item) {
+        setViewingItem(item);
+        setViewDialogOpen(true);
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, setSearchParams, items]);
 
   const openNew = () => {
     setEditingId(null);

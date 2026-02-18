@@ -606,7 +606,7 @@ export const Dashboard: React.FC = () => {
                 .map((t, i) => (
                   <React.Fragment key={t.tdvsp_actionitemid}>
                     {i > 0 && <Divider />}
-                    <div className={styles.topPriorityItem} onClick={() => navigate("/tasks")}>
+                    <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
                       <div>
                         <Text weight="semibold" block className={styles.nameLink}>
                           {t.tdvsp_name}
@@ -655,7 +655,7 @@ export const Dashboard: React.FC = () => {
                 .map((t, i) => (
                   <React.Fragment key={t.tdvsp_actionitemid}>
                     {i > 0 && <Divider />}
-                    <div className={styles.personalItem} onClick={() => navigate("/tasks")}>
+                    <div className={styles.personalItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
                       <CheckmarkCircle16Filled
                         style={{
                           color: t.tdvsp_taskstatus === (468510005 as TaskStatus) ? "#107c10" : tokens.colorNeutralForeground3,
@@ -793,7 +793,7 @@ export const Dashboard: React.FC = () => {
                 actionItems.slice(0, 4).map((t, i) => (
                   <React.Fragment key={t.tdvsp_actionitemid}>
                     {i > 0 && <Divider />}
-                    <div className={styles.listItem} onClick={() => navigate("/tasks")}>
+                    <div className={styles.listItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
                       <div>
                         <Text weight="semibold" block className={styles.nameLink}>
                           {t.tdvsp_name}
@@ -851,7 +851,7 @@ export const Dashboard: React.FC = () => {
                 ideas.slice(0, 5).map((idea, i) => (
                   <React.Fragment key={idea.tdvsp_ideaid}>
                     {i > 0 && <Divider />}
-                    <div className={styles.listItem} onClick={() => navigate("/ideas")} style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                    <div className={styles.listItem} onClick={() => navigate(`/ideas?view=${idea.tdvsp_ideaid}`)} style={{ flexDirection: "column", alignItems: "flex-start" }}>
                       <Text weight="semibold" className={styles.nameLink}>
                         {idea.tdvsp_name}
                         {idea.tdvsp_category != null && (

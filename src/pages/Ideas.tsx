@@ -231,13 +231,22 @@ export const Ideas: React.FC = () => {
     loadContacts();
   }, [loadIdeas, loadAccounts, loadContacts]);
 
-  // Auto-open new dialog if ?new=true
+  // Auto-open new dialog if ?new=true, or view dialog if ?view=<id>
   useEffect(() => {
     if (searchParams.get("new") === "true") {
       setDialogOpen(true);
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+    const viewId = searchParams.get("view");
+    if (viewId && ideas.length > 0) {
+      const idea = ideas.find((i) => i.tdvsp_ideaid === viewId);
+      if (idea) {
+        setViewingIdea(idea);
+        setViewDialogOpen(true);
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, setSearchParams, ideas]);
 
   const openNew = () => {
     setEditingId(null);
