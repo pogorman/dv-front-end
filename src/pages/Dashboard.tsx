@@ -77,11 +77,12 @@ const useStyles = makeStyles({
   quickCreateSection: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("10px"),
-    ...shorthands.padding("4px", "10px"),
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
+    ...shorthands.gap("12px"),
+    ...shorthands.padding("12px", "16px"),
+    backgroundImage: `linear-gradient(135deg, ${tokens.colorBrandBackground}, ${tokens.colorBrandBackground2})`,
+    ...shorthands.borderRadius("12px"),
     flexWrap: "wrap",
+    boxShadow: tokens.shadow4,
   },
   quickActions: {
     display: "flex",
@@ -90,19 +91,16 @@ const useStyles = makeStyles({
   },
   quickActionBtn: {
     ...shorthands.borderRadius("14px"),
-    fontSize: "11px",
-    fontWeight: "500",
-    minHeight: "24px",
-    height: "24px",
-    ...shorthands.padding("0px", "10px"),
-  },
-  welcomeCard: {
-    ...shorthands.padding("20px"),
-    backgroundImage: "url('/images/banner-bg.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    color: "white",
-    ...shorthands.borderRadius("12px"),
+    fontSize: "12px",
+    fontWeight: "600",
+    minHeight: "28px",
+    height: "28px",
+    ...shorthands.padding("0px", "12px"),
+    backgroundColor: "rgba(255,255,255,0.9)",
+    color: tokens.colorBrandForeground1,
+    ":hover": {
+      backgroundColor: "white",
+    },
   },
   dashboardBody: {
     display: "flex",
@@ -675,23 +673,9 @@ export const Dashboard: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.dashboardBody}>
         <div className={styles.dashboardMain}>
-      {/* Welcome Banner */}
-      <div className={styles.welcomeCard}>
-        <Text
-          size={700}
-          weight="bold"
-          style={{ color: "white", display: "block", marginBottom: 8 }}
-        >
-          Welcome back
-        </Text>
-        <Text size={400} style={{ color: "rgba(255,255,255,0.85)" }}>
-          Here's an overview of your customers, activities, and tasks.
-        </Text>
-      </div>
-
       {/* Quick Create Bar */}
       <div className={styles.quickCreateSection}>
-        <Caption1 style={{ color: tokens.colorNeutralForeground3, fontWeight: 600, whiteSpace: "nowrap" }}>Quick Create</Caption1>
+        <Text size={400} weight="semibold" style={{ color: "white", whiteSpace: "nowrap" }}>Quick Create</Text>
         <div className={styles.quickActions}>
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddTaskOpen(true)}>Action Item</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddProjectOpen(true)}>Project</Button>
