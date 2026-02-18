@@ -73,13 +73,14 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     ...shorthands.gap("14px"),
+    marginTop: "-10px",
   },
   quickCreateSection: {
     display: "flex",
     alignItems: "center",
     ...shorthands.gap("12px"),
     ...shorthands.padding("12px", "16px"),
-    backgroundImage: `linear-gradient(135deg, ${tokens.colorBrandBackground}, ${tokens.colorBrandBackground2})`,
+    backgroundImage: "linear-gradient(135deg, #4682B4, #5A9BC9)",
     ...shorthands.borderRadius("12px"),
     flexWrap: "wrap",
     boxShadow: tokens.shadow4,
@@ -687,6 +688,73 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
+          {/* Stats Tiles */}
+          <div className={styles.statsGrid}>
+            <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
+              <div className={styles.statHeader}>
+                <Caption1>Accounts</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
+                  <Building24Filled style={{ color: "#0078d4", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#0078d4" }}>{accounts.length}</div>
+            </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
+              <div className={styles.statHeader}>
+                <Caption1>Contacts</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8e0f0" }}>
+                  <ContactCard24Filled style={{ color: "#7c3aed", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#7c3aed" }}>{contacts.length}</div>
+            </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/projects")}>
+              <div className={styles.statHeader}>
+                <Caption1>Projects</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
+                  <Briefcase24Filled style={{ color: "#5b5fc7", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#5b5fc7" }}>{projects.length}</div>
+            </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/summaries")}>
+              <div className={styles.statHeader}>
+                <Caption1>Summaries</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0f0" }}>
+                  <Notebook24Filled style={{ color: "#0e7c7b", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#0e7c7b" }}>{meetingSummaries.length}</div>
+            </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
+              <div className={styles.statHeader}>
+                <Caption1>Actions</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#e6f4ea" }}>
+                  <TaskListSquareLtr24Filled style={{ color: "#107c10", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#107c10" }}>{actionItems.length}</div>
+            </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
+              <div className={styles.statHeader}>
+                <Caption1>Ideas</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#fff8e1" }}>
+                  <LightbulbFilament24Filled style={{ color: "#c59a00", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#c59a00" }}>{ideas.length}</div>
+            </Card>
+            <Card className={styles.statCard} onClick={() => navigate("/impacts")}>
+              <div className={styles.statHeader}>
+                <Caption1>Impacts</Caption1>
+                <div className={styles.statIconWrap} style={{ backgroundColor: "#fce4ec" }}>
+                  <Flash24Filled style={{ color: "#d13438", fontSize: 14 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#d13438" }}>{impacts.length}</div>
+            </Card>
+          </div>
+
       {/* Work & Personal Cards — side by side */}
       {(workItems.length > 0 || personalFilteredItems.length > 0) && (
         <div className={styles.highlightRow}>
@@ -855,73 +923,6 @@ export const Dashboard: React.FC = () => {
           )}
         </div>
       )}
-
-          {/* Stats Tiles */}
-          <div className={styles.statsGrid}>
-            <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
-              <div className={styles.statHeader}>
-                <Caption1>Accounts</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
-                  <Building24Filled style={{ color: "#0078d4", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#0078d4" }}>{accounts.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
-              <div className={styles.statHeader}>
-                <Caption1>Contacts</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8e0f0" }}>
-                  <ContactCard24Filled style={{ color: "#7c3aed", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#7c3aed" }}>{contacts.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/projects")}>
-              <div className={styles.statHeader}>
-                <Caption1>Projects</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
-                  <Briefcase24Filled style={{ color: "#5b5fc7", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#5b5fc7" }}>{projects.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/summaries")}>
-              <div className={styles.statHeader}>
-                <Caption1>Summaries</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0f0" }}>
-                  <Notebook24Filled style={{ color: "#0e7c7b", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#0e7c7b" }}>{meetingSummaries.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
-              <div className={styles.statHeader}>
-                <Caption1>Actions</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e6f4ea" }}>
-                  <TaskListSquareLtr24Filled style={{ color: "#107c10", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#107c10" }}>{actionItems.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
-              <div className={styles.statHeader}>
-                <Caption1>Ideas</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#fff8e1" }}>
-                  <LightbulbFilament24Filled style={{ color: "#c59a00", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#c59a00" }}>{ideas.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/impacts")}>
-              <div className={styles.statHeader}>
-                <Caption1>Impacts</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#fce4ec" }}>
-                  <Flash24Filled style={{ color: "#d13438", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#d13438" }}>{impacts.length}</div>
-            </Card>
-          </div>
 
           {/* Detail Sections */}
           <div className={styles.sectionGrid}>
