@@ -33,9 +33,7 @@ import {
   Dismiss24Regular,
   Add16Regular,
   Attach16Regular,
-  Warning24Filled,
   Home24Filled,
-  CheckmarkCircle16Filled,
   Warning16Filled,
   Info16Regular,
 } from "@fluentui/react-icons";
@@ -219,7 +217,7 @@ const useStyles = makeStyles({
     fontWeight: "600",
   },
   topPriorityCard: {
-    ...shorthands.padding("14px"),
+    ...shorthands.padding("10px"),
     ...shorthands.borderRadius("10px"),
     borderLeft: "4px solid #d13438",
     flex: "1 1 0",
@@ -228,22 +226,22 @@ const useStyles = makeStyles({
   topPriorityHeader: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("8px"),
-    marginBottom: "6px",
+    ...shorthands.gap("6px"),
+    marginBottom: "4px",
   },
   topPriorityItem: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    ...shorthands.padding("3px", "0px"),
+    ...shorthands.padding("2px", "0px"),
     cursor: "pointer",
-    ...shorthands.borderRadius("6px"),
+    ...shorthands.borderRadius("4px"),
     ":hover": {
       backgroundColor: tokens.colorNeutralBackground1Hover,
     },
   },
   personalCard: {
-    ...shorthands.padding("14px"),
+    ...shorthands.padding("10px"),
     ...shorthands.borderRadius("10px"),
     borderLeft: "4px solid #0e7c7b",
     flex: "1 1 0",
@@ -252,23 +250,18 @@ const useStyles = makeStyles({
   personalHeader: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("8px"),
-    marginBottom: "6px",
+    ...shorthands.gap("6px"),
+    marginBottom: "4px",
   },
-  personalItem: {
+  cardScrollArea: {
+    maxHeight: "180px",
+    overflowY: "auto" as const,
+  },
+  subSectionLabel: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("8px"),
-    ...shorthands.padding("3px", "0px"),
-    cursor: "pointer",
-    ...shorthands.borderRadius("6px"),
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
-    },
-  },
-  personalItemContent: {
-    flexGrow: 1,
-    minWidth: 0,
+    ...shorthands.gap("4px"),
+    ...shorthands.padding("2px", "0px"),
   },
   highlightRow: {
     display: "flex",
@@ -563,6 +556,19 @@ export const Dashboard: React.FC = () => {
     idea: "Idea",
   };
 
+  // Work & Personal card computed lists
+  const workItems = actionItems.filter(
+    (t) => t.tdvsp_tasktype !== (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)
+  );
+  const topPriorityWork = workItems.filter((t) => t.tdvsp_priority === 468510002);
+  const otherWork = workItems.filter((t) => t.tdvsp_priority !== 468510002);
+
+  const personalFilteredItems = actionItems.filter(
+    (t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)
+  );
+  const topPriorityPersonal = personalFilteredItems.filter((t) => t.tdvsp_priority === 468510002);
+  const otherPersonal = personalFilteredItems.filter((t) => t.tdvsp_priority !== 468510002);
+
   return (
     <div className={styles.container}>
       {/* Welcome Banner */}
@@ -580,6 +586,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Action Buttons — matches sidebar nav order */}
+      <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>Quick create...</Caption1>
       <div className={styles.quickActions}>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
@@ -592,111 +599,132 @@ export const Dashboard: React.FC = () => {
         <Button className={styles.quickActionBtn} appearance="outline" icon={<Info16Regular />} onClick={() => navigate("/about")}>About</Button>
       </div>
 
-      {/* Top Priority & Personal Cards — side by side */}
-      {(actionItems.filter((t) => t.tdvsp_priority === 468510002 && t.tdvsp_taskstatus !== (468510005 as TaskStatus) && t.tdvsp_tasktype !== (468510000 as TaskType)).length > 0 ||
-        actionItems.filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)).length > 0) && (
+      {/* Work & Personal Cards — side by side */}
+      {(workItems.length > 0 || personalFilteredItems.length > 0) && (
         <div className={styles.highlightRow}>
-          {actionItems.filter((t) => t.tdvsp_priority === 468510002 && t.tdvsp_taskstatus !== (468510005 as TaskStatus) && t.tdvsp_tasktype !== (468510000 as TaskType)).length > 0 && (
+          {workItems.length > 0 && (
             <Card className={styles.topPriorityCard}>
               <div className={styles.topPriorityHeader}>
-                <Warning24Filled style={{ color: "#d13438" }} />
-                <Subtitle1>Top Priority</Subtitle1>
+                <Briefcase24Filled style={{ color: "#d13438" }} />
+                <Subtitle1>Work</Subtitle1>
               </div>
-              {actionItems
-                .filter((t) => t.tdvsp_priority === 468510002 && t.tdvsp_taskstatus !== (468510005 as TaskStatus) && t.tdvsp_tasktype !== (468510000 as TaskType))
-                .map((t, i) => (
-                  <React.Fragment key={t.tdvsp_actionitemid}>
-                    {i > 0 && <Divider />}
-                    <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                      <div>
-                        <Text weight="semibold" block className={styles.nameLink}>
-                          {t.tdvsp_name}
-                        </Text>
-                        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                          {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
-                          {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                          {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                        </Caption1>
-                      </div>
-                      {t.tdvsp_date && (
-                        <Badge
-                          appearance="filled"
-                          color={
-                            t.tdvsp_taskstatus === 468510005
-                              ? "success"
-                              : new Date(t.tdvsp_date) < new Date()
-                                ? "danger"
-                                : "informative"
-                          }
-                        >
-                          {t.tdvsp_taskstatus === 468510005
-                            ? "Complete"
-                            : new Date(t.tdvsp_date) < new Date()
-                              ? "Overdue"
-                              : "Upcoming"}
-                        </Badge>
-                      )}
+              <div className={styles.cardScrollArea}>
+                {topPriorityWork.length > 0 && (
+                  <>
+                    <div className={styles.subSectionLabel}>
+                      <Warning16Filled style={{ color: "#d13438" }} />
+                      <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
                     </div>
-                  </React.Fragment>
-                ))}
+                    {topPriorityWork.map((t, i) => (
+                      <React.Fragment key={t.tdvsp_actionitemid}>
+                        {i > 0 && <Divider />}
+                        <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
+                          <div style={{ minWidth: 0 }}>
+                            <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                              {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                              {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                              {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                            </Caption1>
+                          </div>
+                          {t.tdvsp_date && (
+                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                            </Badge>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </>
+                )}
+                {otherWork.length > 0 && (
+                  <>
+                    {topPriorityWork.length > 0 && <Divider style={{ margin: "4px 0" }} />}
+                    {otherWork.map((t, i) => (
+                      <React.Fragment key={t.tdvsp_actionitemid}>
+                        {i > 0 && <Divider />}
+                        <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
+                          <div style={{ minWidth: 0 }}>
+                            <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                              {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                              {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                              {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                            </Caption1>
+                          </div>
+                          {t.tdvsp_date && (
+                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                            </Badge>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </>
+                )}
+              </div>
             </Card>
           )}
 
-          {actionItems.filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)).length > 0 && (
+          {personalFilteredItems.length > 0 && (
             <Card className={styles.personalCard}>
               <div className={styles.personalHeader}>
                 <Home24Filled style={{ color: "#0e7c7b" }} />
                 <Subtitle1>Personal</Subtitle1>
-                <Caption1 style={{ color: tokens.colorNeutralForeground3, marginLeft: "4px" }}>
-                  Honey-do's & life stuff
-                </Caption1>
               </div>
-              {actionItems
-                .filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
-                .sort((a, b) => {
-                  const aTop = a.tdvsp_priority === 468510002 ? 0 : 1;
-                  const bTop = b.tdvsp_priority === 468510002 ? 0 : 1;
-                  return aTop - bTop;
-                })
-                .map((t, i) => (
-                  <React.Fragment key={t.tdvsp_actionitemid}>
-                    {i > 0 && <Divider />}
-                    <div className={styles.personalItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                      {t.tdvsp_priority === 468510002 ? (
-                        <Warning16Filled style={{ color: "#d13438", flexShrink: 0 }} />
-                      ) : (
-                        <CheckmarkCircle16Filled
-                          style={{
-                            color: tokens.colorNeutralForeground3,
-                            flexShrink: 0,
-                          }}
-                        />
-                      )}
-                      <div className={styles.personalItemContent}>
-                        <Text weight="semibold" block className={styles.nameLink}>
-                          {t.tdvsp_name}
-                        </Text>
-                        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                          {t.tdvsp_date && `Due: ${formatDate(t.tdvsp_date)}`}
-                          {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                        </Caption1>
-                      </div>
-                      {t.tdvsp_date && (
-                        <Badge
-                          appearance="filled"
-                          color={
-                            new Date(t.tdvsp_date) < new Date()
-                              ? "danger"
-                              : "informative"
-                          }
-                          style={{ flexShrink: 0 }}
-                        >
-                          {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                        </Badge>
-                      )}
+              <div className={styles.cardScrollArea}>
+                {topPriorityPersonal.length > 0 && (
+                  <>
+                    <div className={styles.subSectionLabel}>
+                      <Warning16Filled style={{ color: "#d13438" }} />
+                      <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
                     </div>
-                  </React.Fragment>
-                ))}
+                    {topPriorityPersonal.map((t, i) => (
+                      <React.Fragment key={t.tdvsp_actionitemid}>
+                        {i > 0 && <Divider />}
+                        <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
+                          <div style={{ minWidth: 0 }}>
+                            <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                              {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                              {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                            </Caption1>
+                          </div>
+                          {t.tdvsp_date && (
+                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                            </Badge>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </>
+                )}
+                {otherPersonal.length > 0 && (
+                  <>
+                    {topPriorityPersonal.length > 0 && <Divider style={{ margin: "4px 0" }} />}
+                    {otherPersonal.map((t, i) => (
+                      <React.Fragment key={t.tdvsp_actionitemid}>
+                        {i > 0 && <Divider />}
+                        <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
+                          <div style={{ minWidth: 0 }}>
+                            <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
+                            <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                              {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                              {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
+                            </Caption1>
+                          </div>
+                          {t.tdvsp_date && (
+                            <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
+                              {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
+                            </Badge>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </>
+                )}
+              </div>
             </Card>
           )}
         </div>
