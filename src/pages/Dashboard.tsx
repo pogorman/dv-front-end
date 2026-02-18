@@ -35,7 +35,7 @@ import {
   Attach16Regular,
   Home24Filled,
   Warning16Filled,
-  Info16Regular,
+  LightbulbFilament24Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
@@ -64,15 +64,27 @@ const useStyles = makeStyles({
     flexDirection: "column",
     ...shorthands.gap("14px"),
   },
+  quickCreateSection: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("10px"),
+    ...shorthands.padding("4px", "10px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("8px"),
+    flexWrap: "wrap",
+  },
   quickActions: {
     display: "flex",
     flexWrap: "wrap",
-    ...shorthands.gap("8px"),
+    ...shorthands.gap("4px"),
   },
   quickActionBtn: {
-    ...shorthands.borderRadius("20px"),
-    fontSize: "13px",
+    ...shorthands.borderRadius("14px"),
+    fontSize: "11px",
     fontWeight: "500",
+    minHeight: "24px",
+    height: "24px",
+    ...shorthands.padding("0px", "10px"),
   },
   welcomeCard: {
     ...shorthands.padding("20px"),
@@ -96,12 +108,12 @@ const useStyles = makeStyles({
   },
   statsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    ...shorthands.gap("12px"),
+    gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+    ...shorthands.gap("8px"),
   },
   statCard: {
-    ...shorthands.padding("8px", "12px"),
-    ...shorthands.borderRadius("10px"),
+    ...shorthands.padding("6px", "8px"),
+    ...shorthands.borderRadius("8px"),
     cursor: "pointer",
     transition: "box-shadow 0.2s ease, transform 0.2s ease",
     ":hover": {
@@ -113,19 +125,19 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "2px",
+    marginBottom: "1px",
   },
   statIconWrap: {
-    width: "24px",
-    height: "24px",
-    ...shorthands.borderRadius("5px"),
+    width: "20px",
+    height: "20px",
+    ...shorthands.borderRadius("4px"),
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   statNumber: {
-    fontSize: "18px",
+    fontSize: "14px",
     fontWeight: "700",
     lineHeight: "1",
     marginBottom: "1px",
@@ -585,18 +597,19 @@ export const Dashboard: React.FC = () => {
         </Text>
       </div>
 
-      {/* Quick Action Buttons — matches sidebar nav order */}
-      <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>Quick create...</Caption1>
-      <div className={styles.quickActions}>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Meeting Summary</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddIdeaOpen(true)}>Idea</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddHvaOpen(true)}>HVA</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
-        <Button className={styles.quickActionBtn} appearance="outline" icon={<Info16Regular />} onClick={() => navigate("/about")}>About</Button>
+      {/* Quick Create Bar */}
+      <div className={styles.quickCreateSection}>
+        <Caption1 style={{ color: tokens.colorNeutralForeground3, fontWeight: 600, whiteSpace: "nowrap" }}>Quick Create</Caption1>
+        <div className={styles.quickActions}>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddTaskOpen(true)}>Action Item</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddProjectOpen(true)}>Project</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddSummaryOpen(true)}>Summary</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddIdeaOpen(true)}>Idea</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddHvaOpen(true)}>HVA</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddImpactOpen(true)}>Impact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddAccountOpen(true)}>Account</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddContactOpen(true)}>Contact</Button>
+        </div>
       </div>
 
       {/* Work & Personal Cards — side by side */}
@@ -742,15 +755,12 @@ export const Dashboard: React.FC = () => {
                   className={styles.statIconWrap}
                   style={{ backgroundColor: "#e8f0fe" }}
                 >
-                  <Building24Filled style={{ color: "#0078d4" }} />
+                  <Building24Filled style={{ color: "#0078d4", fontSize: 16 }} />
                 </div>
               </div>
               <div className={styles.statNumber} style={{ color: "#0078d4" }}>
                 {accounts.length}
               </div>
-              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                Total accounts
-              </Caption1>
             </Card>
 
             <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
@@ -760,15 +770,12 @@ export const Dashboard: React.FC = () => {
                   className={styles.statIconWrap}
                   style={{ backgroundColor: "#e8e0f0" }}
                 >
-                  <ContactCard24Filled style={{ color: "#7c3aed" }} />
+                  <ContactCard24Filled style={{ color: "#7c3aed", fontSize: 16 }} />
                 </div>
               </div>
               <div className={styles.statNumber} style={{ color: "#7c3aed" }}>
                 {contacts.length}
               </div>
-              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                Total contacts
-              </Caption1>
             </Card>
 
             <Card className={styles.statCard} onClick={() => navigate("/projects")}>
@@ -778,36 +785,44 @@ export const Dashboard: React.FC = () => {
                   className={styles.statIconWrap}
                   style={{ backgroundColor: "#e8f0fe" }}
                 >
-                  <Briefcase24Filled style={{ color: "#5b5fc7" }} />
+                  <Briefcase24Filled style={{ color: "#5b5fc7", fontSize: 16 }} />
                 </div>
               </div>
               <div className={styles.statNumber} style={{ color: "#5b5fc7" }}>
                 {projects.length}
               </div>
-              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                Total projects
-              </Caption1>
             </Card>
 
             <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
               <div className={styles.statHeader}>
-                <Caption1>Open Tasks</Caption1>
+                <Caption1>Action Items</Caption1>
                 <div
                   className={styles.statIconWrap}
                   style={{ backgroundColor: "#e6f4ea" }}
                 >
-                  <TaskListSquareLtr24Filled style={{ color: "#107c10" }} />
+                  <TaskListSquareLtr24Filled style={{ color: "#107c10", fontSize: 16 }} />
                 </div>
               </div>
               <div className={styles.statNumber} style={{ color: "#107c10" }}>
                 {actionItems.length}
               </div>
-              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                Action items pending
-              </Caption1>
             </Card>
 
-                      </div>
+            <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
+              <div className={styles.statHeader}>
+                <Caption1>Ideas</Caption1>
+                <div
+                  className={styles.statIconWrap}
+                  style={{ backgroundColor: "#fff8e1" }}
+                >
+                  <LightbulbFilament24Filled style={{ color: "#c59a00", fontSize: 16 }} />
+                </div>
+              </div>
+              <div className={styles.statNumber} style={{ color: "#c59a00" }}>
+                {ideas.length}
+              </div>
+            </Card>
+          </div>
 
           {/* Detail Sections */}
           <div className={styles.sectionGrid}>
