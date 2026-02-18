@@ -94,12 +94,11 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). Right sidebar spans full height from welcome banner to bottom. Layout from top to bottom in main column:
-  1. **Welcome Banner** - Background image (`/images/banner-bg.png`) with white text
-  2. **Quick Create Bar** - Compact pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Save buttons disable with spinner during save.
-  3. **Work & Personal Cards** (side by side, full width of main column) — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (teal accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), maximize icons, and bookmark icons per item for Parking Lot.
-  4. **Stat Tiles** - 7 compact tiles in a row: Accounts, Contacts, Projects, Summaries, Actions, Ideas, Impacts (click navigates to each view)
-  5. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, maximize icons, 180px max-height with scroll, bookmark icons per item for Parking Lot.
+- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). Right sidebar spans full height. Layout from top to bottom in main column:
+  1. **Quick Create Bar** - Steel blue gradient banner with white "Quick Create" label and pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Save buttons disable with spinner during save.
+  2. **Stat Tiles** - 7 compact tiles in a row: Accounts, Contacts, Projects, Summaries, Actions, Ideas, Impacts (click navigates to each view)
+  3. **Work & Personal Cards** (side by side, full width of main column) — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (teal accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), maximize icons, bookmark icons and delete icons per item.
+  4. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, maximize icons, 180px max-height with scroll, bookmark and delete icons per item.
   Right sidebar (top to bottom):
   6. **Parking Lot Panel** - Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X removes. `parkingLot.ts` stores refs in localStorage.
   7. **Pinned Notes Panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)

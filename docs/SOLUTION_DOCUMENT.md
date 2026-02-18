@@ -541,14 +541,11 @@ All pages follow consistent patterns:
 
 The landing page providing an at-a-glance overview.
 
-**Layout:** Two-column layout — `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). The right sidebar spans full height from the welcome banner to the bottom.
+**Layout:** Two-column layout — `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). The right sidebar spans full height.
 
 **Main Column (top to bottom):**
-1. **Welcome Banner** — Background image (`/images/banner-bg.png`) with greeting text
-2. **Quick Create Bar** — Thin horizontal bar with "Quick Create" label and compact pill buttons (Action Item, Project, Summary, Idea, Impact, Account, Contact) — create any record type without leaving the dashboard. Save buttons disable with spinner during save.
-3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, overdue/upcoming badge, and a bookmark icon for the Parking Lot. Only visible when matching items exist.
-4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, overdue/upcoming badge, and a bookmark icon for the Parking Lot. Only visible when incomplete personal items exist.
-5. **Stats Grid** — 7 compact quick-launch tiles in a fixed row:
+1. **Quick Create Bar** — Steel blue gradient banner (`#4682B4` → `#5A9BC9`) with white "Quick Create" label and pill buttons (Action Item, Project, Summary, Idea, Impact, Account, Contact) — create any record type without leaving the dashboard. Save buttons disable with spinner during save.
+2. **Stats Grid** — 7 compact quick-launch tiles in a fixed row:
    - Accounts (blue) — total count
    - Contacts (purple) — total count
    - Projects (indigo) — total count
@@ -556,9 +553,11 @@ The landing page providing an at-a-glance overview.
    - Action Items (green) — total count
    - Ideas (amber) — total count
    - Impacts (red) — total count
-6. **Section Cards** (2-column grid, 180px max-height with scroll):
-   - **Action Items** — Latest 8 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete); bookmark icon per item
-   - **Ideas** — Latest 8 items showing name, category, account on line 1; description preview on line 2; bookmark icon per item
+3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, overdue/upcoming badge, bookmark icon, and delete icon with confirmation. Only visible when matching items exist.
+4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, overdue/upcoming badge, bookmark icon, and delete icon with confirmation. Only visible when incomplete personal items exist.
+5. **Section Cards** (2-column grid, 180px max-height with scroll):
+   - **Action Items** — Latest 8 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete); bookmark and delete icons per item
+   - **Ideas** — Latest 8 items showing name, category, account on line 1; description preview on line 2; bookmark and delete icons per item
 
 **Right Sidebar (top to bottom):**
 7. **Parking Lot Panel** — Bookmarked items for quick access. Items can be parked from any dashboard list via the bookmark icon (Bookmark16Regular/Filled). Shows entity type label and item name. Click navigates to the record; X button removes from lot. Uses `parkingLot.ts` for localStorage persistence.
@@ -857,12 +856,13 @@ The **sidebar** (left) organizes pages into sections:
 
 ### Dashboard
 
-- **Quick Create Bar** — Thin bar with compact buttons to create any record type without leaving the dashboard. Save buttons show a spinner and disable while saving to prevent duplicates.
+- **Quick Create Bar** — Steel blue gradient banner at the top with compact buttons to create any record type without leaving the dashboard. Save buttons show a spinner and disable while saving to prevent duplicates.
+- **Stat Tiles** — 7 compact quick-launch tiles (Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts) — click to navigate to that page
 - **Work** — Card (red accent) showing all non-complete work action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when work items exist)
 - **Personal** — Card (teal accent) showing all non-complete personal action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when personal items exist)
-- **Stat Tiles** — 7 compact quick-launch tiles (Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts) — click to navigate to that page
 - **Action Items** — Shows the 8 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete); 180px scrollable area
 - **Ideas** — Shows the 8 most recent ideas with category and account; 180px scrollable area
+- **Quick Delete** — Every item on the dashboard (Work, Personal, Action Items, Ideas) has a trash icon for quick deletion with an "Are you sure?" confirmation dialog
 - **Parking Lot** (right sidebar, top) — Bookmark any item from Work, Personal, Action Items, or Ideas cards using the bookmark icon. Parked items appear here for quick access — click to navigate, X to remove.
 - **Pinned Notes** (right sidebar, bottom) — Appears when you have pinned notes; click to expand
 
