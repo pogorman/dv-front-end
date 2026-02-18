@@ -37,13 +37,17 @@ npm test      # Run tests
 
 ## Features
 
-- **Dashboard** with compact quick-create bar, 7 quick-launch stat tiles (Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts), Work card (with top priority sub-section), Personal card (with top priority sub-section), and pinned notes sidebar
+- **Dashboard** — Two-column layout with steel blue gradient Quick Create bar, 7 stat tiles, Work/Personal cards with top priority sections, Action Items/Ideas section cards, right sidebar with Parking Lot and Pinned Notes
 - **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, Impacts, and Meeting Summaries
+- **Inline Edit** — View dialogs toggle between read-only and editable mode; edit state resets cleanly between records
+- **Save Progress** — All save/update/delete operations show spinner and disable buttons to prevent double-submissions
+- **Parking Lot** — Bookmark any dashboard item for quick access in a persistent sidebar panel (localStorage)
+- **Quick Delete** — Trash icon on every dashboard item with "Are you sure?" confirmation dialog
 - **Account View** with 3-column related records layout (contacts, tasks, ideas, impacts, summaries, notes)
 - **Notes & Attachments** on Accounts, Action Items, Ideas, and Projects with file upload and pinning to dashboard
 - **Copilot Chat** — floating AI assistant (bottom-right) connected to Copilot Studio via SSO
 - **Dark/Light Theme** toggle with system preference detection and localStorage persistence
-- **Collapsible Sidebar** navigation organized into sections
+- **Collapsible Sidebar** navigation organized into sections with Fluent UI icons
 - **About this site** page with app and platform info
 
 ## Project Structure
@@ -56,7 +60,7 @@ src/
 ├── pages/          # Route pages (Dashboard, Accounts, Contacts, etc.)
 ├── services/       # dataverseService.ts (Dataverse Web API layer)
 ├── types/          # TypeScript interfaces
-└── utils/          # formatDate, pinnedNotes helpers
+└── utils/          # formatDate, pinnedNotes, parkingLot helpers
 ```
 
 ## Deployment
