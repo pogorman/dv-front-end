@@ -273,7 +273,7 @@ const useStyles = makeStyles({
   highlightRow: {
     display: "flex",
     ...shorthands.gap("12px"),
-    alignItems: "stretch",
+    alignItems: "flex-start",
     "@media (max-width: 900px)": {
       flexDirection: "column",
     },
