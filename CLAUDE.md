@@ -24,10 +24,9 @@ src/
 ├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat widget)
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
-│   ├── Dashboard.tsx        # Stats tiles + Top Priority card + Personal card + Action Items & Ideas sections + pinned notes sidebar
-│   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, activities, tasks, impacts, ideas, summaries, notes)
+│   ├── Dashboard.tsx        # Stats tiles + Work/Personal cards + Action Items & Ideas sections + pinned notes sidebar
+│   ├── Accounts.tsx         # CRUD + view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + view dialog with related ideas
-│   ├── Activities.tsx       # High-Value Activities CRUD
 │   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + view dialog with notes timeline
 │   ├── Impacts.tsx          # Impacts CRUD
 │   ├── Ideas.tsx            # Ideas CRUD with category dropdown + view dialog with notes timeline
@@ -56,7 +55,6 @@ The app works with these Dataverse tables:
 |-------------|-----------------|------------|
 | Accounts | `accounts` | accountid, name, parentaccountid (self-lookup) |
 | Contacts | `contacts` | contactid, firstname, lastname, emailaddress1, telephone1, jobtitle, parentcustomerid (account lookup) |
-| High-Value Activities | `tdvsp_hvas` | tdvsp_hvaid, tdvsp_name, tdvsp_description, tdvsp_date, tdvsp_Customer (account lookup) |
 | Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_taskstatus (choice), tdvsp_priority (choice), tdvsp_tasktype (choice), tdvsp_Customer (account lookup), createdon |
 | Impacts | `tdvsp_impacts` | tdvsp_impactid, tdvsp_name, tdvsp_date, tdvsp_description, tdvsp_Customer (account lookup) |
 | Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup) |
@@ -84,17 +82,16 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 ## Key Features
 
-- **Sidebar Navigation** - Organized into sections with subtle dividers:
+- **Sidebar Navigation** (195px, collapsible) - Organized into sections with subtle dividers:
   - Dashboard (top)
-  - O'G's Data: Action Items, Projects, Meeting Summaries, Ideas
-  - Impact: High-Value Activities, Impacts
-  - Core: Accounts, Contacts
+  - Core: Accounts, Contacts, Projects, Meeting Summaries
+  - Activity: Action Items, Ideas, Impacts
   - About this site (bottom)
-- **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (HVAs, Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
+- **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Thin "Quick Create" bar with compact pill buttons for creating any record type (stays on dashboard). Custom banner background image. "Work" and "Personal" cards side by side — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items with a "Top Priority" sub-section at the top; Personal card (teal accent, Home icon) shows all non-complete personal action items with a "Top Priority" sub-section at the top. Both cards have max-height (180px) with scroll for overflow (~4 items visible). Compact square-ish stat tiles for Accounts, Contacts, Projects, Action Items, and Ideas (quick-launch navigation to each view). Section cards for Action Items (left) and Ideas (right) with clickable items (navigate to record view dialog) and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
+- **Dashboard** - Thin "Quick Create" bar with compact pill buttons for creating any record type (stays on dashboard). Custom banner background image. "Work" and "Personal" cards side by side — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items with a "Top Priority" sub-section at the top; Personal card (teal accent, Home icon) shows all non-complete personal action items with a "Top Priority" sub-section at the top. Both cards have max-height (180px) with scroll for overflow (~4 items visible). 7 compact stat tiles in a fixed row: Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts (quick-launch navigation to each view). Section cards for Action Items (left) and Ideas (right) with clickable items (navigate to record view dialog) and subtle "New" buttons. Pinned Notes sidebar panel on the right (280px, appears when notes are pinned).
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by section "New" buttons, not dashboard quick actions). Tasks and Ideas also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:

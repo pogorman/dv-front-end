@@ -37,9 +37,9 @@ npm test      # Run tests
 
 ## Features
 
-- **Dashboard** with compact quick-create bar, quick-launch stat tiles (Accounts, Contacts, Projects, Action Items, Ideas), Work card (with top priority sub-section), Personal card (with top priority sub-section), and pinned notes sidebar
-- **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, HVAs, Impacts, and Meeting Summaries
-- **Account View** with 3-column related records layout (contacts, tasks, ideas, HVAs, impacts, summaries, notes)
+- **Dashboard** with compact quick-create bar, 7 quick-launch stat tiles (Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts), Work card (with top priority sub-section), Personal card (with top priority sub-section), and pinned notes sidebar
+- **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, Impacts, and Meeting Summaries
+- **Account View** with 3-column related records layout (contacts, tasks, ideas, impacts, summaries, notes)
 - **Notes & Attachments** on Accounts, Action Items, Ideas, and Projects with file upload and pinning to dashboard
 - **Copilot Chat** — floating AI assistant (bottom-right) connected to Copilot Studio via SSO
 - **Dark/Light Theme** toggle with system preference detection and localStorage persistence

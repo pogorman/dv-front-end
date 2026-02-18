@@ -30,7 +30,7 @@
 
 ## 1. Executive Summary
 
-O'G Central is an internal business management tool built as a React single-page application (SPA). It provides a unified interface for managing customer accounts, contacts, action items, projects, ideas, impacts, high-value activities, and meeting summaries. All data is stored in and retrieved from Microsoft Dataverse via its Web API.
+O'G Central is an internal business management tool built as a React single-page application (SPA). It provides a unified interface for managing customer accounts, contacts, action items, projects, ideas, impacts, and meeting summaries. All data is stored in and retrieved from Microsoft Dataverse via its Web API.
 
 The application is secured with Azure Active Directory (Azure AD) authentication, themed with Microsoft's Fluent UI design system, and deployed as an Azure Static Web App. An embedded AI assistant powered by Microsoft Copilot Studio provides conversational support directly within the app.
 
@@ -39,7 +39,7 @@ The application is secured with Azure Active Directory (Azure AD) authentication
 - **Customer Relationship Management** — Track accounts, contacts, and their relationships
 - **Task & Project Management** — Manage action items with status tracking and project organization
 - **Idea Pipeline** — Capture and categorize ideas across technology domains
-- **Activity & Impact Tracking** — Log high-value activities and their business impacts
+- **Impact Tracking** — Log and track business impacts
 - **Meeting Documentation** — Record and retrieve meeting summaries by account
 - **Notes & Attachments** — Attach notes with file uploads to accounts, tasks, ideas, and projects
 - **AI Assistant** — Conversational Copilot Studio agent embedded in the app via SSO
@@ -301,7 +301,6 @@ User opens app
 |--------|----------------|-------------|-------------------|
 | Accounts | `accounts` | `accountid` | `parentaccountid` (self-referencing) |
 | Contacts | `contacts` | `contactid` | `parentcustomerid` |
-| High-Value Activities | `tdvsp_hvas` | `tdvsp_hvaid` | `tdvsp_Customer` |
 | Action Items | `tdvsp_actionitems` | `tdvsp_actionitemid` | `tdvsp_Customer` |
 | Impacts | `tdvsp_impacts` | `tdvsp_impactid` | `tdvsp_Customer` |
 | Ideas | `tdvsp_ideas` | `tdvsp_ideaid` | `tdvsp_Account` + `tdvsp_Contact` |
@@ -408,10 +407,9 @@ The application shell provides the persistent layout for all authenticated pages
 
 **Navigation Sections:**
 1. **Dashboard** (top, standalone)
-2. **O'G's Data:** Action Items, Projects, Meeting Summaries, Ideas
-3. **Impact:** High-Value Activities, Impacts
-4. **Core:** Accounts, Contacts
-5. **About this site** (bottom)
+2. **Core:** Accounts, Contacts, Projects, Meeting Summaries
+3. **Activity:** Action Items, Ideas, Impacts
+4. **About this site** (bottom)
 
 **Features:**
 - Active route is highlighted with brand color background
@@ -476,7 +474,6 @@ async function apiRequest(endpoint: string, method: string = "GET", body?: unkno
 |----------|-----------|
 | Accounts | `getAccounts`, `createAccount`, `updateAccount`, `deleteAccount` |
 | Contacts | `getCustomers`, `createCustomer`, `updateCustomer`, `deleteCustomer` |
-| HVAs | `getActivities`, `createActivity`, `updateActivity`, `deleteActivity` |
 | Action Items | `getActionItems`, `createActionItem`, `updateActionItem`, `deleteActionItem` |
 | Impacts | `getImpacts`, `createImpact`, `updateImpact`, `deleteImpact` |
 | Ideas | `getIdeas`, `createIdea`, `updateIdea`, `deleteIdea` |
@@ -504,7 +501,6 @@ All TypeScript interfaces are centralized in a single file:
 |-----------|-----------|
 | `Account` | Account records with optional parent account lookup |
 | `Customer` | Contact records with account lookup |
-| `HighValueActivity` | HVA records with account lookup |
 | `ActionItem` | Task records with status, priority, type, date, and account lookup |
 | `Impact` | Impact records with account lookup |
 | `Idea` | Idea records with category, account, and contact lookups |
@@ -535,21 +531,23 @@ The landing page providing an at-a-glance overview.
 
 **Sections:**
 1. **Welcome Banner** — Background image (`/images/banner-bg.png`) with greeting text
-2. **Quick Create Bar** — Thin horizontal bar with "Quick Create" label and compact pill buttons (Action Item, Project, Summary, Idea, HVA, Impact, Account, Contact) — create any record type without leaving the dashboard
+2. **Quick Create Bar** — Thin horizontal bar with "Quick Create" label and compact pill buttons (Action Item, Project, Summary, Idea, Impact, Account, Contact) — create any record type without leaving the dashboard
 3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, and overdue/upcoming badge. Only visible when matching items exist.
 4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, and overdue/upcoming badge. Only visible when incomplete personal items exist.
-5. **Stats Grid** — Compact square-ish quick-launch tiles:
+5. **Stats Grid** — 7 compact quick-launch tiles in a fixed row:
    - Accounts (blue) — total count
    - Contacts (purple) — total count
    - Projects (indigo) — total count
+   - Summaries (teal) — total count
    - Action Items (green) — total count
    - Ideas (amber) — total count
+   - Impacts (red) — total count
 6. **Section Cards** (2-column grid):
    - **Action Items** — Latest 4 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete)
    - **Ideas** — Latest 5 items showing name, category, account on line 1; description preview on line 2
 7. **Pinned Notes Sidebar** (280px, right) — Appears only when notes are pinned; shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog
 
-**Data loaded on mount:** Accounts, Contacts, Projects, Action Items, Ideas, Pinned Annotations
+**Data loaded on mount:** Accounts, Contacts, Projects, Action Items, Ideas, Impacts, Meeting Summaries, Pinned Annotations
 
 ### 8.2 Accounts (`pages/Accounts.tsx`)
 
@@ -559,7 +557,7 @@ Full CRUD management for customer accounts.
 
 **View Dialog:** Three-column layout showing all related records:
 - **Column 1:** Contacts, Action Items, Ideas — each with inline "Add" buttons
-- **Column 2:** High-Value Activities, Impacts, Meeting Summaries — each with inline "Add" buttons
+- **Column 2:** Impacts, Meeting Summaries — each with inline "Add" buttons
 - **Column 3:** Notes Timeline component
 
 **Forms:** Name (required), Parent Account (dropdown of existing accounts)
@@ -608,17 +606,7 @@ Project tracking with notes.
 
 **Forms:** Name (required), Account (dropdown), Description (textarea)
 
-### 8.7 High-Value Activities (`pages/Activities.tsx`)
-
-Logging significant business activities.
-
-**Main View:** Responsive card grid with calendar date display and account
-
-**View Dialog:** Simple detail view (no notes timeline)
-
-**Forms:** Name (required), Date (required), Account (dropdown), Description (textarea)
-
-### 8.8 Impacts (`pages/Impacts.tsx`)
+### 8.7 Impacts (`pages/Impacts.tsx`)
 
 Tracking business impacts.
 
@@ -628,7 +616,7 @@ Tracking business impacts.
 
 **Forms:** Name (required), Date (required), Account (dropdown), Description (textarea)
 
-### 8.9 Meeting Summaries (`pages/MeetingSummaries.tsx`)
+### 8.8 Meeting Summaries (`pages/MeetingSummaries.tsx`)
 
 Meeting documentation with extended text support.
 
@@ -640,7 +628,7 @@ Meeting documentation with extended text support.
 
 **Dialog width:** 700px (wider than standard to accommodate summary text)
 
-### 8.10 About (`pages/About.tsx`)
+### 8.9 About (`pages/About.tsx`)
 
 Static informational page about the application.
 
@@ -841,9 +829,8 @@ The **sidebar** (left) organizes pages into sections:
 | Section | Pages |
 |---------|-------|
 | *(Top)* | Dashboard |
-| **O'G's Data** | Action Items, Projects, Meeting Summaries, Ideas |
-| **Impact** | High-Value Activities, Impacts |
-| **Core** | Accounts, Contacts |
+| **Core** | Accounts, Contacts, Projects, Meeting Summaries |
+| **Activity** | Action Items, Ideas, Impacts |
 | *(Bottom)* | About this site |
 
 - Click the **chevron** at the top of the sidebar to collapse/expand it
@@ -854,7 +841,7 @@ The **sidebar** (left) organizes pages into sections:
 - **Quick Create Bar** — Thin bar with compact buttons to create any record type without leaving the dashboard
 - **Work** — Card (red accent) showing all non-complete work action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when work items exist)
 - **Personal** — Card (teal accent) showing all non-complete personal action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when personal items exist)
-- **Stat Tiles** — Compact quick-launch tiles (Accounts, Contacts, Projects, Action Items, Ideas) — click to navigate to that page
+- **Stat Tiles** — 7 compact quick-launch tiles (Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts) — click to navigate to that page
 - **Action Items** — Shows the 4 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete)
 - **Ideas** — Shows the 5 most recent ideas with category and account
 - **Pinned Notes** (right sidebar) — Appears when you have pinned notes; click to expand
