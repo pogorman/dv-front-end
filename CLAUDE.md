@@ -86,7 +86,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 ## Key Features
 
-- **Sidebar Navigation** (140px expanded, 48px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
+- **Sidebar Navigation** (168px expanded, 48px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
   - Dashboard (top, Home icon)
   - Core: Accounts (Building), Contacts (Person), Projects (Briefcase), Summaries (PeopleTeam)
   - Activity: Action Items (CheckboxChecked), Ideas (LightbulbFilament), Impacts (Flash)
