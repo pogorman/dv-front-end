@@ -41,7 +41,7 @@ import { useTheme } from "../context/ThemeContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { CopilotChat } from "./CopilotChat";
 
-const SIDEBAR_WIDTH = 140;
+const SIDEBAR_WIDTH = 168;
 const SIDEBAR_COLLAPSED = 48;
 
 const useStyles = makeStyles({
