@@ -53,6 +53,7 @@ const useStyles = makeStyles({
     ...shorthands.padding("10px"),
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRadius("6px"),
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
   },
   noteHeader: {
     display: "flex",
@@ -61,7 +62,8 @@ const useStyles = makeStyles({
     marginBottom: "6px",
   },
   noteDate: {
-    fontSize: "11px",
+    fontSize: "10px",
+    fontFamily: tokens.fontFamilyMonospace,
     color: tokens.colorNeutralForeground3,
   },
   noteActions: {

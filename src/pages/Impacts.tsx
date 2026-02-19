@@ -48,7 +48,7 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("20px"),
+    ...shorthands.gap("16px"),
   },
   toolbar: {
     display: "flex",
@@ -66,12 +66,13 @@ const useStyles = makeStyles({
     ...shorthands.gap("16px"),
   },
   impactCard: {
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
-    transition: "box-shadow 0.15s ease, transform 0.15s ease",
+    ...shorthands.padding("16px"),
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
+    transition: "background-color 0.15s ease",
     ":hover": {
-      boxShadow: tokens.shadow8,
-      transform: "translateY(-2px)",
+      backgroundColor: tokens.colorNeutralBackground1Hover,
     },
   },
   cardHeader: {
@@ -392,7 +393,7 @@ export const Impacts: React.FC = () => {
         </div>
       ) : filtered.length === 0 ? (
         <div className={styles.emptyState}>
-          <Trophy24Filled style={{ fontSize: 48, color: "#8764b8", marginBottom: 16 }} />
+          <Trophy24Filled style={{ fontSize: 48, color: "#a78bfa", marginBottom: 16 }} />
           <Subtitle1>No impacts found</Subtitle1>
           <Caption1 style={{ marginTop: 8 }}>
             Create your first impact to start tracking.

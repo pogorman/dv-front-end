@@ -11,6 +11,8 @@ Internal business tool - React SPA that interfaces with Microsoft Dataverse via 
 - **MSAL** (@azure/msal-react) for Azure AD authentication
 - **React Router v7** for navigation
 - **Dataverse Web API** for backend data
+- **Fonts**: DM Sans (body via Google Fonts), JetBrains Mono (monospace labels/metadata)
+- **Theme**: Custom `ogBrand` palette based on `#4a9eff` blue. Dark theme (`ogDarkTheme`) and light theme (`ogLightTheme`) with comprehensive token overrides in `App.tsx`. Design language: subtle 1px borders over shadows, 8px border-radius cards, monospace uppercase section headers.
 
 ## Project Structure
 
@@ -24,7 +26,7 @@ src/
 ├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat widget)
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
-│   ├── Dashboard.tsx        # Quick create bar, Work/Personal cards (maximize), stat tiles, Action Items & Ideas sections, pinned notes sidebar
+│   ├── Dashboard.tsx        # Quick create bar, Work/Personal cards (maximize), Action Items & Ideas sections, collapsible right sidebar (parking lot + pinned notes)
 │   ├── Accounts.tsx         # CRUD + inline edit view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + inline edit view dialog with related ideas
 │   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + inline edit view dialog with notes timeline
@@ -84,7 +86,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 ## Key Features
 
-- **Sidebar Navigation** (195px expanded, 56px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
+- **Sidebar Navigation** (140px expanded, 48px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
   - Dashboard (top, Home icon)
   - Core: Accounts (Building), Contacts (Person), Projects (Briefcase), Summaries (PeopleTeam)
   - Activity: Action Items (CheckboxChecked), Ideas (LightbulbFilament), Impacts (Flash)
@@ -94,14 +96,13 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). Right sidebar spans full height. Layout from top to bottom in main column:
-  1. **Quick Create Bar** - Steel blue gradient banner with white "Quick Create" label and pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Save buttons disable with spinner during save.
-  2. **Stat Tiles** - 7 compact tiles in a row: Accounts, Contacts, Projects, Summaries, Actions, Ideas, Impacts (click navigates to each view)
-  3. **Work & Personal Cards** (side by side, full width of main column) — Work card (red accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (teal accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), maximize icons, bookmark icons and delete icons per item.
-  4. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, maximize icons, 180px max-height with scroll, bookmark and delete icons per item.
+- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (260px, collapsible). Right sidebar spans full height, toggle button in quick-create bar persists open/closed state to `localStorage("og-right-panel-open")`. Layout from top to bottom in main column:
+  1. **Quick Create Bar** - Subtle surface background with border, monospace chip-style pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Panel toggle button on the right. Save buttons disable with spinner during save.
+  2. **Work & Personal Cards** (side by side, full width of main column) — Work card (red `#f87171` accent, Briefcase icon) shows all non-complete non-personal action items; Personal card (cyan `#22d3ee` accent, Home icon) shows all non-complete personal action items. Both have "Top Priority" sub-section at top, max-height with scroll (~4 items visible), maximize icons, bookmark icons and delete icons per item.
+  3. **Section Cards** - Action Items (left) and Ideas (right) with clickable items (navigate to `?view=<id>` record view dialog), subtle "New" buttons, maximize icons, 180px max-height with scroll, bookmark and delete icons per item.
   Right sidebar (top to bottom):
-  6. **Parking Lot Panel** - Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X removes. `parkingLot.ts` stores refs in localStorage.
-  7. **Pinned Notes Panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
+  4. **Parking Lot Panel** - Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X removes. `parkingLot.ts` stores refs in localStorage.
+  5. **Pinned Notes Panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by dashboard section "New" buttons). Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items and Work/Personal card items).
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:

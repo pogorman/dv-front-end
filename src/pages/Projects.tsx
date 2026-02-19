@@ -46,7 +46,7 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("20px"),
+    ...shorthands.gap("16px"),
   },
   toolbar: {
     display: "flex",
@@ -64,12 +64,13 @@ const useStyles = makeStyles({
     ...shorthands.gap("16px"),
   },
   projectCard: {
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
-    transition: "box-shadow 0.15s ease, transform 0.15s ease",
+    ...shorthands.padding("16px"),
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
+    transition: "background-color 0.15s ease",
     ":hover": {
-      boxShadow: tokens.shadow8,
-      transform: "translateY(-2px)",
+      backgroundColor: tokens.colorNeutralBackground1Hover,
     },
   },
   cardHeader: {

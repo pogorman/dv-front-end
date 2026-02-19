@@ -54,7 +54,7 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("20px"),
+    ...shorthands.gap("16px"),
   },
   toolbar: {
     display: "flex",
@@ -68,8 +68,10 @@ const useStyles = makeStyles({
   },
   card: {
     ...shorthands.padding("0px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.borderRadius("8px"),
     overflow: "hidden",
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
   },
   taskRow: {
     display: "flex",
@@ -628,7 +630,7 @@ export const Tasks: React.FC = () => {
         ) : filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <TaskListSquareLtr24Filled
-              style={{ fontSize: 48, color: "#107c10", marginBottom: 16 }}
+              style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }}
             />
             <Subtitle1>No action items found</Subtitle1>
             <Caption1 style={{ marginTop: 8 }}>

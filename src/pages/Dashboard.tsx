@@ -25,10 +25,9 @@ import {
   Spinner,
 } from "@fluentui/react-components";
 import {
-  Building24Filled,
-  ContactCard24Filled,
   Briefcase24Filled,
-  TaskListSquareLtr24Filled,
+  PanelRight20Regular,
+  PanelRight20Filled,
   Pin24Regular,
   PinOff16Regular,
   Dismiss24Regular,
@@ -37,9 +36,6 @@ import {
   Home24Filled,
   Warning16Filled,
   ArrowMaximize16Regular,
-  LightbulbFilament24Filled,
-  Notebook24Filled,
-  Flash24Filled,
   Bookmark16Regular,
   Bookmark16Filled,
   Bookmark24Regular,
@@ -81,29 +77,32 @@ const useStyles = makeStyles({
   quickCreateSection: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("12px"),
-    ...shorthands.padding("12px", "16px"),
-    backgroundImage: "linear-gradient(135deg, #4682B4, #5A9BC9)",
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.gap("10px"),
+    ...shorthands.padding("10px", "14px"),
+    backgroundColor: tokens.colorNeutralBackground1,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    ...shorthands.borderRadius("8px"),
     flexWrap: "wrap",
-    boxShadow: tokens.shadow4,
   },
   quickActions: {
     display: "flex",
     flexWrap: "wrap",
     ...shorthands.gap("4px"),
+    flexGrow: 1,
   },
   quickActionBtn: {
-    ...shorthands.borderRadius("14px"),
-    fontSize: "12px",
-    fontWeight: "600",
-    minHeight: "28px",
-    height: "28px",
-    ...shorthands.padding("0px", "12px"),
-    backgroundColor: "rgba(255,255,255,0.9)",
+    ...shorthands.borderRadius("4px"),
+    fontSize: "11px",
+    fontWeight: "500",
+    fontFamily: tokens.fontFamilyMonospace,
+    minHeight: "26px",
+    height: "26px",
+    ...shorthands.padding("0px", "10px"),
+    backgroundColor: tokens.colorBrandBackground2,
     color: tokens.colorBrandForeground1,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
     ":hover": {
-      backgroundColor: "white",
+      backgroundColor: tokens.colorBrandBackground2Hover,
     },
   },
   dashboardBody: {
@@ -118,45 +117,6 @@ const useStyles = makeStyles({
     flexDirection: "column",
     ...shorthands.gap("14px"),
   },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(7, 1fr)",
-    ...shorthands.gap("6px"),
-    "@media (max-width: 900px)": {
-      gridTemplateColumns: "repeat(4, 1fr)",
-    },
-  },
-  statCard: {
-    ...shorthands.padding("6px", "8px"),
-    ...shorthands.borderRadius("8px"),
-    cursor: "pointer",
-    transition: "box-shadow 0.2s ease, transform 0.2s ease",
-    ":hover": {
-      boxShadow: tokens.shadow8,
-      transform: "translateY(-2px)",
-    },
-  },
-  statHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "1px",
-  },
-  statIconWrap: {
-    width: "20px",
-    height: "20px",
-    ...shorthands.borderRadius("4px"),
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  statNumber: {
-    fontSize: "14px",
-    fontWeight: "700",
-    lineHeight: "1",
-    marginBottom: "1px",
-  },
   sectionGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -167,7 +127,9 @@ const useStyles = makeStyles({
   },
   sectionCard: {
     ...shorthands.padding("10px"),
-    ...shorthands.borderRadius("10px"),
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
   },
   sectionHeader: {
     display: "flex",
@@ -198,19 +160,29 @@ const useStyles = makeStyles({
     },
   },
   rightSidebar: {
-    width: "280px",
-    minWidth: "280px",
+    width: "260px",
+    minWidth: "260px",
     display: "flex",
     flexDirection: "column",
     ...shorthands.gap("12px"),
     alignSelf: "stretch",
+    transition: "width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease",
+    overflow: "hidden",
+  },
+  rightSidebarCollapsed: {
+    width: "0px",
+    minWidth: "0px",
+    opacity: 0,
+    ...shorthands.padding("0"),
   },
   parkingLotPanel: {
-    ...shorthands.padding("14px"),
-    ...shorthands.borderRadius("10px"),
+    ...shorthands.padding("12px"),
+    ...shorthands.borderRadius("8px"),
     display: "flex",
     flexDirection: "column",
     flexShrink: 0,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
   },
   parkingLotHeader: {
     display: "flex",
@@ -232,12 +204,14 @@ const useStyles = makeStyles({
     },
   },
   pinnedPanel: {
-    ...shorthands.padding("14px"),
-    ...shorthands.borderRadius("10px"),
+    ...shorthands.padding("12px"),
+    ...shorthands.borderRadius("8px"),
     display: "flex",
     flexDirection: "column",
     flexGrow: 1,
     minHeight: 0,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
   },
   pinnedHeader: {
     display: "flex",
@@ -270,22 +244,31 @@ const useStyles = makeStyles({
     lineHeight: "1.4",
   },
   pinnedNoteDate: {
-    fontSize: "11px",
+    fontSize: "10px",
+    fontFamily: tokens.fontFamilyMonospace,
     color: tokens.colorNeutralForeground3,
     marginBottom: "4px",
   },
   pinnedNoteAccount: {
-    fontSize: "11px",
+    fontSize: "10px",
+    fontFamily: tokens.fontFamilyMonospace,
     color: tokens.colorBrandForeground1,
     marginBottom: "2px",
     fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
   },
   topPriorityCard: {
     ...shorthands.padding("10px"),
-    ...shorthands.borderRadius("10px"),
-    borderLeft: "4px solid #d13438",
+    ...shorthands.borderRadius("8px"),
+    borderLeft: "3px solid #f87171",
     flex: "1 1 0",
     minWidth: 0,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeftWidth: "3px",
+    borderLeftStyle: "solid",
+    borderLeftColor: "#f87171",
+    boxShadow: "none",
   },
   topPriorityHeader: {
     display: "flex",
@@ -306,10 +289,14 @@ const useStyles = makeStyles({
   },
   personalCard: {
     ...shorthands.padding("10px"),
-    ...shorthands.borderRadius("10px"),
-    borderLeft: "4px solid #0e7c7b",
+    ...shorthands.borderRadius("8px"),
     flex: "1 1 0",
     minWidth: 0,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeftWidth: "3px",
+    borderLeftStyle: "solid",
+    borderLeftColor: "#22d3ee",
+    boxShadow: "none",
   },
   personalHeader: {
     display: "flex",
@@ -352,14 +339,18 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { notify } = useNotification();
   const [saving, setSaving] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(() => {
+    const stored = localStorage.getItem("og-right-panel-open");
+    return stored !== "false";
+  });
   const [parkedItems, setParkedItems] = useState<ParkedItemRef[]>(() => getParkedItems());
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [contacts, setContacts] = useState<Customer[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [, setContacts] = useState<Customer[]>([]);
+  const [, setProjects] = useState<Project[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
-  const [impacts, setImpacts] = useState<Impact[]>([]);
-  const [meetingSummaries, setMeetingSummaries] = useState<MeetingSummary[]>([]);
+  const [, setImpacts] = useState<Impact[]>([]);
+  const [, setMeetingSummaries] = useState<MeetingSummary[]>([]);
 
   // Pinned notes state
   const [pinnedRefs, setPinnedRefs] = useState<PinnedNoteRef[]>(() => getPinnedNoteRefs());
@@ -703,84 +694,31 @@ export const Dashboard: React.FC = () => {
         <div className={styles.dashboardMain}>
       {/* Quick Create Bar */}
       <div className={styles.quickCreateSection}>
-        <Text size={400} weight="semibold" style={{ color: "white", whiteSpace: "nowrap" }}>Quick Create</Text>
+        <Text size={300} weight="semibold" style={{ whiteSpace: "nowrap", fontFamily: tokens.fontFamilyMonospace, textTransform: "uppercase", letterSpacing: "1.5px", fontSize: "10px" }}>Quick Create</Text>
         <div className={styles.quickActions}>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddTaskOpen(true)}>Action Item</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddProjectOpen(true)}>Project</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddSummaryOpen(true)}>Summary</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddIdeaOpen(true)}>Idea</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddImpactOpen(true)}>Impact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddAccountOpen(true)}>Account</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="outline" onClick={() => setAddContactOpen(true)}>Contact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddTaskOpen(true)}>Action Item</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddProjectOpen(true)}>Project</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddSummaryOpen(true)}>Summary</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddIdeaOpen(true)}>Idea</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddImpactOpen(true)}>Impact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddAccountOpen(true)}>Account</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddContactOpen(true)}>Contact</Button>
         </div>
+        {(parkedItems.length > 0 || pinnedRefs.length > 0) && (
+          <Button
+            appearance="subtle"
+            size="small"
+            icon={rightPanelOpen ? <PanelRight20Filled /> : <PanelRight20Regular />}
+            onClick={() => {
+              const next = !rightPanelOpen;
+              setRightPanelOpen(next);
+              localStorage.setItem("og-right-panel-open", String(next));
+            }}
+            title={rightPanelOpen ? "Hide sidebar" : "Show sidebar"}
+          />
+        )}
       </div>
 
-          {/* Stats Tiles */}
-          <div className={styles.statsGrid}>
-            <Card className={styles.statCard} onClick={() => navigate("/accounts")}>
-              <div className={styles.statHeader}>
-                <Caption1>Accounts</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
-                  <Building24Filled style={{ color: "#0078d4", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#0078d4" }}>{accounts.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/contacts")}>
-              <div className={styles.statHeader}>
-                <Caption1>Contacts</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8e0f0" }}>
-                  <ContactCard24Filled style={{ color: "#7c3aed", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#7c3aed" }}>{contacts.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/projects")}>
-              <div className={styles.statHeader}>
-                <Caption1>Projects</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0fe" }}>
-                  <Briefcase24Filled style={{ color: "#5b5fc7", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#5b5fc7" }}>{projects.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/summaries")}>
-              <div className={styles.statHeader}>
-                <Caption1>Summaries</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e8f0f0" }}>
-                  <Notebook24Filled style={{ color: "#0e7c7b", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#0e7c7b" }}>{meetingSummaries.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/tasks")}>
-              <div className={styles.statHeader}>
-                <Caption1>Actions</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#e6f4ea" }}>
-                  <TaskListSquareLtr24Filled style={{ color: "#107c10", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#107c10" }}>{actionItems.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/ideas")}>
-              <div className={styles.statHeader}>
-                <Caption1>Ideas</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#fff8e1" }}>
-                  <LightbulbFilament24Filled style={{ color: "#c59a00", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#c59a00" }}>{ideas.length}</div>
-            </Card>
-            <Card className={styles.statCard} onClick={() => navigate("/impacts")}>
-              <div className={styles.statHeader}>
-                <Caption1>Impacts</Caption1>
-                <div className={styles.statIconWrap} style={{ backgroundColor: "#fce4ec" }}>
-                  <Flash24Filled style={{ color: "#d13438", fontSize: 14 }} />
-                </div>
-              </div>
-              <div className={styles.statNumber} style={{ color: "#d13438" }}>{impacts.length}</div>
-            </Card>
-          </div>
 
       {/* Work & Personal Cards — side by side */}
       {(workItems.length > 0 || personalFilteredItems.length > 0) && (
@@ -788,7 +726,7 @@ export const Dashboard: React.FC = () => {
           {workItems.length > 0 && (
             <Card className={styles.topPriorityCard}>
               <div className={styles.topPriorityHeader}>
-                <Briefcase24Filled style={{ color: "#d13438" }} />
+                <Briefcase24Filled style={{ color: "#f87171" }} />
                 <Subtitle1 style={{ flexGrow: 1 }}>Work</Subtitle1>
                 <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("work"); }} title="Expand" />
               </div>
@@ -796,8 +734,8 @@ export const Dashboard: React.FC = () => {
                 {topPriorityWork.length > 0 && (
                   <>
                     <div className={styles.subSectionLabel}>
-                      <Warning16Filled style={{ color: "#d13438" }} />
-                      <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
+                      <Warning16Filled style={{ color: "#f87171" }} />
+                      <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
                     </div>
                     {topPriorityWork.map((t, i) => (
                       <React.Fragment key={t.tdvsp_actionitemid}>
@@ -873,7 +811,7 @@ export const Dashboard: React.FC = () => {
           {personalFilteredItems.length > 0 && (
             <Card className={styles.personalCard}>
               <div className={styles.personalHeader}>
-                <Home24Filled style={{ color: "#0e7c7b" }} />
+                <Home24Filled style={{ color: "#22d3ee" }} />
                 <Subtitle1 style={{ flexGrow: 1 }}>Personal</Subtitle1>
                 <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("personal"); }} title="Expand" />
               </div>
@@ -881,8 +819,8 @@ export const Dashboard: React.FC = () => {
                 {topPriorityPersonal.length > 0 && (
                   <>
                     <div className={styles.subSectionLabel}>
-                      <Warning16Filled style={{ color: "#d13438" }} />
-                      <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
+                      <Warning16Filled style={{ color: "#f87171" }} />
+                      <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
                     </div>
                     {topPriorityPersonal.map((t, i) => (
                       <React.Fragment key={t.tdvsp_actionitemid}>
@@ -1091,7 +1029,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Right Sidebar */}
         {(parkedItems.length > 0 || pinnedRefs.length > 0) && (
-          <div className={styles.rightSidebar}>
+          <div className={`${styles.rightSidebar} ${!rightPanelOpen ? styles.rightSidebarCollapsed : ""}`}>
             {parkedItems.length > 0 && (
               <Card className={styles.parkingLotPanel}>
                 <div className={styles.parkingLotHeader}>
@@ -1647,8 +1585,8 @@ export const Dashboard: React.FC = () => {
                   {topPriorityWork.length > 0 && (
                     <>
                       <div className={styles.subSectionLabel}>
-                        <Warning16Filled style={{ color: "#d13438" }} />
-                        <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
+                        <Warning16Filled style={{ color: "#f87171" }} />
+                        <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
                       </div>
                       {topPriorityWork.map((t, i) => (
                         <React.Fragment key={t.tdvsp_actionitemid}>
@@ -1705,8 +1643,8 @@ export const Dashboard: React.FC = () => {
                   {topPriorityPersonal.length > 0 && (
                     <>
                       <div className={styles.subSectionLabel}>
-                        <Warning16Filled style={{ color: "#d13438" }} />
-                        <Text size={200} weight="semibold" style={{ color: "#d13438" }}>Top Priority</Text>
+                        <Warning16Filled style={{ color: "#f87171" }} />
+                        <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
                       </div>
                       {topPriorityPersonal.map((t, i) => (
                         <React.Fragment key={t.tdvsp_actionitemid}>

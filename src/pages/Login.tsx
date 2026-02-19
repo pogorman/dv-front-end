@@ -17,21 +17,22 @@ const useStyles = makeStyles({
     alignItems: "center",
     justifyContent: "center",
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #0078d4 0%, #106ebe 40%, #005a9e 100%)",
+    backgroundColor: "#0a0c10",
   },
   card: {
     ...shorthands.padding("48px"),
-    ...shorthands.borderRadius("16px"),
+    ...shorthands.borderRadius("8px"),
     maxWidth: "420px",
     width: "100%",
     textAlign: "center",
-    boxShadow: tokens.shadow16,
+    border: `1px solid #252a36`,
+    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
   },
   brandIcon: {
     width: "64px",
     height: "64px",
-    ...shorthands.borderRadius("16px"),
-    backgroundColor: "#0078d4",
+    ...shorthands.borderRadius("8px"),
+    backgroundColor: "#4a9eff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -58,9 +59,9 @@ export const LoginPage: React.FC = () => {
   return (
     <div className={styles.root}>
       <Card className={styles.card}>
-        <div className={styles.brandIcon}>DV</div>
+        <div className={styles.brandIcon}>OG</div>
         <Text size={700} weight="bold" block>
-          Dataverse App
+          O'G Central
         </Text>
         <Text
           size={400}
@@ -70,7 +71,7 @@ export const LoginPage: React.FC = () => {
             marginTop: 12,
           }}
         >
-          Manage your customers, high-value activities, and action items — all in one place.
+          Manage your accounts, activities, and action items — all in one place.
         </Text>
         <Button
           className={styles.signInButton}

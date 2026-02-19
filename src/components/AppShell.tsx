@@ -41,8 +41,8 @@ import { useTheme } from "../context/ThemeContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { CopilotChat } from "./CopilotChat";
 
-const SIDEBAR_WIDTH = 195;
-const SIDEBAR_COLLAPSED = 56;
+const SIDEBAR_WIDTH = 140;
+const SIDEBAR_COLLAPSED = 48;
 
 const useStyles = makeStyles({
   root: {
@@ -54,7 +54,7 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     backgroundColor: tokens.colorNeutralBackground1,
-    boxShadow: tokens.shadow4,
+    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
     transition: "width 0.2s ease",
     overflow: "hidden",
     zIndex: 10,
@@ -71,44 +71,45 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    ...shorthands.padding("16px", "12px"),
-    minHeight: "56px",
+    ...shorthands.padding("12px", "10px"),
+    minHeight: "48px",
   },
   brandArea: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("10px"),
+    ...shorthands.gap("8px"),
     overflow: "hidden",
     whiteSpace: "nowrap",
   },
   brandIcon: {
-    width: "32px",
-    height: "32px",
+    width: "28px",
+    height: "28px",
     flexShrink: 0,
   },
   navSection: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.padding("8px"),
-    ...shorthands.gap("2px"),
+    ...shorthands.padding("6px"),
+    ...shorthands.gap("1px"),
     flexGrow: 1,
   },
   navItem: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("12px"),
-    ...shorthands.padding("10px", "12px"),
-    ...shorthands.borderRadius("8px"),
+    ...shorthands.gap("8px"),
+    ...shorthands.padding("7px", "10px"),
+    ...shorthands.borderRadius("6px"),
     cursor: "pointer",
     border: "none",
     backgroundColor: "transparent",
     color: tokens.colorNeutralForeground2,
+    fontFamily: tokens.fontFamilyBase,
     transition: "all 0.15s ease",
     overflow: "hidden",
     whiteSpace: "nowrap",
     width: "100%",
     textAlign: "left",
-    fontSize: "14px",
+    fontSize: "13px",
     ":hover": {
       backgroundColor: tokens.colorNeutralBackground1Hover,
       color: tokens.colorNeutralForeground1,
@@ -125,19 +126,19 @@ const useStyles = makeStyles({
   },
   navIcon: {
     flexShrink: 0,
-    fontSize: "20px",
+    fontSize: "18px",
     display: "flex",
     alignItems: "center",
   },
   bottomSection: {
-    ...shorthands.padding("8px"),
+    ...shorthands.padding("6px"),
     marginTop: "auto",
   },
   userArea: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("10px"),
-    ...shorthands.padding("10px", "12px"),
+    ...shorthands.gap("8px"),
+    ...shorthands.padding("8px", "10px"),
     overflow: "hidden",
     whiteSpace: "nowrap",
   },
@@ -151,14 +152,14 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    ...shorthands.padding("12px", "24px"),
+    ...shorthands.padding("10px", "24px"),
     backgroundColor: tokens.colorNeutralBackground1,
-    boxShadow: tokens.shadow2,
-    minHeight: "56px",
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    minHeight: "48px",
   },
   pageContent: {
     flexGrow: 1,
-    ...shorthands.padding("24px"),
+    ...shorthands.padding("20px"),
     overflow: "auto",
   },
   themeToggle: {
@@ -167,15 +168,16 @@ const useStyles = makeStyles({
     ...shorthands.gap("8px"),
   },
   sectionLabel: {
-    ...shorthands.padding("8px", "12px", "4px"),
-    fontSize: "11px",
+    ...shorthands.padding("8px", "10px", "4px"),
+    fontSize: "10px",
     fontWeight: "600",
+    fontFamily: tokens.fontFamilyMonospace,
     color: tokens.colorNeutralForeground3,
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
+    letterSpacing: "1.5px",
   },
   sectionDivider: {
-    ...shorthands.margin("8px", "0"),
+    ...shorthands.margin("6px", "0"),
   },
 });
 
@@ -321,12 +323,12 @@ export const AppShell: React.FC = () => {
             <svg className={styles.brandIcon} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="shield-bg" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: "#0078d4" }} />
-                  <stop offset="100%" style={{ stopColor: "#004578" }} />
+                  <stop offset="0%" style={{ stopColor: "#4a9eff" }} />
+                  <stop offset="100%" style={{ stopColor: "#174f9d" }} />
                 </linearGradient>
               </defs>
               <path d="M32 2 L58 14 V36 C58 50 46 60 32 62 C18 60 6 50 6 36 V14 Z" fill="url(#shield-bg)" stroke="#fff" strokeWidth="2" />
-              <text x="32" y="44" fontFamily="Segoe UI,Arial,sans-serif" fontSize="26" fontWeight="800" fill="white" textAnchor="middle" letterSpacing="-1">OG</text>
+              <text x="32" y="44" fontFamily="DM Sans,Arial,sans-serif" fontSize="26" fontWeight="800" fill="white" textAnchor="middle" letterSpacing="-1">OG</text>
             </svg>
             {expanded && (
               <Text weight="semibold" size={400}>

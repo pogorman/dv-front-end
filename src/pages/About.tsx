@@ -14,12 +14,14 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("24px"),
+    ...shorthands.gap("20px"),
     maxWidth: "720px",
   },
   card: {
     ...shorthands.padding("24px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
   },
   row: {
     display: "flex",
@@ -29,6 +31,8 @@ const useStyles = makeStyles({
   label: {
     color: tokens.colorNeutralForeground3,
     minWidth: "160px",
+    fontFamily: tokens.fontFamilyMonospace,
+    fontSize: "12px",
   },
 });
 

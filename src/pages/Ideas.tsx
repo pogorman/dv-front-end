@@ -48,7 +48,7 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("20px"),
+    ...shorthands.gap("16px"),
   },
   toolbar: {
     display: "flex",
@@ -66,15 +66,16 @@ const useStyles = makeStyles({
     ...shorthands.gap("16px"),
   },
   ideaCard: {
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.padding("16px"),
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
     height: "200px",
     display: "flex",
     flexDirection: "column",
-    transition: "box-shadow 0.15s ease, transform 0.15s ease",
+    transition: "background-color 0.15s ease",
     ":hover": {
-      boxShadow: tokens.shadow8,
-      transform: "translateY(-2px)",
+      backgroundColor: tokens.colorNeutralBackground1Hover,
     },
   },
   cardBody: {
@@ -495,7 +496,7 @@ export const Ideas: React.FC = () => {
         </div>
       ) : filtered.length === 0 ? (
         <div className={styles.emptyState}>
-          <Lightbulb24Filled style={{ fontSize: 48, color: "#f5a623", marginBottom: 16 }} />
+          <Lightbulb24Filled style={{ fontSize: 48, color: "#fbbf24", marginBottom: 16 }} />
           <Subtitle1>No ideas found</Subtitle1>
           <Caption1 style={{ marginTop: 8 }}>
             Create your first idea to start tracking.

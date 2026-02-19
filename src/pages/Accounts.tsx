@@ -63,7 +63,7 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("20px"),
+    ...shorthands.gap("16px"),
   },
   toolbar: {
     display: "flex",
@@ -76,8 +76,10 @@ const useStyles = makeStyles({
     minWidth: "280px",
   },
   card: {
-    ...shorthands.padding("20px"),
-    ...shorthands.borderRadius("12px"),
+    ...shorthands.padding("16px"),
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    boxShadow: "none",
   },
   formField: {
     display: "flex",
