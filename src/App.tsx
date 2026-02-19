@@ -109,7 +109,7 @@ const ogDarkTheme = {
   shadow28: "0 14px 28px rgba(0,0,0,0.4)",
   shadow64: "0 32px 64px rgba(0,0,0,0.5)",
   // Font
-  fontFamilyBase: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamilyBase: "'JetBrains Mono', monospace",
   fontFamilyMonospace: "'JetBrains Mono', monospace",
 };
 
@@ -128,7 +128,7 @@ const ogLightTheme = {
   colorBrandForegroundLink: "#1565c0",
   colorNeutralStroke1: "#dcdee3",
   colorNeutralStroke2: "#ecedf0",
-  fontFamilyBase: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamilyBase: "'JetBrains Mono', monospace",
   fontFamilyMonospace: "'JetBrains Mono', monospace",
 };
 

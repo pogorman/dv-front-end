@@ -11,8 +11,8 @@ Internal business tool - React SPA that interfaces with Microsoft Dataverse via 
 - **MSAL** (@azure/msal-react) for Azure AD authentication
 - **React Router v7** for navigation
 - **Dataverse Web API** for backend data
-- **Fonts**: DM Sans (body via Google Fonts), JetBrains Mono (monospace labels/metadata)
-- **Theme**: Custom `ogBrand` palette based on `#4a9eff` blue. Dark theme (`ogDarkTheme`) and light theme (`ogLightTheme`) with comprehensive token overrides in `App.tsx`. Design language: subtle 1px borders over shadows, 8px border-radius cards, monospace uppercase section headers.
+- **Font**: JetBrains Mono everywhere (loaded via Google Fonts, set as both `fontFamilyBase` and `fontFamilyMonospace` in theme tokens)
+- **Theme**: Custom `ogBrand` palette based on `#4a9eff` blue. Dark theme (`ogDarkTheme`) and light theme (`ogLightTheme`) with comprehensive token overrides in `App.tsx`. Design language: subtle 1px borders over shadows, 8px border-radius cards, uppercase section headers with letter-spacing.
 
 ## Project Structure
 

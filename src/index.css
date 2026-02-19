@@ -10,8 +10,8 @@ body,
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, Roboto,
-    "Helvetica Neue", sans-serif;
+  font-family: "JetBrains Mono", -apple-system, BlinkMacSystemFont, Roboto,
+    "Helvetica Neue", monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
