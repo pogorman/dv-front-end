@@ -204,6 +204,32 @@ const dashboardItem: NavItem = {
 
 const navSections: NavSection[] = [
   {
+    label: "Activity",
+    items: [
+      {
+        key: "tasks",
+        label: "Action Items",
+        path: "/tasks",
+        icon: <CheckboxChecked24Regular />,
+        iconActive: <CheckboxChecked24Filled />,
+      },
+      {
+        key: "ideas",
+        label: "Ideas",
+        path: "/ideas",
+        icon: <LightbulbFilament24Regular />,
+        iconActive: <LightbulbFilament24Filled />,
+      },
+      {
+        key: "impacts",
+        label: "Impacts",
+        path: "/impacts",
+        icon: <Flash24Regular />,
+        iconActive: <Flash24Filled />,
+      },
+    ],
+  },
+  {
     label: "Core",
     items: [
       {
@@ -233,32 +259,6 @@ const navSections: NavSection[] = [
         path: "/summaries",
         icon: <PeopleTeam24Regular />,
         iconActive: <PeopleTeam24Filled />,
-      },
-    ],
-  },
-  {
-    label: "Activity",
-    items: [
-      {
-        key: "tasks",
-        label: "Action Items",
-        path: "/tasks",
-        icon: <CheckboxChecked24Regular />,
-        iconActive: <CheckboxChecked24Filled />,
-      },
-      {
-        key: "ideas",
-        label: "Ideas",
-        path: "/ideas",
-        icon: <LightbulbFilament24Regular />,
-        iconActive: <LightbulbFilament24Filled />,
-      },
-      {
-        key: "impacts",
-        label: "Impacts",
-        path: "/impacts",
-        icon: <Flash24Regular />,
-        iconActive: <Flash24Filled />,
       },
     ],
   },
