@@ -60,7 +60,7 @@ import {
   createImpact,
   createMeetingSummary,
   deactivateActionItem,
-  deleteIdea,
+  deactivateIdea,
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
@@ -415,27 +415,27 @@ export const Dashboard: React.FC = () => {
     setParkedItems(getParkedItems());
   };
 
-  // Dashboard delete/deactivate handler
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" } | null>(null);
-  const handleDashboardDelete = async () => {
-    if (!deleteConfirm) return;
+  // Dashboard deactivate handler
+  const [deactivateConfirm, setDeactivateConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" } | null>(null);
+  const handleDashboardDeactivate = async () => {
+    if (!deactivateConfirm) return;
     setSaving(true);
     try {
-      if (deleteConfirm.type === "actionitem") {
-        await deactivateActionItem(deleteConfirm.id);
+      if (deactivateConfirm.type === "actionitem") {
+        await deactivateActionItem(deactivateConfirm.id);
         getActionItems().then(setActionItems);
       } else {
-        await deleteIdea(deleteConfirm.id);
+        await deactivateIdea(deactivateConfirm.id);
         getIdeas().then(setIdeas);
       }
-      unparkItem(deleteConfirm.id);
+      unparkItem(deactivateConfirm.id);
       setParkedItems(getParkedItems());
-      notify(deleteConfirm.type === "actionitem" ? `Deactivated "${deleteConfirm.name}"` : `Deleted "${deleteConfirm.name}"`, "success");
+      notify(`Deactivated "${deactivateConfirm.name}"`, "success");
     } catch {
-      notify(deleteConfirm.type === "actionitem" ? "Failed to deactivate record" : "Failed to delete record", "error");
+      notify("Failed to deactivate record", "error");
     } finally {
       setSaving(false);
-      setDeleteConfirm(null);
+      setDeactivateConfirm(null);
     }
   };
 
@@ -757,7 +757,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
-                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -792,7 +792,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
-                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -841,7 +841,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
-                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -875,7 +875,7 @@ export const Dashboard: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                               title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                             />
-                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
                             {t.tdvsp_date && (
                               <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
                                 {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
@@ -939,7 +939,7 @@ export const Dashboard: React.FC = () => {
                           onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
                           title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
                         />
-                        <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Delete" />
+                        <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
                         {t.tdvsp_date && (
                           <Badge
                             appearance="filled"
@@ -1017,7 +1017,7 @@ export const Dashboard: React.FC = () => {
                         title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
                         style={{ flexShrink: 0 }}
                       />
-                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Delete" style={{ flexShrink: 0 }} />
+                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" style={{ flexShrink: 0 }} />
                     </div>
                   </React.Fragment>
                 ))
@@ -1549,18 +1549,18 @@ export const Dashboard: React.FC = () => {
         </DialogSurface>
       </Dialog>
 
-      {/* Delete/Deactivate Confirmation Dialog */}
-      <Dialog open={!!deleteConfirm} onOpenChange={(_, d) => { if (!d.open) setDeleteConfirm(null); }}>
+      {/* Deactivate Confirmation Dialog */}
+      <Dialog open={!!deactivateConfirm} onOpenChange={(_, d) => { if (!d.open) setDeactivateConfirm(null); }}>
         <DialogSurface>
           <DialogBody>
-            <DialogTitle>{deleteConfirm?.type === "actionitem" ? "Deactivate Record" : "Delete Record"}</DialogTitle>
+            <DialogTitle>Deactivate Record</DialogTitle>
             <DialogContent>
-              Are you sure you want to {deleteConfirm?.type === "actionitem" ? "deactivate" : "delete"} <strong>{deleteConfirm?.name}</strong>?{deleteConfirm?.type !== "actionitem" && " This cannot be undone."}
+              Are you sure you want to deactivate <strong>{deactivateConfirm?.name}</strong>?
             </DialogContent>
             <DialogActions>
-              <Button appearance="secondary" onClick={() => setDeleteConfirm(null)} disabled={saving}>Cancel</Button>
-              <Button appearance="primary" onClick={handleDashboardDelete} disabled={saving} style={{ backgroundColor: deleteConfirm?.type === "actionitem" ? undefined : "#d13438" }}>
-                {saving ? <><Spinner size="tiny" /> {deleteConfirm?.type === "actionitem" ? "Deactivating..." : "Deleting..."}</> : deleteConfirm?.type === "actionitem" ? "Deactivate" : "Delete"}
+              <Button appearance="secondary" onClick={() => setDeactivateConfirm(null)} disabled={saving}>Cancel</Button>
+              <Button appearance="primary" onClick={handleDashboardDeactivate} disabled={saving}>
+                {saving ? <><Spinner size="tiny" /> Deactivating...</> : "Deactivate"}
               </Button>
             </DialogActions>
           </DialogBody>

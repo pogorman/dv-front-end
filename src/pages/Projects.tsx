@@ -36,7 +36,7 @@ import {
   getProjects,
   createProject,
   updateProject,
-  deleteProject,
+  deactivateProject,
   getAccounts,
 } from "../services/dataverseService";
 import { NotesTimeline } from "../components/NotesTimeline";
@@ -277,15 +277,15 @@ export const Projects: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     setSaving(true);
     try {
-      await deleteProject(id);
+      await deactivateProject(id);
       loadProjects();
-      notify("Project deleted");
+      notify("Project deactivated");
     } catch (err) {
-      console.error("Failed to delete project:", err);
-      notify("Failed to delete project", undefined, "error");
+      console.error("Failed to deactivate project:", err);
+      notify("Failed to deactivate project", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -440,10 +440,10 @@ export const Projects: React.FC = () => {
                     appearance="subtle"
                     icon={<Delete24Regular />}
                     size="small"
-                    title="Delete"
+                    title="Deactivate"
                     disabled={saving}
                     onClick={() =>
-                      project.tdvsp_projectid && handleDelete(project.tdvsp_projectid)
+                      project.tdvsp_projectid && handleDeactivate(project.tdvsp_projectid)
                     }
                   />
                 </div>

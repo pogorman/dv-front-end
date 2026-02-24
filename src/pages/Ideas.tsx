@@ -37,7 +37,7 @@ import {
   getIdeas,
   createIdea,
   updateIdea,
-  deleteIdea,
+  deactivateIdea,
   getAccounts,
   getCustomers,
 } from "../services/dataverseService";
@@ -343,15 +343,15 @@ export const Ideas: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     setSaving(true);
     try {
-      await deleteIdea(id);
+      await deactivateIdea(id);
       loadIdeas();
-      notify("Idea deleted");
+      notify("Idea deactivated");
     } catch (err) {
-      console.error("Failed to delete idea:", err);
-      notify("Failed to delete idea", undefined, "error");
+      console.error("Failed to deactivate idea:", err);
+      notify("Failed to deactivate idea", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -526,10 +526,10 @@ export const Ideas: React.FC = () => {
                     appearance="subtle"
                     icon={<Delete24Regular />}
                     size="small"
-                    title="Delete"
+                    title="Deactivate"
                     disabled={saving}
                     onClick={() =>
-                      idea.tdvsp_ideaid && handleDelete(idea.tdvsp_ideaid)
+                      idea.tdvsp_ideaid && handleDeactivate(idea.tdvsp_ideaid)
                     }
                   />
                 </div>

@@ -41,7 +41,7 @@ import {
   getCustomers,
   createCustomer,
   updateCustomer,
-  deleteCustomer,
+  deactivateContact,
 } from "../services/dataverseService";
 
 const useStyles = makeStyles({
@@ -176,12 +176,12 @@ export const Customers: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     try {
-      await deleteCustomer(id);
+      await deactivateContact(id);
       loadCustomers();
     } catch (err) {
-      console.error("Failed to delete customer:", err);
+      console.error("Failed to deactivate customer:", err);
     }
   };
 
@@ -242,8 +242,8 @@ export const Customers: React.FC = () => {
             appearance="subtle"
             icon={<Delete24Regular />}
             size="small"
-            title="Delete"
-            onClick={() => item.contactid && handleDelete(item.contactid)}
+            title="Deactivate"
+            onClick={() => item.contactid && handleDeactivate(item.contactid)}
           />
         </div>
       ),

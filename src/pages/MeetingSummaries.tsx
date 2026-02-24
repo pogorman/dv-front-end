@@ -39,7 +39,7 @@ import {
   getMeetingSummaries,
   createMeetingSummary,
   updateMeetingSummary,
-  deleteMeetingSummary,
+  deactivateMeetingSummary,
   getAccounts,
 } from "../services/dataverseService";
 import { useNotification } from "../context/NotificationContext";
@@ -288,15 +288,15 @@ export const MeetingSummaries: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     setSaving(true);
     try {
-      await deleteMeetingSummary(id);
+      await deactivateMeetingSummary(id);
       loadSummaries();
-      notify("Meeting summary deleted");
+      notify("Meeting summary deactivated");
     } catch (err) {
-      console.error("Failed to delete meeting summary:", err);
-      notify("Failed to delete meeting summary", undefined, "error");
+      console.error("Failed to deactivate meeting summary:", err);
+      notify("Failed to deactivate meeting summary", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -438,10 +438,10 @@ export const MeetingSummaries: React.FC = () => {
                     appearance="subtle"
                     icon={<Delete24Regular />}
                     size="small"
-                    title="Delete"
+                    title="Deactivate"
                     disabled={saving}
                     onClick={() =>
-                      summary.tdvsp_meetingsummaryid && handleDelete(summary.tdvsp_meetingsummaryid)
+                      summary.tdvsp_meetingsummaryid && handleDeactivate(summary.tdvsp_meetingsummaryid)
                     }
                   />
                 </div>

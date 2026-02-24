@@ -39,7 +39,7 @@ import {
   getImpacts,
   createImpact,
   updateImpact,
-  deleteImpact,
+  deactivateImpact,
   getAccounts,
 } from "../services/dataverseService";
 import { useNotification } from "../context/NotificationContext";
@@ -276,15 +276,15 @@ export const Impacts: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     setSaving(true);
     try {
-      await deleteImpact(id);
+      await deactivateImpact(id);
       loadImpacts();
-      notify("Impact deleted");
+      notify("Impact deactivated");
     } catch (err) {
-      console.error("Failed to delete impact:", err);
-      notify("Failed to delete impact", undefined, "error");
+      console.error("Failed to deactivate impact:", err);
+      notify("Failed to deactivate impact", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -423,10 +423,10 @@ export const Impacts: React.FC = () => {
                     appearance="subtle"
                     icon={<Delete24Regular />}
                     size="small"
-                    title="Delete"
+                    title="Deactivate"
                     disabled={saving}
                     onClick={() =>
-                      impact.tdvsp_impactid && handleDelete(impact.tdvsp_impactid)
+                      impact.tdvsp_impactid && handleDeactivate(impact.tdvsp_impactid)
                     }
                   />
                 </div>

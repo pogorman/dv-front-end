@@ -46,7 +46,7 @@ import {
   getAccounts,
   createAccount,
   updateAccount,
-  deleteAccount,
+  deactivateAccount,
   getContactsByAccount,
   getActionItemsByAccount,
   getImpactsByAccount,
@@ -284,15 +284,15 @@ export const Accounts: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     setSaving(true);
     try {
-      await deleteAccount(id);
+      await deactivateAccount(id);
       loadAccounts();
-      notify("Account deleted");
+      notify("Account deactivated");
     } catch (err) {
-      console.error("Failed to delete account:", err);
-      notify("Failed to delete account", undefined, "error");
+      console.error("Failed to deactivate account:", err);
+      notify("Failed to deactivate account", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -488,9 +488,9 @@ export const Accounts: React.FC = () => {
             appearance="subtle"
             icon={<Delete24Regular />}
             size="small"
-            title="Delete"
+            title="Deactivate"
             disabled={saving}
-            onClick={() => item.accountid && handleDelete(item.accountid)}
+            onClick={() => item.accountid && handleDeactivate(item.accountid)}
           />
         </div>
       ),

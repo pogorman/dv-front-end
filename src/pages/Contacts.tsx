@@ -41,7 +41,7 @@ import {
   getCustomers,
   createCustomer,
   updateCustomer,
-  deleteCustomer,
+  deactivateContact,
   getAccounts,
   getIdeasByContact,
 } from "../services/dataverseService";
@@ -310,15 +310,15 @@ export const Contacts: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     setSaving(true);
     try {
-      await deleteCustomer(id);
+      await deactivateContact(id);
       loadContacts();
-      notify("Contact deleted");
+      notify("Contact deactivated");
     } catch (err) {
-      console.error("Failed to delete contact:", err);
-      notify("Failed to delete contact", undefined, "error");
+      console.error("Failed to deactivate contact:", err);
+      notify("Failed to deactivate contact", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -387,9 +387,9 @@ export const Contacts: React.FC = () => {
             appearance="subtle"
             icon={<Delete24Regular />}
             size="small"
-            title="Delete"
+            title="Deactivate"
             disabled={saving}
-            onClick={() => item.contactid && handleDelete(item.contactid)}
+            onClick={() => item.contactid && handleDeactivate(item.contactid)}
           />
         </div>
       ),

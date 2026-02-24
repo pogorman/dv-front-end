@@ -473,13 +473,13 @@ async function apiRequest(endpoint: string, method: string = "GET", body?: unkno
 
 | Category | Functions |
 |----------|-----------|
-| Accounts | `getAccounts`, `createAccount`, `updateAccount`, `deleteAccount` |
-| Contacts | `getCustomers`, `createCustomer`, `updateCustomer`, `deleteCustomer` |
-| Action Items | `getActionItems`, `createActionItem`, `updateActionItem`, `deleteActionItem` |
-| Impacts | `getImpacts`, `createImpact`, `updateImpact`, `deleteImpact` |
-| Ideas | `getIdeas`, `createIdea`, `updateIdea`, `deleteIdea` |
-| Projects | `getProjects`, `createProject`, `updateProject`, `deleteProject` |
-| Meeting Summaries | `getMeetingSummaries`, `createMeetingSummary`, `updateMeetingSummary`, `deleteMeetingSummary` |
+| Accounts | `getAccounts`, `createAccount`, `updateAccount`, `deactivateAccount` |
+| Contacts | `getCustomers`, `createCustomer`, `updateCustomer`, `deactivateContact` |
+| Action Items | `getActionItems`, `createActionItem`, `updateActionItem`, `deactivateActionItem` |
+| Impacts | `getImpacts`, `createImpact`, `updateImpact`, `deactivateImpact` |
+| Ideas | `getIdeas`, `createIdea`, `updateIdea`, `deactivateIdea` |
+| Projects | `getProjects`, `createProject`, `updateProject`, `deactivateProject` |
+| Meeting Summaries | `getMeetingSummaries`, `createMeetingSummary`, `updateMeetingSummary`, `deactivateMeetingSummary` |
 | Annotations | `getAnnotations`, `createEntityAnnotation`, `deleteAnnotation`, `getAnnotationWithBody`, `getAnnotationsByIds` |
 | Related Records | `getContactsByAccount`, `getActivitiesByAccount`, `getActionItemsByAccount`, `getImpactsByAccount`, `getIdeasByAccount`, `getMeetingSummariesByAccount`, `getProjectsByAccount`, `getIdeasByContact` |
 
@@ -531,9 +531,9 @@ All pages follow consistent patterns:
 - **Fluent UI makeStyles** for scoped styles
 - **useState/useEffect** for data loading
 - **Search/filter** via text input
-- **Dialog-based CRUD** (New, View/inline Edit, Delete)
+- **Dialog-based CRUD** (New, View/inline Edit, Deactivate)
 - **Inline edit** in view dialogs — `isEditing` state toggles fields between read-only and editable; `openView` resets edit state to prevent leaking between records
-- **Save progress** — `saving` state disables buttons with spinner during save/update/delete, preventing double-submissions
+- **Save progress** — `saving` state disables buttons with spinner during save/update/deactivate, preventing double-submissions
 - **`?new=true` query parameter** to auto-open the create dialog
 - **Loading spinners** and **empty states** with icons
 
@@ -553,11 +553,11 @@ The landing page providing an at-a-glance overview.
    - Action Items (green) — total count
    - Ideas (amber) — total count
    - Impacts (red) — total count
-3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, overdue/upcoming badge, bookmark icon, and delete icon with confirmation. Only visible when matching items exist.
-4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, overdue/upcoming badge, bookmark icon, and delete icon with confirmation. Only visible when incomplete personal items exist.
+3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, overdue/upcoming badge, bookmark icon, and deactivate icon with confirmation. Only visible when matching items exist.
+4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, overdue/upcoming badge, bookmark icon, and deactivate icon with confirmation. Only visible when incomplete personal items exist.
 5. **Section Cards** (2-column grid, 180px max-height with scroll):
-   - **Action Items** — Latest 8 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete); bookmark and delete icons per item
-   - **Ideas** — Latest 8 items showing name, category, account on line 1; description preview on line 2; bookmark and delete icons per item
+   - **Action Items** — Latest 8 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete); bookmark and deactivate icons per item
+   - **Ideas** — Latest 8 items showing name, category, account on line 1; description preview on line 2; bookmark and deactivate icons per item
 
 **Right Sidebar (top to bottom):**
 7. **Parking Lot Panel** — Bookmarked items for quick access. Items can be parked from any dashboard list via the bookmark icon (Bookmark16Regular/Filled). Shows entity type label and item name. Click navigates to the record; X button removes from lot. Uses `parkingLot.ts` for localStorage persistence.
@@ -571,7 +571,7 @@ The landing page providing an at-a-glance overview.
 
 Full CRUD management for customer accounts.
 
-**Main View:** DataGrid with columns: Name (clickable), Parent Account, Actions (Edit, Delete)
+**Main View:** DataGrid with columns: Name (clickable), Parent Account, Actions (Edit, Deactivate)
 
 **View Dialog:** Three-column layout showing all related records:
 - **Column 1:** Contacts, Action Items, Ideas — each with inline "Add" buttons
@@ -862,7 +862,7 @@ The **sidebar** (left) organizes pages into sections:
 - **Personal** — Card (teal accent) showing all non-complete personal action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when personal items exist)
 - **Action Items** — Shows the 8 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete); 180px scrollable area
 - **Ideas** — Shows the 8 most recent ideas with category and account; 180px scrollable area
-- **Quick Delete** — Every item on the dashboard (Work, Personal, Action Items, Ideas) has a trash icon for quick deletion with an "Are you sure?" confirmation dialog
+- **Quick Deactivate** — Every item on the dashboard (Work, Personal, Action Items, Ideas) has a trash icon for quick deactivation with an "Are you sure?" confirmation dialog. Deactivation sets `statecode` to 1 (Inactive) rather than deleting the record.
 - **Parking Lot** (right sidebar, top) — Bookmark any item from Work, Personal, Action Items, or Ideas cards using the bookmark icon. Parked items appear here for quick access — click to navigate, X to remove.
 - **Pinned Notes** (right sidebar, bottom) — Appears when you have pinned notes; click to expand
 
@@ -967,7 +967,8 @@ src/
 - **Minimal abstractions** — straightforward code preferred over complex patterns
 - **makeStyles** for component-scoped styles (Griffel CSS-in-JS)
 - **Inline Edit Pattern** — View dialogs toggle between read-only and editable mode via `isEditing` state. `openView` resets `isEditing(false)` and `editingId(null)` to prevent edit state leaking between records.
-- **Save Progress Pattern** — All save/update/delete handlers use `saving` state: `setSaving(true)` at start, `setSaving(false)` in `finally`. Buttons show `disabled={saving}` with `<Spinner size="tiny" /> Saving...` to prevent double-submissions.
+- **Save Progress Pattern** — All save/update/deactivate handlers use `saving` state: `setSaving(true)` at start, `setSaving(false)` in `finally`. Buttons show `disabled={saving}` with `<Spinner size="tiny" /> Saving...` to prevent double-submissions.
+- **Deactivate Pattern** — All entity pages use deactivation (`statecode: 1`) instead of hard deletion. All fetch queries filter by `statecode eq 0` to show only active records. Annotations (notes) still use actual deletion.
 
 ### Adding a New Entity Page
 

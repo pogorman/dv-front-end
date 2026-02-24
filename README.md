@@ -40,9 +40,9 @@ npm test      # Run tests
 - **Dashboard** — Two-column layout with steel blue gradient Quick Create bar, 7 stat tiles, Work/Personal cards with top priority sections, Action Items/Ideas section cards, right sidebar with Parking Lot and Pinned Notes
 - **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, Impacts, and Meeting Summaries
 - **Inline Edit** — View dialogs toggle between read-only and editable mode; edit state resets cleanly between records
-- **Save Progress** — All save/update/delete operations show spinner and disable buttons to prevent double-submissions
+- **Save Progress** — All save/update/deactivate operations show spinner and disable buttons to prevent double-submissions
 - **Parking Lot** — Bookmark any dashboard item for quick access in a persistent sidebar panel (localStorage)
-- **Quick Delete** — Trash icon on every dashboard item with "Are you sure?" confirmation dialog
+- **Soft Delete** — All entities use deactivation (statecode=1) instead of hard deletion; trash icon on dashboard items shows "Are you sure?" confirmation dialog
 - **Account View** with 3-column related records layout (contacts, tasks, ideas, impacts, summaries, notes)
 - **Notes & Attachments** on Accounts, Action Items, Ideas, and Projects with file upload and pinning to dashboard
 - **Copilot Chat** — floating AI assistant (bottom-right) connected to Copilot Studio via SSO
