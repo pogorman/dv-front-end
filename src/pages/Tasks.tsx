@@ -44,7 +44,7 @@ import {
   getActionItems,
   createActionItem,
   updateActionItem,
-  deleteActionItem,
+  deactivateActionItem,
   getAccounts,
 } from "../services/dataverseService";
 import { NotesTimeline } from "../components/NotesTimeline";
@@ -318,15 +318,15 @@ export const Tasks: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     setSaving(true);
     try {
-      await deleteActionItem(id);
+      await deactivateActionItem(id);
       loadItems();
-      notify("Action item deleted");
+      notify("Action item deactivated");
     } catch (err) {
-      console.error("Failed to delete action item:", err);
-      notify("Failed to delete action item", undefined, "error");
+      console.error("Failed to deactivate action item:", err);
+      notify("Failed to deactivate action item", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -446,11 +446,11 @@ export const Tasks: React.FC = () => {
             appearance="subtle"
             icon={<Delete24Regular />}
             size="small"
-            title="Delete"
+            title="Deactivate"
             disabled={saving}
             onClick={() =>
               item.tdvsp_actionitemid &&
-              handleDelete(item.tdvsp_actionitemid)
+              handleDeactivate(item.tdvsp_actionitemid)
             }
           />
         </div>

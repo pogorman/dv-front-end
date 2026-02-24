@@ -156,7 +156,7 @@ export async function deleteActivity(id: string): Promise<void> {
 
 export async function getActionItems(): Promise<ActionItem[]> {
   const result = await apiRequest(
-    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype,createdon,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$orderby=tdvsp_date desc&$top=100"
+    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype,createdon,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$filter=statecode eq 0&$orderby=tdvsp_date desc&$top=100"
   );
   return result?.value ?? [];
 }
@@ -190,8 +190,8 @@ export async function updateActionItem(
   return apiRequest(`/tdvsp_actionitems(${id})`, "PATCH", item);
 }
 
-export async function deleteActionItem(id: string): Promise<void> {
-  await apiRequest(`/tdvsp_actionitems(${id})`, "DELETE");
+export async function deactivateActionItem(id: string): Promise<void> {
+  await apiRequest(`/tdvsp_actionitems(${id})`, "PATCH", { statecode: 1 });
 }
 
 // ─── Impacts (tdvsp_impact table) ───────────────────────────────────────────
@@ -347,7 +347,7 @@ export async function getActivitiesByAccount(accountId: string): Promise<HighVal
 
 export async function getActionItemsByAccount(accountId: string): Promise<ActionItem[]> {
   const result = await apiRequest(
-    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype&$filter=_tdvsp_customer_value eq ${accountId}&$orderby=tdvsp_date desc`
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype&$filter=_tdvsp_customer_value eq ${accountId} and statecode eq 0&$orderby=tdvsp_date desc`
   );
   return result?.value ?? [];
 }
@@ -384,7 +384,7 @@ export async function getActivitiesByContact(contactId: string): Promise<HighVal
 
 export async function getActionItemsByContact(contactId: string): Promise<ActionItem[]> {
   const result = await apiRequest(
-    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description&$filter=_tdvsp_contact_value eq ${contactId}&$orderby=tdvsp_date desc`
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description&$filter=_tdvsp_contact_value eq ${contactId} and statecode eq 0&$orderby=tdvsp_date desc`
   );
   return result?.value ?? [];
 }

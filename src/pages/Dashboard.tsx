@@ -59,7 +59,7 @@ import {
   createIdea,
   createImpact,
   createMeetingSummary,
-  deleteActionItem,
+  deactivateActionItem,
   deleteIdea,
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
@@ -415,14 +415,14 @@ export const Dashboard: React.FC = () => {
     setParkedItems(getParkedItems());
   };
 
-  // Dashboard delete handler
+  // Dashboard delete/deactivate handler
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" } | null>(null);
   const handleDashboardDelete = async () => {
     if (!deleteConfirm) return;
     setSaving(true);
     try {
       if (deleteConfirm.type === "actionitem") {
-        await deleteActionItem(deleteConfirm.id);
+        await deactivateActionItem(deleteConfirm.id);
         getActionItems().then(setActionItems);
       } else {
         await deleteIdea(deleteConfirm.id);
@@ -430,9 +430,9 @@ export const Dashboard: React.FC = () => {
       }
       unparkItem(deleteConfirm.id);
       setParkedItems(getParkedItems());
-      notify(`Deleted "${deleteConfirm.name}"`, "success");
+      notify(deleteConfirm.type === "actionitem" ? `Deactivated "${deleteConfirm.name}"` : `Deleted "${deleteConfirm.name}"`, "success");
     } catch {
-      notify("Failed to delete record", "error");
+      notify(deleteConfirm.type === "actionitem" ? "Failed to deactivate record" : "Failed to delete record", "error");
     } finally {
       setSaving(false);
       setDeleteConfirm(null);
@@ -1549,18 +1549,18 @@ export const Dashboard: React.FC = () => {
         </DialogSurface>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete/Deactivate Confirmation Dialog */}
       <Dialog open={!!deleteConfirm} onOpenChange={(_, d) => { if (!d.open) setDeleteConfirm(null); }}>
         <DialogSurface>
           <DialogBody>
-            <DialogTitle>Delete Record</DialogTitle>
+            <DialogTitle>{deleteConfirm?.type === "actionitem" ? "Deactivate Record" : "Delete Record"}</DialogTitle>
             <DialogContent>
-              Are you sure you want to delete <strong>{deleteConfirm?.name}</strong>? This cannot be undone.
+              Are you sure you want to {deleteConfirm?.type === "actionitem" ? "deactivate" : "delete"} <strong>{deleteConfirm?.name}</strong>?{deleteConfirm?.type !== "actionitem" && " This cannot be undone."}
             </DialogContent>
             <DialogActions>
               <Button appearance="secondary" onClick={() => setDeleteConfirm(null)} disabled={saving}>Cancel</Button>
-              <Button appearance="primary" onClick={handleDashboardDelete} disabled={saving} style={{ backgroundColor: "#d13438" }}>
-                {saving ? <><Spinner size="tiny" /> Deleting...</> : "Delete"}
+              <Button appearance="primary" onClick={handleDashboardDelete} disabled={saving} style={{ backgroundColor: deleteConfirm?.type === "actionitem" ? undefined : "#d13438" }}>
+                {saving ? <><Spinner size="tiny" /> {deleteConfirm?.type === "actionitem" ? "Deactivating..." : "Deleting..."}</> : deleteConfirm?.type === "actionitem" ? "Deactivate" : "Delete"}
               </Button>
             </DialogActions>
           </DialogBody>
