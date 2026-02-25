@@ -1232,7 +1232,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Add Action Item Dialog */}
       <Dialog open={addTaskOpen} onOpenChange={(_, d) => setAddTaskOpen(d.open)}>
-        <DialogSurface>
+        <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
           <DialogBody>
             <DialogTitle>New Action Item</DialogTitle>
             <DialogContent>

@@ -472,7 +472,7 @@ export const Tasks: React.FC = () => {
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             New Action Item
           </Button>
-          <DialogSurface>
+          <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
             <DialogBody>
               <DialogTitle>New Action Item</DialogTitle>
               <DialogContent>
