@@ -26,12 +26,14 @@ export function getParkedItems(): ParkedItemRef[] {
   }
 }
 
+export const MAX_PARKED_ITEMS = 5;
+
 export function parkItem(ref: ParkedItemRef): void {
   const current = getParkedItems();
-  if (!current.find((item) => item.id === ref.id && item.entityType === ref.entityType)) {
-    current.push(ref);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
-  }
+  if (current.find((item) => item.id === ref.id && item.entityType === ref.entityType)) return;
+  if (current.length >= MAX_PARKED_ITEMS) return;
+  current.push(ref);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
 }
 
 export function unparkItem(id: string): void {

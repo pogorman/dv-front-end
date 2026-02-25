@@ -39,7 +39,7 @@ import {
   ArrowMaximize16Regular,
   Bookmark16Regular,
   Bookmark16Filled,
-  Bookmark24Regular,
+  VehicleCarParking24Filled,
   Delete16Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
@@ -65,7 +65,7 @@ import {
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
-import { getParkedItems, parkItem, unparkItem, isItemParked, ParkedItemRef } from "../utils/parkingLot";
+import { getParkedItems, parkItem, unparkItem, isItemParked, ParkedItemRef, MAX_PARKED_ITEMS } from "../utils/parkingLot";
 import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
@@ -153,38 +153,54 @@ const useStyles = makeStyles({
     ...shorthands.padding("0"),
   },
   parkingLotPanel: {
-    ...shorthands.padding("12px"),
+    ...shorthands.padding("2px", "12px"),
     ...shorthands.borderRadius("8px"),
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "row" as const,
+    alignItems: "center",
+    ...shorthands.gap("12px"),
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     boxShadow: "none",
+    overflow: "hidden" as const,
   },
   parkingLotHeader: {
     display: "flex",
     alignItems: "center",
     ...shorthands.gap("8px"),
-    marginBottom: "8px",
+    flexShrink: 0,
   },
   parkingLotGrid: {
     display: "flex",
-    flexWrap: "wrap" as const,
     ...shorthands.gap("6px"),
-    maxHeight: "120px",
-    overflowY: "auto" as const,
+    flexGrow: 1,
+    overflow: "hidden" as const,
   },
   parkingLotItem: {
     display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("4px"),
-    ...shorthands.padding("4px", "10px"),
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    ...shorthands.gap("2px"),
+    ...shorthands.padding("3px", "3px", "3px", "7px"),
+    width: "160px",
+    height: "calc(100% - 0px)",
+    minHeight: "27px",
     backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("6px"),
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
     cursor: "pointer",
     transition: "background-color 0.15s ease",
+    position: "relative" as const,
+    textAlign: "center" as const,
+    flexShrink: 0,
     ":hover": {
       backgroundColor: tokens.colorNeutralBackground2Hover,
     },
+  },
+  parkingLotItemDismiss: {
+    position: "absolute" as const,
+    top: "2px",
+    right: "2px",
   },
   pinnedPanel: {
     ...shorthands.padding("12px"),
@@ -727,6 +743,43 @@ export const Dashboard: React.FC = () => {
       </div>
 
 
+      {/* Parking Lot — full width above tiles */}
+        {parkedItems.length > 0 && (
+          <Card className={styles.parkingLotPanel}>
+            <div className={styles.parkingLotHeader}>
+              <VehicleCarParking24Filled style={{ color: "#f87171" }} />
+              <Subtitle1 style={{ flexGrow: 1 }}>Parking Lot</Subtitle1>
+            </div>
+            <div className={styles.parkingLotGrid}>
+              {parkedItems.map((item) => (
+                <div
+                  key={`${item.entityType}-${item.id}`}
+                  className={styles.parkingLotItem}
+                  onClick={() => navigate(item.route)}
+                >
+                  <div className={styles.parkingLotItemDismiss}>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      icon={<Dismiss24Regular />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        unparkItem(item.id);
+                        setParkedItems(getParkedItems());
+                      }}
+                      title="Remove"
+                    />
+                  </div>
+                  <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "20px" }}>{item.name}</Text>
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                    {parkedEntityLabels[item.entityType]}
+                  </Caption1>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
       {/* Work, Ideas & Personal Cards — three columns */}
         <div className={styles.highlightRow}>
           <Card className={styles.topPriorityCard}>
@@ -944,40 +997,6 @@ export const Dashboard: React.FC = () => {
             </div>
           </Card>
         </div>
-        {/* Parking Lot — full width below tiles */}
-        {parkedItems.length > 0 && (
-          <Card className={styles.parkingLotPanel}>
-            <div className={styles.parkingLotHeader}>
-              <Bookmark24Regular />
-              <Subtitle1 style={{ flexGrow: 1 }}>Parking Lot</Subtitle1>
-            </div>
-            <div className={styles.parkingLotGrid}>
-              {parkedItems.map((item) => (
-                <div
-                  key={`${item.entityType}-${item.id}`}
-                  className={styles.parkingLotItem}
-                  onClick={() => navigate(item.route)}
-                >
-                  <Text size={200} weight="semibold" truncate>{item.name}</Text>
-                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                    {parkedEntityLabels[item.entityType]}
-                  </Caption1>
-                  <Button
-                    appearance="subtle"
-                    size="small"
-                    icon={<Dismiss24Regular />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      unparkItem(item.id);
-                      setParkedItems(getParkedItems());
-                    }}
-                    title="Remove"
-                  />
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
         </div>
 
         {/* Right Sidebar — Pinned Notes only */}
