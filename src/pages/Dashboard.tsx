@@ -157,7 +157,6 @@ const useStyles = makeStyles({
     ...shorthands.borderRadius("8px"),
     display: "flex",
     flexDirection: "column",
-    flexShrink: 0,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     boxShadow: "none",
   },
@@ -167,11 +166,18 @@ const useStyles = makeStyles({
     ...shorthands.gap("8px"),
     marginBottom: "8px",
   },
+  parkingLotGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("6px"),
+    maxHeight: "120px",
+    overflowY: "auto" as const,
+  },
   parkingLotItem: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    ...shorthands.padding("6px", "8px"),
+    ...shorthands.gap("4px"),
+    ...shorthands.padding("4px", "10px"),
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRadius("6px"),
     cursor: "pointer",
@@ -705,7 +711,7 @@ export const Dashboard: React.FC = () => {
           <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddAccountOpen(true)}>Account</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddContactOpen(true)}>Contact</Button>
         </div>
-        {(parkedItems.length > 0 || pinnedRefs.length > 0) && (
+        {pinnedRefs.length > 0 && (
           <Button
             appearance="subtle"
             size="small"
@@ -938,46 +944,45 @@ export const Dashboard: React.FC = () => {
             </div>
           </Card>
         </div>
+        {/* Parking Lot — full width below tiles */}
+        {parkedItems.length > 0 && (
+          <Card className={styles.parkingLotPanel}>
+            <div className={styles.parkingLotHeader}>
+              <Bookmark24Regular />
+              <Subtitle1 style={{ flexGrow: 1 }}>Parking Lot</Subtitle1>
+            </div>
+            <div className={styles.parkingLotGrid}>
+              {parkedItems.map((item) => (
+                <div
+                  key={`${item.entityType}-${item.id}`}
+                  className={styles.parkingLotItem}
+                  onClick={() => navigate(item.route)}
+                >
+                  <Text size={200} weight="semibold" truncate>{item.name}</Text>
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                    {parkedEntityLabels[item.entityType]}
+                  </Caption1>
+                  <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={<Dismiss24Regular />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      unparkItem(item.id);
+                      setParkedItems(getParkedItems());
+                    }}
+                    title="Remove"
+                  />
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
         </div>
 
-        {/* Right Sidebar */}
-        {(parkedItems.length > 0 || pinnedRefs.length > 0) && (
+        {/* Right Sidebar — Pinned Notes only */}
+        {pinnedRefs.length > 0 && (
           <div className={`${styles.rightSidebar} ${!rightPanelOpen ? styles.rightSidebarCollapsed : ""}`}>
-            {parkedItems.length > 0 && (
-              <Card className={styles.parkingLotPanel}>
-                <div className={styles.parkingLotHeader}>
-                  <Bookmark24Regular />
-                  <Subtitle1 style={{ flexGrow: 1 }}>Parking Lot</Subtitle1>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {parkedItems.map((item) => (
-                    <div
-                      key={`${item.entityType}-${item.id}`}
-                      className={styles.parkingLotItem}
-                      onClick={() => navigate(item.route)}
-                    >
-                      <div style={{ minWidth: 0, overflow: "hidden" }}>
-                        <Text weight="semibold" block truncate>{item.name}</Text>
-                        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                          {parkedEntityLabels[item.entityType]}
-                        </Caption1>
-                      </div>
-                      <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<Dismiss24Regular />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          unparkItem(item.id);
-                          setParkedItems(getParkedItems());
-                        }}
-                        title="Remove"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
             {pinnedRefs.length > 0 && (
               <Card className={styles.pinnedPanel}>
                 <div className={styles.pinnedHeader}>

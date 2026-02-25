@@ -96,14 +96,14 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (260px, collapsible). Right sidebar spans full height, toggle button in quick-create bar persists open/closed state to `localStorage("og-right-panel-open")`. Layout from top to bottom in main column:
-  1. **Quick Create Bar** - Subtle surface background with border, monospace chip-style pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Panel toggle button on the right. Save buttons disable with spinner during save.
+- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (260px, collapsible, pinned notes only). Toggle button in quick-create bar persists open/closed state to `localStorage("og-right-panel-open")`. Layout from top to bottom in main column:
+  1. **Quick Create Bar** - Subtle surface background with border, monospace chip-style pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Panel toggle button on the right (only when pinned notes exist). Save buttons disable with spinner during save.
   2. **Three-Column Cards** (equal width, full width of main column) — Always visible (show empty state when no data):
      - **Work** (red `#f87171` accent, Briefcase icon) — all non-complete work action items, "Top Priority" sub-section at top, max-height with scroll, maximize/bookmark/deactivate icons per item.
      - **Ideas** (purple `#a78bfa` accent, LightbulbFilament icon) — all ideas with category + account subtitle, maximize/bookmark/deactivate icons per item.
      - **Personal** (cyan `#22d3ee` accent, Home icon) — all non-complete personal action items, "Top Priority" sub-section at top, max-height with scroll, maximize/bookmark/deactivate icons per item.
-  Right sidebar (top to bottom):
-  3. **Parking Lot Panel** - Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X removes. `parkingLot.ts` stores refs in localStorage.
+  3. **Parking Lot Panel** - Full-width below the three cards, flex-wrapped horizontal chip layout with 120px max-height (scrollable). Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X removes. `parkingLot.ts` stores refs in localStorage.
+  Right sidebar (pinned notes only):
   4. **Pinned Notes Panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by dashboard section "New" buttons). Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items and Work/Personal card items).
@@ -112,7 +112,7 @@ Values: 468510000 (Personal), 468510001 (Work)
   - Pin notes to dashboard
   - Download attached files
   - Delete notes (actual deletion, not deactivation)
-- **Parking Lot** - Dashboard bookmarking feature. Any record visible on the dashboard (Work, Ideas, Personal cards) can be "parked" via a bookmark icon. Parked items appear in the right sidebar Parking Lot panel. Click navigates to the record, X button removes it. `parkingLot.ts` stores `ParkedItemRef { id, name, entityType, route }` in localStorage. Entity types: actionitem, idea, account, contact, project, impact, summary.
+- **Parking Lot** - Dashboard bookmarking feature. Any record visible on the dashboard (Work, Ideas, Personal cards) can be "parked" via a bookmark icon. Parked items appear in a full-width panel below the three main cards as horizontal chips (120px max-height, scrollable). Click navigates to the record, X button removes it. `parkingLot.ts` stores `ParkedItemRef { id, name, entityType, route }` in localStorage. Entity types: actionitem, idea, account, contact, project, impact, summary.
 - **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
 - **Copilot Chat** - Floating O'G logo button (bottom-right) opens chat panel connected to Copilot Studio agent. Uses `CopilotChat.tsx` with Bot Framework Web Chat. Authenticates via Direct Line secret (from `REACT_APP_COPILOT_DIRECT_LINE_SECRET` env var) and SSO token exchange (scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`). Bot avatar uses O'G logo (`/images/og_logo_white.png`). Sends `startConversation` event on connect to trigger bot greeting.
 - **Toast Notifications** - All CRUD operations show toast notifications (top-right) on success and error. Uses `NotificationContext` with Fluent UI `Toaster`. Success toasts auto-dismiss after 3s, errors after 5s.
