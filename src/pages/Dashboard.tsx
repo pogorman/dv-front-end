@@ -241,6 +241,8 @@ const useStyles = makeStyles({
     borderLeft: "3px solid #f87171",
     flex: "1 1 0",
     minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderLeftWidth: "3px",
     borderLeftStyle: "solid",
@@ -269,6 +271,8 @@ const useStyles = makeStyles({
     ...shorthands.borderRadius("8px"),
     flex: "1 1 0",
     minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderLeftWidth: "3px",
     borderLeftStyle: "solid",
@@ -286,6 +290,8 @@ const useStyles = makeStyles({
     ...shorthands.borderRadius("8px"),
     flex: "1 1 0",
     minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderLeftWidth: "3px",
     borderLeftStyle: "solid",
@@ -299,8 +305,9 @@ const useStyles = makeStyles({
     marginBottom: "4px",
   },
   cardScrollArea: {
-    maxHeight: "180px",
+    maxHeight: "360px",
     overflowY: "auto" as const,
+    flexGrow: 1,
   },
   subSectionLabel: {
     display: "flex",
@@ -311,7 +318,7 @@ const useStyles = makeStyles({
   highlightRow: {
     display: "flex",
     ...shorthands.gap("12px"),
-    alignItems: "flex-start",
+    alignItems: "stretch",
     "@media (max-width: 900px)": {
       flexDirection: "column",
     },
