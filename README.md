@@ -37,7 +37,7 @@ npm test      # Run tests
 
 ## Features
 
-- **Dashboard** — Two-column layout with steel blue gradient Quick Create bar, 7 stat tiles, Work/Personal cards with top priority sections, Action Items/Ideas section cards, right sidebar with Parking Lot and Pinned Notes
+- **Dashboard** — Two-column layout with Quick Create bar (buttons match nav order), Parking Lot strip, three-column cards (Work/Ideas/Personal), collapsible right sidebar with Pinned Notes
 - **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, Impacts, and Meeting Summaries
 - **Inline Edit** — View dialogs toggle between read-only and editable mode; edit state resets cleanly between records
 - **Save Progress** — All save/update/deactivate operations show spinner and disable buttons to prevent double-submissions

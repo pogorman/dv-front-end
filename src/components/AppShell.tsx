@@ -152,14 +152,14 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    ...shorthands.padding("10px", "24px"),
+    ...shorthands.padding("10px", "6px"),
     backgroundColor: tokens.colorNeutralBackground1,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     minHeight: "48px",
   },
   pageContent: {
     flexGrow: 1,
-    ...shorthands.padding("20px"),
+    ...shorthands.padding("20px", "5px"),
     overflow: "auto",
   },
   themeToggle: {

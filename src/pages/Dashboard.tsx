@@ -41,6 +41,13 @@ import {
   Bookmark16Filled,
   VehicleCarParking24Filled,
   Delete16Regular,
+  CheckboxChecked20Regular,
+  Briefcase20Regular,
+  PeopleTeam20Regular,
+  LightbulbFilament20Regular,
+  Flash20Regular,
+  Building20Regular,
+  Person20Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
@@ -72,14 +79,14 @@ const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("14px"),
+    ...shorthands.gap("4px"),
     marginTop: "-10px",
   },
   quickCreateSection: {
     display: "flex",
     alignItems: "center",
     ...shorthands.gap("10px"),
-    ...shorthands.padding("10px", "14px"),
+    ...shorthands.padding("10px", "4px"),
     backgroundColor: tokens.colorNeutralBackground1,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     ...shorthands.borderRadius("8px"),
@@ -108,7 +115,7 @@ const useStyles = makeStyles({
   },
   dashboardBody: {
     display: "flex",
-    ...shorthands.gap("16px"),
+    ...shorthands.gap("4px"),
     alignItems: "flex-start",
   },
   dashboardMain: {
@@ -116,7 +123,7 @@ const useStyles = makeStyles({
     minWidth: 0,
     display: "flex",
     flexDirection: "column",
-    ...shorthands.gap("14px"),
+    ...shorthands.gap("4px"),
   },
   listItem: {
     display: "flex",
@@ -153,7 +160,7 @@ const useStyles = makeStyles({
     ...shorthands.padding("0"),
   },
   parkingLotPanel: {
-    ...shorthands.padding("2px", "12px"),
+    ...shorthands.padding("2px", "3px"),
     ...shorthands.borderRadius("8px"),
     display: "flex",
     flexDirection: "row" as const,
@@ -183,8 +190,7 @@ const useStyles = makeStyles({
     ...shorthands.gap("2px"),
     ...shorthands.padding("3px", "3px", "3px", "7px"),
     width: "160px",
-    height: "calc(100% - 0px)",
-    minHeight: "27px",
+    height: "56px",
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRadius("8px"),
     border: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -288,24 +294,51 @@ const useStyles = makeStyles({
       backgroundColor: tokens.colorNeutralBackground1Hover,
     },
   },
-  ideasCard: {
-    ...shorthands.padding("10px"),
+  ideasPanel: {
+    ...shorthands.padding("2px", "3px"),
     ...shorthands.borderRadius("8px"),
-    flex: "1 1 0",
-    minWidth: 0,
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "row" as const,
+    alignItems: "center",
+    ...shorthands.gap("12px"),
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderLeftWidth: "3px",
     borderLeftStyle: "solid",
     borderLeftColor: "#a78bfa",
     boxShadow: "none",
+    overflow: "hidden" as const,
   },
-  ideasHeader: {
+  ideasPanelHeader: {
     display: "flex",
     alignItems: "center",
+    ...shorthands.gap("8px"),
+    flexShrink: 0,
+  },
+  ideasPanelGrid: {
+    display: "flex",
     ...shorthands.gap("6px"),
-    marginBottom: "4px",
+    flexGrow: 1,
+    overflow: "hidden" as const,
+  },
+  ideasPanelItem: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    ...shorthands.gap("2px"),
+    ...shorthands.padding("3px", "3px", "3px", "7px"),
+    width: "160px",
+    height: "56px",
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    position: "relative" as const,
+    flexShrink: 0,
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
   },
   personalCard: {
     ...shorthands.padding("10px"),
@@ -339,7 +372,7 @@ const useStyles = makeStyles({
   },
   highlightRow: {
     display: "flex",
-    ...shorthands.gap("12px"),
+    ...shorthands.gap("3px"),
     alignItems: "stretch",
     "@media (max-width: 900px)": {
       flexDirection: "column",
@@ -719,13 +752,13 @@ export const Dashboard: React.FC = () => {
       <div className={styles.quickCreateSection}>
         <Text size={300} weight="semibold" style={{ whiteSpace: "nowrap", fontFamily: tokens.fontFamilyMonospace, textTransform: "uppercase", letterSpacing: "1.5px", fontSize: "10px" }}>Quick Create</Text>
         <div className={styles.quickActions}>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddTaskOpen(true)}>Action Item</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddProjectOpen(true)}>Project</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddSummaryOpen(true)}>Summary</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddIdeaOpen(true)}>Idea</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddImpactOpen(true)}>Impact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddAccountOpen(true)}>Account</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" onClick={() => setAddContactOpen(true)}>Contact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)}>Idea</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)}>Summary</Button>
         </div>
         {pinnedRefs.length > 0 && (
           <Button
@@ -780,7 +813,44 @@ export const Dashboard: React.FC = () => {
           </Card>
         )}
 
-      {/* Work, Ideas & Personal Cards — three columns */}
+      {/* Ideas Strip — always visible */}
+        <Card className={styles.ideasPanel}>
+          <div className={styles.ideasPanelHeader}>
+            <LightbulbFilament24Filled style={{ color: "#a78bfa" }} />
+            <Subtitle1 style={{ flexGrow: 1 }}>Ideas</Subtitle1>
+            <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("ideas"); }} title="Expand" />
+          </div>
+          <div className={styles.ideasPanelGrid}>
+            {ideas.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3, padding: "4px 0" }}>No ideas yet</Body1>
+            ) : (
+              ideas.map((idea) => (
+                <div
+                  key={idea.tdvsp_ideaid}
+                  className={styles.ideasPanelItem}
+                  onClick={() => navigate(`/ideas?view=${idea.tdvsp_ideaid}`)}
+                >
+                  <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      icon={isItemParked(idea.tdvsp_ideaid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                      onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
+                      title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
+                    />
+                    <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
+                  </div>
+                  <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{idea.tdvsp_name}</Text>
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                    {idea.tdvsp_category != null ? ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] : "Idea"}
+                  </Caption1>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+      {/* Work & Personal Cards — two columns */}
         <div className={styles.highlightRow}>
           <Card className={styles.topPriorityCard}>
             <div className={styles.topPriorityHeader}>
@@ -867,45 +937,6 @@ export const Dashboard: React.FC = () => {
                     </>
                   )}
                 </>
-              )}
-            </div>
-          </Card>
-
-          <Card className={styles.ideasCard}>
-            <div className={styles.ideasHeader}>
-              <LightbulbFilament24Filled style={{ color: "#a78bfa" }} />
-              <Subtitle1 style={{ flexGrow: 1 }}>Ideas</Subtitle1>
-              <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("ideas"); }} title="Expand" />
-            </div>
-            <div className={styles.cardScrollArea}>
-              {ideas.length === 0 ? (
-                <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas yet</Body1>
-              ) : (
-                ideas.map((idea, i) => (
-                  <React.Fragment key={idea.tdvsp_ideaid}>
-                    {i > 0 && <Divider />}
-                    <div className={styles.topPriorityItem} onClick={() => navigate(`/ideas?view=${idea.tdvsp_ideaid}`)}>
-                      <div style={{ minWidth: 0 }}>
-                        <Text weight="semibold" block className={styles.nameLink}>{idea.tdvsp_name}</Text>
-                        <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                          {idea.tdvsp_category != null && ideaCategoryLabels[idea.tdvsp_category as IdeaCategory]}
-                          {idea.tdvsp_category != null && idea.tdvsp_Account?.name && " · "}
-                          {idea.tdvsp_Account?.name}
-                        </Caption1>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                        <Button
-                          appearance="subtle"
-                          size="small"
-                          icon={isItemParked(idea.tdvsp_ideaid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                          onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
-                          title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
-                        />
-                        <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
-                      </div>
-                    </div>
-                  </React.Fragment>
-                ))
               )}
             </div>
           </Card>

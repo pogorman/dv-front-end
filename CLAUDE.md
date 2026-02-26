@@ -88,8 +88,8 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 - **Sidebar Navigation** (168px expanded, 48px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
   - Dashboard (top, Home icon)
-  - Core: Accounts (Building), Contacts (Person), Projects (Briefcase), Summaries (PeopleTeam)
   - Activity: Action Items (CheckboxChecked), Ideas (LightbulbFilament), Impacts (Flash)
+  - Core: Accounts (Building), Contacts (Person), Projects (Briefcase), Summaries (PeopleTeam)
   - About this site (bottom, Info icon)
   - User area at bottom with avatar, name, Sign out button
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
@@ -97,7 +97,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
 - **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (260px, collapsible, pinned notes only). Toggle button in quick-create bar persists open/closed state to `localStorage("og-right-panel-open")`. Layout from top to bottom in main column:
-  1. **Quick Create Bar** - Subtle surface background with border, monospace chip-style pill buttons: Action Item, Project, Summary, Idea, Impact, Account, Contact (each opens inline dialog, stays on dashboard). Panel toggle button on the right (only when pinned notes exist). Save buttons disable with spinner during save.
+  1. **Quick Create Bar** - Subtle surface background with border, monospace chip-style pill buttons in nav order: Action Item, Idea, Impact, Account, Contact, Project, Summary (each opens inline dialog, stays on dashboard). Panel toggle button on the right (only when pinned notes exist). Save buttons disable with spinner during save.
   2. **Parking Lot Panel** - Full-width horizontal strip above the three cards. Red car icon (`VehicleCarParking24Filled`). Label on left, up to 5 square tiles (160px wide) inline to the right. No scrolling. Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X dismisses. `parkingLot.ts` stores refs in localStorage with `MAX_PARKED_ITEMS = 5` cap.
   3. **Three-Column Cards** (equal width, full width of main column) — Always visible (show empty state when no data):
      - **Work** (red `#f87171` accent, Briefcase icon) — all non-complete work action items, "Top Priority" sub-section at top, max-height with scroll, maximize/bookmark/deactivate icons per item.
