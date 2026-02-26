@@ -224,14 +224,6 @@ const navSections: NavSection[] = [
         iconActive: <LightbulbFilament24Filled />,
         color: "#a78bfa",
       },
-      {
-        key: "impacts",
-        label: "impacts",
-        path: "/impacts",
-        icon: <Flash24Regular />,
-        iconActive: <Flash24Filled />,
-        color: "#f59e0b",
-      },
     ],
   },
   {
@@ -260,6 +252,19 @@ const navSections: NavSection[] = [
         icon: <Briefcase24Regular />,
         iconActive: <Briefcase24Filled />,
         color: "#e879f9",
+      },
+    ],
+  },
+  {
+    label: "capture",
+    items: [
+      {
+        key: "impacts",
+        label: "impacts",
+        path: "/impacts",
+        icon: <Flash24Regular />,
+        iconActive: <Flash24Filled />,
+        color: "#f59e0b",
       },
       {
         key: "summaries",
