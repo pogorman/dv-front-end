@@ -109,8 +109,8 @@ const ogDarkTheme = {
   shadow28: "0 14px 28px rgba(0,0,0,0.4)",
   shadow64: "0 32px 64px rgba(0,0,0,0.5)",
   // Font
-  fontFamilyBase: "'JetBrains Mono', monospace",
-  fontFamilyMonospace: "'JetBrains Mono', monospace",
+  fontFamilyBase: "'Inter', sans-serif",
+  fontFamilyMonospace: "'Inter', sans-serif",
 };
 
 const ogLightTheme = {
@@ -128,8 +128,8 @@ const ogLightTheme = {
   colorBrandForegroundLink: "#1565c0",
   colorNeutralStroke1: "#dcdee3",
   colorNeutralStroke2: "#ecedf0",
-  fontFamilyBase: "'JetBrains Mono', monospace",
-  fontFamilyMonospace: "'JetBrains Mono', monospace",
+  fontFamilyBase: "'Inter', sans-serif",
+  fontFamilyMonospace: "'Inter', sans-serif",
 };
 
 const msalInstance = new PublicClientApplication(msalConfig);

@@ -1,8 +1,8 @@
-# O'G Central
+# boom!
 
 Internal business tool - React SPA that interfaces with Microsoft Dataverse via Web API.
 
-**App Name:** O'G Central
+**App Name:** boom!
 
 ## Tech Stack
 
@@ -11,8 +11,8 @@ Internal business tool - React SPA that interfaces with Microsoft Dataverse via 
 - **MSAL** (@azure/msal-react) for Azure AD authentication
 - **React Router v7** for navigation
 - **Dataverse Web API** for backend data
-- **Font**: JetBrains Mono everywhere (loaded via Google Fonts, set as both `fontFamilyBase` and `fontFamilyMonospace` in theme tokens)
-- **Theme**: Custom `ogBrand` palette based on `#4a9eff` blue. Dark theme (`ogDarkTheme`) and light theme (`ogLightTheme`) with comprehensive token overrides in `App.tsx`. Design language: subtle 1px borders over shadows, 8px border-radius cards, uppercase section headers with letter-spacing.
+- **Font**: Inter everywhere (loaded via Google Fonts, set as both `fontFamilyBase` and `fontFamilyMonospace` in theme tokens)
+- **Theme**: Custom `ogBrand` palette based on `#4a9eff` blue. Dark theme (`ogDarkTheme`) and light theme (`ogLightTheme`) with comprehensive token overrides in `App.tsx`. Design language: subtle 1px borders over shadows, 8px border-radius cards, lowercase monospace section headers with letter-spacing.
 
 ## Project Structure
 
@@ -23,10 +23,10 @@ src/
 │   ├── AppShell.tsx         # Sidebar nav (sectioned) + theme toggle
 │   ├── CopilotChat.tsx      # Floating Copilot Studio chat widget
 │   └── NotesTimeline.tsx    # Shared notes component with file attachments
-├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat widget)
+├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat header)
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
-│   ├── Dashboard.tsx        # Quick create bar, Work/Personal cards (maximize), Action Items & Ideas sections, collapsible right sidebar (parking lot + pinned notes)
+│   ├── Dashboard.tsx        # Quick create bar, Work/Personal cards (maximize), Action Items & Ideas sections, inline view/edit dialogs, collapsible right sidebar (pinned notes)
 │   ├── Accounts.tsx         # CRUD + inline edit view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD + inline edit view dialog with related ideas
 │   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + inline edit view dialog with notes timeline
@@ -86,35 +86,35 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 ## Key Features
 
-- **Sidebar Navigation** (168px expanded, 48px collapsed) - Collapsible with toggle button. Organized into sections with subtle dividers:
-  - Dashboard (top, Home icon)
-  - Activity: Action Items (CheckboxChecked), Ideas (LightbulbFilament), Impacts (Flash)
-  - Core: Accounts (Building), Contacts (Person), Projects (Briefcase), Summaries (PeopleTeam)
-  - About this site (bottom, Info icon)
+- **Sidebar Navigation** (168px expanded, 48px collapsed) - Collapsible with toggle button. All labels lowercase. Organized into sections with subtle dividers:
+  - dashboard (top, Home icon)
+  - activity: action items (CheckboxChecked), ideas (LightbulbFilament), impacts (Flash)
+  - core: accounts (Building), contacts (Person), projects (Briefcase), summaries (PeopleTeam)
+  - about this site (bottom, Info icon)
   - User area at bottom with avatar, name, Sign out button
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
 - **Dark/Light Theme** - Toggle in the top bar, persisted to localStorage, respects system preference on first visit. Uses ThemeContext provider wrapping the app.
-- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (260px, collapsible, pinned notes only). Toggle button in quick-create bar persists open/closed state to `localStorage("og-right-panel-open")`. Layout from top to bottom in main column:
-  1. **Quick Create Bar** - Subtle surface background with border, monospace chip-style pill buttons in nav order: Action Item, Idea, Impact, Account, Contact, Project, Summary (each opens inline dialog, stays on dashboard). Panel toggle button on the right (only when pinned notes exist). Save buttons disable with spinner during save.
-  2. **Parking Lot Panel** - Full-width horizontal strip above the three cards. Red car icon (`VehicleCarParking24Filled`). Label on left, up to 5 square tiles (160px wide) inline to the right. No scrolling. Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Click navigates to record, X dismisses. `parkingLot.ts` stores refs in localStorage with `MAX_PARKED_ITEMS = 5` cap.
-  3. **Three-Column Cards** (equal width, full width of main column) — Always visible (show empty state when no data):
-     - **Work** (red `#f87171` accent, Briefcase icon) — all non-complete work action items, "Top Priority" sub-section at top, max-height with scroll, maximize/bookmark/deactivate icons per item.
-     - **Ideas** (purple `#a78bfa` accent, LightbulbFilament icon) — all ideas with category + account subtitle, maximize/bookmark/deactivate icons per item.
-     - **Personal** (cyan `#22d3ee` accent, Home icon) — all non-complete personal action items, "Top Priority" sub-section at top, max-height with scroll, maximize/bookmark/deactivate icons per item.
+- **Dashboard** - Two-column layout: `dashboardMain` (flex-grow) + `rightSidebar` (260px, collapsible, pinned notes only). Toggle button in quick-create bar persists open/closed state to `localStorage("og-right-panel-open")`. All panel titles lowercase. All panels sorted by date (past/closest first). Clicking any action item or idea opens an inline view/edit dialog on the dashboard (no navigation). Layout from top to bottom in main column:
+  1. **quick create bar** - Subtle surface background with border, monospace chip-style pill buttons in nav order: action item, idea, impact, account, contact, project, summary (each opens inline dialog, stays on dashboard). Panel toggle button on the right (only when pinned notes exist). Save buttons disable with spinner during save.
+  2. **parking lot strip** - Full-width inline tile strip with lime green (`#84cc16`) left border and car icon (`VehicleCarParking24Filled`). Label on left, up to 5 square tiles (160px wide) inline to the right. No scrolling. Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Clicking action items/ideas opens inline view dialog; other entity types navigate to list page. X dismisses. `parkingLot.ts` stores refs in localStorage with `MAX_PARKED_ITEMS = 5` cap.
+  3. **ideas strip** (purple `#a78bfa` accent, LightbulbFilament icon) — inline tile strip (same layout as Parking Lot). All ideas as 160px tiles with category subtitle, maximize/bookmark/deactivate icons per item. Click opens inline view dialog. Sorted by `createdon` desc.
+  4. **personal strip** (cyan `#22d3ee` accent, Home icon) — inline tile strip (same layout as Ideas). All non-complete personal action items as 160px tiles with date + "Top Priority" label. Click opens inline view dialog. Sorted by `tdvsp_date` asc.
+  5. **work card** (red `#f87171` accent, Briefcase icon) — full-width tile grid with all non-complete work action items. 4 tiles per row (`calc((100% - 18px) / 4)`), 108px tall, wrapping naturally (last row has whatever's left). Top priority items listed first, then the rest — single unified grid, no sub-sections. Each tile shows name, date + account (truncated with ellipsis), and a "Top Priority" or "Overdue" badge. Bookmark/deactivate icons in top-right corner. Click opens inline view dialog. Sorted by `tdvsp_date` asc.
   Right sidebar (pinned notes only):
-  4. **Pinned Notes Panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
+  6. **pinned notes panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
-- **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog (used by dashboard section "New" buttons). Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record (used by dashboard clickable items and Work/Personal card items).
+- **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog. Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record.
+- **Dashboard Inline View Dialogs** - Clicking action items or ideas anywhere on the dashboard (Work, Personal, Ideas strips, Parking Lot, expanded cards) opens a 70vw view/edit dialog directly on the dashboard with NotesTimeline. Same inline edit pattern as entity pages (isEditing toggle, Edit/Save/Cancel buttons). No navigation away from dashboard.
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
   - Add notes with optional file attachments (stored as base64 in Dataverse)
   - Pin notes to dashboard
   - Download attached files
   - Delete notes (actual deletion, not deactivation)
-- **Parking Lot** - Dashboard bookmarking feature. Any record visible on the dashboard (Work, Ideas, Personal cards) can be "parked" via a bookmark icon. Parked items appear in a full-width panel above the three main cards as square tiles (160px wide, inline with label). Max 5 items enforced by `MAX_PARKED_ITEMS` in `parkingLot.ts`. No scrolling. Red car icon (`VehicleCarParking24Filled`). Click navigates to the record, X button removes it. `parkingLot.ts` stores `ParkedItemRef { id, name, entityType, route }` in localStorage. Entity types: actionitem, idea, account, contact, project, impact, summary.
+- **Parking Lot** - Dashboard bookmarking feature. Any record visible on the dashboard (Work, Ideas, Personal) can be "parked" via a bookmark icon. Parked items appear in a full-width inline tile strip with lime green (`#84cc16`) left border as square tiles (160px wide). Max 5 items enforced by `MAX_PARKED_ITEMS` in `parkingLot.ts`. No scrolling. Lime green car icon (`VehicleCarParking24Filled`). Clicking action items/ideas opens inline view dialog; other entity types navigate. X button removes. `parkingLot.ts` stores `ParkedItemRef { id, name, entityType, route }` in localStorage. Entity types: actionitem, idea, account, contact, project, impact, summary.
 - **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
-- **Copilot Chat** - Floating O'G logo button (bottom-right) opens chat panel connected to Copilot Studio agent. Uses `CopilotChat.tsx` with Bot Framework Web Chat. Authenticates via Direct Line secret (from `REACT_APP_COPILOT_DIRECT_LINE_SECRET` env var) and SSO token exchange (scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`). Bot avatar uses O'G logo (`/images/og_logo_white.png`). Sends `startConversation` event on connect to trigger bot greeting.
+- **Copilot Chat** - Floating rocket icon button (bottom-right, inline SVG matching favicon, no background/border) opens chat panel connected to Copilot Studio agent. Uses `CopilotChat.tsx` with Bot Framework Web Chat. Authenticates via Direct Line secret (from `REACT_APP_COPILOT_DIRECT_LINE_SECRET` env var) and SSO token exchange (scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`). Bot avatar uses O'G logo (`/images/og_logo_white.png`). Sends `startConversation` event on connect to trigger bot greeting.
 - **Toast Notifications** - All CRUD operations show toast notifications (top-right) on success and error. Uses `NotificationContext` with Fluent UI `Toaster`. Success toasts auto-dismiss after 3s, errors after 5s.
 
 ## Coding Conventions
@@ -126,7 +126,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 - API calls go through `dataverseService.ts` using a shared `apiRequest` helper
 - Dataverse lookups use `@odata.bind` syntax for setting relationships (e.g., `"parentcustomerid_account@odata.bind": "/accounts(guid)"`)
 - Dataverse lookup values are read via `_fieldname_value` properties and `$expand` for navigation properties
-- **Inline Edit Pattern** (all 7 entity pages): View dialogs open on name click; editing happens inline in the view dialog (`isEditing` state toggles fields between read-only `<Text>` and editable `<Input>`/`<Dropdown>`/`<Textarea>`). Separate "New" dialog is kept only for creating new records. Standard functions: `openEdit` sets `isEditing(true)` and populates `formData`; `buildPayload` extracts shared payload construction; `handleSaveEdit` updates record and refreshes viewed entity; `handleSaveNew` creates from the new dialog. DialogActions toggle between Edit button (view mode) and Save/Cancel (edit mode). `onOpenChange` resets `isEditing` and `editingId` when dialog closes. `openView` always resets `isEditing(false)` and `editingId(null)` to prevent edit state leaking between records.
+- **Inline Edit Pattern** (all 7 entity pages + Dashboard): View dialogs open on name click; editing happens inline in the view dialog (`isEditing` state toggles fields between read-only `<Text>` and editable `<Input>`/`<Dropdown>`/`<Textarea>`). Separate "New" dialog is kept only for creating new records. Standard functions: `openEdit` sets `isEditing(true)` and populates `formData`; `buildPayload` extracts shared payload construction; `handleSaveEdit` updates record and refreshes viewed entity; `handleSaveNew` creates from the new dialog. DialogActions toggle between Edit button (view mode) and Save/Cancel (edit mode). `onOpenChange` resets `isEditing` and `editingId` when dialog closes. `openView` always resets `isEditing(false)` and `editingId(null)` to prevent edit state leaking between records. Dashboard uses `editFormData` (separate from quick-add form state) and entity-specific functions (`openViewTask`/`openEditTask`/`openViewIdea`/`openEditIdea`).
 - **Deactivate Pattern** (all entity pages + Dashboard): Records are deactivated (`statecode: 1`) instead of hard-deleted. All fetch queries include `statecode eq 0` to show only active records. Annotations (notes) still use actual deletion. Service functions are named `deactivateXxx` (e.g., `deactivateActionItem`, `deactivateAccount`). Page handlers are named `handleDeactivate`. Dashboard uses a confirmation dialog for deactivation.
 - **Save Progress Pattern** (all entity pages + Dashboard): Every save/update/deactivate handler uses `saving` state: `setSaving(true)` at start, `setSaving(false)` in `finally` block. Save/Deactivate buttons show `disabled={saving}` with `<Spinner size="tiny" /> Saving...` content while in progress. Prevents double-submissions and provides visual feedback. Combined with `notify()` toast calls for success/error.
 
@@ -140,12 +140,13 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 ## Copilot Studio Integration
 
-The app includes a floating chat widget (O'G logo button, bottom-right) connected to a Copilot Studio agent via Direct Line.
+The app includes a floating chat widget (rocket icon button, bottom-right) connected to a Copilot Studio agent via Direct Line.
 
 **Configuration:**
 - Direct Line secret: stored in `.env` as `REACT_APP_COPILOT_DIRECT_LINE_SECRET` (baked into build at compile time)
 - SSO scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`
-- Bot avatar & button icon: `/images/og_logo_white.png`
+- Floating button: inline SVG rocket (same as favicon, no background/border)
+- Bot avatar & chat header icon: `/images/og_logo_white.png`
 
 **Azure AD App Registration Requirements:**
 - Exposed API scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`
@@ -153,7 +154,7 @@ The app includes a floating chat widget (O'G logo button, bottom-right) connecte
 - Power Platform API permission (`https://api.powerplatform.com/.default`)
 
 **How it works:**
-1. User clicks O'G logo button (bottom-right corner)
+1. User clicks rocket icon button (bottom-right corner)
 2. Component acquires SSO token via MSAL for the bot's custom scope
 3. Exchanges Direct Line secret for a conversation token
 4. Creates Web Chat store with middleware that handles `signin/tokenExchange` invoke activities (SSO)

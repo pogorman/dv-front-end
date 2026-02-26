@@ -144,6 +144,7 @@ export interface Idea {
   tdvsp_name: string;
   tdvsp_description?: string;
   tdvsp_category?: IdeaCategory;
+  createdon?: string;
   // Lookup to account table
   _tdvsp_account_value?: string;
   tdvsp_Account?: { accountid: string; name: string };

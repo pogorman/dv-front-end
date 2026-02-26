@@ -48,9 +48,11 @@ import {
   Flash20Regular,
   Building20Regular,
   Person20Regular,
+  Edit24Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
+import { NotesTimeline } from "../components/NotesTimeline";
 import {
   getActionItems,
   getAccounts,
@@ -67,6 +69,8 @@ import {
   createIdea,
   createImpact,
   createMeetingSummary,
+  updateActionItem,
+  updateIdea,
   deactivateActionItem,
   deactivateIdea,
 } from "../services/dataverseService";
@@ -80,7 +84,7 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     ...shorthands.gap("4px"),
-    marginTop: "-10px",
+    marginTop: "-15px",
   },
   quickCreateSection: {
     display: "flex",
@@ -103,12 +107,14 @@ const useStyles = makeStyles({
     fontSize: "11px",
     fontWeight: "500",
     fontFamily: tokens.fontFamilyMonospace,
-    minHeight: "26px",
-    height: "26px",
+    minHeight: "32px",
+    height: "32px",
     ...shorthands.padding("0px", "10px"),
     backgroundColor: tokens.colorBrandBackground2,
     color: tokens.colorBrandForeground1,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    flexGrow: 1,
+    flexBasis: 0,
     ":hover": {
       backgroundColor: tokens.colorBrandBackground2Hover,
     },
@@ -160,13 +166,16 @@ const useStyles = makeStyles({
     ...shorthands.padding("0"),
   },
   parkingLotPanel: {
-    ...shorthands.padding("2px", "3px"),
+    ...shorthands.padding("5px", "3px"),
     ...shorthands.borderRadius("8px"),
     display: "flex",
     flexDirection: "row" as const,
     alignItems: "center",
     ...shorthands.gap("12px"),
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeftWidth: "3px",
+    borderLeftStyle: "solid",
+    borderLeftColor: "#84cc16",
     boxShadow: "none",
     overflow: "hidden" as const,
   },
@@ -175,6 +184,7 @@ const useStyles = makeStyles({
     alignItems: "center",
     ...shorthands.gap("8px"),
     flexShrink: 0,
+    minWidth: "170px",
   },
   parkingLotGrid: {
     display: "flex",
@@ -190,7 +200,7 @@ const useStyles = makeStyles({
     ...shorthands.gap("2px"),
     ...shorthands.padding("3px", "3px", "3px", "7px"),
     width: "160px",
-    height: "56px",
+    height: "62px",
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRadius("8px"),
     border: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -260,15 +270,11 @@ const useStyles = makeStyles({
     color: tokens.colorBrandForeground1,
     marginBottom: "2px",
     fontWeight: "600",
-    textTransform: "uppercase",
     letterSpacing: "0.5px",
   },
   topPriorityCard: {
     ...shorthands.padding("10px"),
     ...shorthands.borderRadius("8px"),
-    borderLeft: "3px solid #f87171",
-    flex: "1 1 0",
-    minWidth: 0,
     display: "flex",
     flexDirection: "column",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -295,7 +301,7 @@ const useStyles = makeStyles({
     },
   },
   ideasPanel: {
-    ...shorthands.padding("2px", "3px"),
+    ...shorthands.padding("5px", "3px"),
     ...shorthands.borderRadius("8px"),
     display: "flex",
     flexDirection: "row" as const,
@@ -313,6 +319,7 @@ const useStyles = makeStyles({
     alignItems: "center",
     ...shorthands.gap("8px"),
     flexShrink: 0,
+    minWidth: "170px",
   },
   ideasPanelGrid: {
     display: "flex",
@@ -328,7 +335,7 @@ const useStyles = makeStyles({
     ...shorthands.gap("2px"),
     ...shorthands.padding("3px", "3px", "3px", "7px"),
     width: "160px",
-    height: "56px",
+    height: "62px",
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRadius("8px"),
     border: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -340,29 +347,84 @@ const useStyles = makeStyles({
       backgroundColor: tokens.colorNeutralBackground2Hover,
     },
   },
-  personalCard: {
-    ...shorthands.padding("10px"),
+  personalPanel: {
+    ...shorthands.padding("5px", "3px"),
     ...shorthands.borderRadius("8px"),
-    flex: "1 1 0",
-    minWidth: 0,
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "row" as const,
+    alignItems: "center",
+    ...shorthands.gap("12px"),
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderLeftWidth: "3px",
     borderLeftStyle: "solid",
     borderLeftColor: "#22d3ee",
     boxShadow: "none",
+    overflow: "hidden" as const,
   },
-  personalHeader: {
+  personalPanelHeader: {
     display: "flex",
     alignItems: "center",
+    ...shorthands.gap("8px"),
+    flexShrink: 0,
+    minWidth: "170px",
+  },
+  personalPanelGrid: {
+    display: "flex",
     ...shorthands.gap("6px"),
-    marginBottom: "4px",
+    flexGrow: 1,
+    overflow: "hidden" as const,
+  },
+  personalPanelItem: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    ...shorthands.gap("2px"),
+    ...shorthands.padding("3px", "3px", "3px", "7px"),
+    width: "160px",
+    height: "62px",
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    position: "relative" as const,
+    flexShrink: 0,
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
   },
   cardScrollArea: {
-    maxHeight: "360px",
+    maxHeight: "600px",
     overflowY: "auto" as const,
     flexGrow: 1,
+  },
+  workTileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("6px"),
+  },
+  workTile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    ...shorthands.gap("2px"),
+    ...shorthands.padding("3px", "3px", "3px", "7px"),
+    width: "calc((100% - 18px) / 4)",
+    minWidth: 0,
+    height: "108px",
+    overflow: "hidden" as const,
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    position: "relative" as const,
+    boxSizing: "border-box" as const,
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
   },
   subSectionLabel: {
     display: "flex",
@@ -370,13 +432,26 @@ const useStyles = makeStyles({
     ...shorthands.gap("4px"),
     ...shorthands.padding("2px", "0px"),
   },
-  highlightRow: {
+  viewField: {
+    marginBottom: "16px",
+  },
+  viewGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("16px"),
+  },
+  viewLayout: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    ...shorthands.gap("24px"),
+  },
+  viewDetails: {
     display: "flex",
-    ...shorthands.gap("3px"),
-    alignItems: "stretch",
-    "@media (max-width: 900px)": {
-      flexDirection: "column",
-    },
+    flexDirection: "column",
+  },
+  viewNotes: {
+    display: "flex",
+    flexDirection: "column",
   },
 });
 
@@ -401,7 +476,7 @@ export const Dashboard: React.FC = () => {
   });
   const [parkedItems, setParkedItems] = useState<ParkedItemRef[]>(() => getParkedItems());
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [, setContacts] = useState<Customer[]>([]);
+  const [contacts, setContacts] = useState<Customer[]>([]);
   const [, setProjects] = useState<Project[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -423,6 +498,26 @@ export const Dashboard: React.FC = () => {
   const [addImpactOpen, setAddImpactOpen] = useState(false);
   const [addSummaryOpen, setAddSummaryOpen] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  // View/edit dialog state
+  const [viewTaskOpen, setViewTaskOpen] = useState(false);
+  const [viewingTask, setViewingTask] = useState<ActionItem | null>(null);
+  const [viewIdeaOpen, setViewIdeaOpen] = useState(false);
+  const [viewingIdea, setViewingIdea] = useState<Idea | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    tdvsp_name: "",
+    tdvsp_date: "",
+    tdvsp_description: "",
+    tdvsp_taskstatus: "",
+    tdvsp_priority: "",
+    tdvsp_tasktype: "",
+    customerAccountId: "",
+    tdvsp_category: "" as string | IdeaCategory,
+    accountId: "",
+    contactId: "",
+  });
 
   // Form data for quick add dialogs
   const [newAccount, setNewAccount] = useState({ name: "", parentAccountId: "" });
@@ -716,6 +811,166 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  // Category options for Idea view dialog
+  const categoryOptions: { value: IdeaCategory; label: string }[] = [
+    { value: 468510000, label: "Copilot Studio" },
+    { value: 468510001, label: "Canvas Apps" },
+    { value: 468510002, label: "Model-Driven Apps" },
+    { value: 468510003, label: "Power Automate" },
+    { value: 468510004, label: "Power Pages" },
+    { value: 468510005, label: "Azure" },
+    { value: 468510006, label: "AI General" },
+    { value: 468510007, label: "App General" },
+    { value: 468510008, label: "Other" },
+  ];
+
+  // View/edit handlers for Action Items
+  const openViewTask = (item: ActionItem) => {
+    setIsEditing(false);
+    setEditingId(null);
+    setViewingTask(item);
+    setViewTaskOpen(true);
+  };
+
+  const openEditTask = (item: ActionItem) => {
+    setViewingTask(item);
+    setViewTaskOpen(true);
+    setEditingId(item.tdvsp_actionitemid ?? null);
+    setEditFormData({
+      ...editFormData,
+      tdvsp_name: item.tdvsp_name,
+      tdvsp_date: item.tdvsp_date ? item.tdvsp_date.split("T")[0] : "",
+      tdvsp_description: item.tdvsp_description ?? "",
+      tdvsp_taskstatus: item.tdvsp_taskstatus != null ? String(item.tdvsp_taskstatus) : "",
+      tdvsp_priority: item.tdvsp_priority != null ? String(item.tdvsp_priority) : "",
+      tdvsp_tasktype: item.tdvsp_tasktype != null ? String(item.tdvsp_tasktype) : "",
+      customerAccountId: item.tdvsp_Customer?.accountid ?? "",
+    });
+    setIsEditing(true);
+  };
+
+  const buildTaskEditPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_date: string;
+      tdvsp_description?: string;
+      tdvsp_taskstatus?: number;
+      tdvsp_priority?: number;
+      tdvsp_tasktype?: number;
+      "tdvsp_Customer@odata.bind"?: string;
+    } = {
+      tdvsp_name: editFormData.tdvsp_name,
+      tdvsp_date: editFormData.tdvsp_date,
+      tdvsp_description: editFormData.tdvsp_description || undefined,
+      tdvsp_taskstatus: editFormData.tdvsp_taskstatus ? Number(editFormData.tdvsp_taskstatus) : undefined,
+      tdvsp_priority: editFormData.tdvsp_priority ? Number(editFormData.tdvsp_priority) : undefined,
+      tdvsp_tasktype: editFormData.tdvsp_tasktype ? Number(editFormData.tdvsp_tasktype) : undefined,
+    };
+    if (editFormData.customerAccountId) {
+      payload["tdvsp_Customer@odata.bind"] = `/accounts(${editFormData.customerAccountId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveEditTask = async () => {
+    if (!editingId) return;
+    setSaving(true);
+    try {
+      await updateActionItem(editingId, buildTaskEditPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedItems = await getActionItems();
+      setActionItems(updatedItems);
+      const updated = updatedItems.find((t) => t.tdvsp_actionitemid === viewingTask?.tdvsp_actionitemid);
+      if (updated) setViewingTask(updated);
+      notify("Action item updated");
+    } catch (err) {
+      console.error("Failed to save action item:", err);
+      notify("Failed to save action item", undefined, "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // View/edit handlers for Ideas
+  const openViewIdea = (idea: Idea) => {
+    setIsEditing(false);
+    setEditingId(null);
+    setViewingIdea(idea);
+    setViewIdeaOpen(true);
+  };
+
+  const openEditIdea = (idea: Idea) => {
+    setViewingIdea(idea);
+    setViewIdeaOpen(true);
+    setEditingId(idea.tdvsp_ideaid ?? null);
+    setEditFormData({
+      ...editFormData,
+      tdvsp_name: idea.tdvsp_name,
+      tdvsp_description: idea.tdvsp_description ?? "",
+      tdvsp_category: idea.tdvsp_category ?? "",
+      accountId: idea.tdvsp_Account?.accountid ?? "",
+      contactId: idea.tdvsp_Contact?.contactid ?? "",
+    });
+    setIsEditing(true);
+  };
+
+  const buildIdeaEditPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_description?: string;
+      tdvsp_category?: IdeaCategory;
+      "tdvsp_Account@odata.bind"?: string;
+      "tdvsp_Contact@odata.bind"?: string;
+    } = {
+      tdvsp_name: editFormData.tdvsp_name,
+      tdvsp_description: editFormData.tdvsp_description || undefined,
+    };
+    if (editFormData.tdvsp_category) {
+      payload.tdvsp_category = Number(editFormData.tdvsp_category) as IdeaCategory;
+    }
+    if (editFormData.accountId) {
+      payload["tdvsp_Account@odata.bind"] = `/accounts(${editFormData.accountId})`;
+    }
+    if (editFormData.contactId) {
+      payload["tdvsp_Contact@odata.bind"] = `/contacts(${editFormData.contactId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveEditIdea = async () => {
+    if (!editingId) return;
+    setSaving(true);
+    try {
+      await updateIdea(editingId, buildIdeaEditPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedIdeas = await getIdeas();
+      setIdeas(updatedIdeas);
+      const updated = updatedIdeas.find((i) => i.tdvsp_ideaid === viewingIdea?.tdvsp_ideaid);
+      if (updated) setViewingIdea(updated);
+      notify("Idea updated");
+    } catch (err) {
+      console.error("Failed to save idea:", err);
+      notify("Failed to save idea", undefined, "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Parking lot click handler — opens inline view dialog instead of navigating
+  const handleParkedItemClick = (item: ParkedItemRef) => {
+    if (item.entityType === "actionitem") {
+      const task = actionItems.find((t) => t.tdvsp_actionitemid === item.id);
+      if (task) openViewTask(task);
+    } else if (item.entityType === "idea") {
+      const idea = ideas.find((i) => i.tdvsp_ideaid === item.id);
+      if (idea) openViewIdea(idea);
+    } else {
+      navigate(item.route);
+    }
+  };
+
   const getEntityInfo = (annotationid: string): { entityName: string; entityType: NoteEntityType } => {
     const ref = pinnedRefs.find((r) => r.annotationid === annotationid);
     return {
@@ -732,15 +987,18 @@ export const Dashboard: React.FC = () => {
   };
 
   // Work & Personal card computed lists
-  const workItems = actionItems.filter(
-    (t) => t.tdvsp_tasktype !== (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)
-  );
+  const dateAsc = (a: ActionItem, b: ActionItem) =>
+    new Date(a.tdvsp_date).getTime() - new Date(b.tdvsp_date).getTime();
+
+  const workItems = actionItems
+    .filter((t) => t.tdvsp_tasktype !== (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+    .sort(dateAsc);
   const topPriorityWork = workItems.filter((t) => t.tdvsp_priority === 468510002);
   const otherWork = workItems.filter((t) => t.tdvsp_priority !== 468510002);
 
-  const personalFilteredItems = actionItems.filter(
-    (t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus)
-  );
+  const personalFilteredItems = actionItems
+    .filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+    .sort(dateAsc);
   const topPriorityPersonal = personalFilteredItems.filter((t) => t.tdvsp_priority === 468510002);
   const otherPersonal = personalFilteredItems.filter((t) => t.tdvsp_priority !== 468510002);
 
@@ -750,15 +1008,15 @@ export const Dashboard: React.FC = () => {
         <div className={styles.dashboardMain}>
       {/* Quick Create Bar */}
       <div className={styles.quickCreateSection}>
-        <Text size={300} weight="semibold" style={{ whiteSpace: "nowrap", fontFamily: tokens.fontFamilyMonospace, textTransform: "uppercase", letterSpacing: "1.5px", fontSize: "10px" }}>Quick Create</Text>
+        <Text size={300} weight="semibold" style={{ whiteSpace: "nowrap", fontFamily: tokens.fontFamilyMonospace, letterSpacing: "1.5px", fontSize: "10px" }}>quick create</Text>
         <div className={styles.quickActions}>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)}>Action Item</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)}>Idea</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)}>Impact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)}>Account</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)}>Contact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)}>Project</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)}>Summary</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)}>action item</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)}>idea</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)}>impact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)}>account</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)}>contact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)}>project</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)}>summary</Button>
         </div>
         {pinnedRefs.length > 0 && (
           <Button
@@ -780,15 +1038,15 @@ export const Dashboard: React.FC = () => {
         {parkedItems.length > 0 && (
           <Card className={styles.parkingLotPanel}>
             <div className={styles.parkingLotHeader}>
-              <VehicleCarParking24Filled style={{ color: "#f87171" }} />
-              <Subtitle1 style={{ flexGrow: 1 }}>Parking Lot</Subtitle1>
+              <VehicleCarParking24Filled style={{ color: "#84cc16" }} />
+              <Subtitle1 style={{ flexGrow: 1 }}>parking lot</Subtitle1>
             </div>
             <div className={styles.parkingLotGrid}>
               {parkedItems.map((item) => (
                 <div
                   key={`${item.entityType}-${item.id}`}
                   className={styles.parkingLotItem}
-                  onClick={() => navigate(item.route)}
+                  onClick={() => handleParkedItemClick(item)}
                 >
                   <div className={styles.parkingLotItemDismiss}>
                     <Button
@@ -817,7 +1075,7 @@ export const Dashboard: React.FC = () => {
         <Card className={styles.ideasPanel}>
           <div className={styles.ideasPanelHeader}>
             <LightbulbFilament24Filled style={{ color: "#a78bfa" }} />
-            <Subtitle1 style={{ flexGrow: 1 }}>Ideas</Subtitle1>
+            <Subtitle1 style={{ flexGrow: 1 }}>ideas</Subtitle1>
             <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("ideas"); }} title="Expand" />
           </div>
           <div className={styles.ideasPanelGrid}>
@@ -828,7 +1086,7 @@ export const Dashboard: React.FC = () => {
                 <div
                   key={idea.tdvsp_ideaid}
                   className={styles.ideasPanelItem}
-                  onClick={() => navigate(`/ideas?view=${idea.tdvsp_ideaid}`)}
+                  onClick={() => openViewIdea(idea)}
                 >
                   <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
                     <Button
@@ -850,184 +1108,87 @@ export const Dashboard: React.FC = () => {
           </div>
         </Card>
 
-      {/* Work & Personal Cards — two columns */}
-        <div className={styles.highlightRow}>
+      {/* Personal Strip — inline tiles below Ideas */}
+        <Card className={styles.personalPanel}>
+          <div className={styles.personalPanelHeader}>
+            <Home24Filled style={{ color: "#22d3ee" }} />
+            <Subtitle1 style={{ flexGrow: 1 }}>personal</Subtitle1>
+            <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("personal"); }} title="Expand" />
+          </div>
+          <div className={styles.personalPanelGrid}>
+            {personalFilteredItems.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3, padding: "4px 0" }}>No personal items</Body1>
+            ) : (
+              personalFilteredItems.map((t) => (
+                <div
+                  key={t.tdvsp_actionitemid}
+                  className={styles.personalPanelItem}
+                  onClick={() => openViewTask(t)}
+                >
+                  <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                      onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                      title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                    />
+                    <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                  </div>
+                  <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                    {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                    {t.tdvsp_priority === 468510002 && " · Top Priority"}
+                  </Caption1>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+      {/* Work Card — tile grid, 5 per row */}
           <Card className={styles.topPriorityCard}>
             <div className={styles.topPriorityHeader}>
               <Briefcase24Filled style={{ color: "#f87171" }} />
-              <Subtitle1 style={{ flexGrow: 1 }}>Work</Subtitle1>
+              <Subtitle1 style={{ flexGrow: 1 }}>work</Subtitle1>
               <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("work"); }} title="Expand" />
             </div>
-            <div className={styles.cardScrollArea}>
-              {workItems.length === 0 ? (
-                <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No work items</Body1>
-              ) : (
-                <>
-                  {topPriorityWork.length > 0 && (
-                    <>
-                      <div className={styles.subSectionLabel}>
-                        <Warning16Filled style={{ color: "#f87171" }} />
-                        <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
-                      </div>
-                      {topPriorityWork.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                                {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                              </Caption1>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                              <Button
-                                appearance="subtle"
-                                size="small"
-                                icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                                onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                                title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                              />
-                              <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
-                              {t.tdvsp_date && (
-                                <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                  {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                  {otherWork.length > 0 && (
-                    <>
-                      {topPriorityWork.length > 0 && <Divider style={{ margin: "4px 0" }} />}
-                      {otherWork.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                                {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                              </Caption1>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                              <Button
-                                appearance="subtle"
-                                size="small"
-                                icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                                onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                                title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                              />
-                              <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
-                              {t.tdvsp_date && (
-                                <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                  {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+            {workItems.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No work items</Body1>
+            ) : (
+              <div className={styles.workTileGrid}>
+                {[...topPriorityWork, ...otherWork].map((t) => (
+                  <div
+                    key={t.tdvsp_actionitemid}
+                    className={styles.workTile}
+                    onClick={() => openViewTask(t)}
+                  >
+                    <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                        onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                        title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                      />
+                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                    </div>
+                    <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
+                    <Caption1 truncate style={{ color: tokens.colorNeutralForeground3, width: "100%" }}>
+                      {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                      {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                    </Caption1>
+                    {t.tdvsp_priority === 468510002 && (
+                      <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
+                    )}
+                    {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                      <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
-
-          <Card className={styles.personalCard}>
-            <div className={styles.personalHeader}>
-              <Home24Filled style={{ color: "#22d3ee" }} />
-              <Subtitle1 style={{ flexGrow: 1 }}>Personal</Subtitle1>
-              <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("personal"); }} title="Expand" />
-            </div>
-            <div className={styles.cardScrollArea}>
-              {personalFilteredItems.length === 0 ? (
-                <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No personal items</Body1>
-              ) : (
-                <>
-                  {topPriorityPersonal.length > 0 && (
-                    <>
-                      <div className={styles.subSectionLabel}>
-                        <Warning16Filled style={{ color: "#f87171" }} />
-                        <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
-                      </div>
-                      {topPriorityPersonal.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                              </Caption1>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                              <Button
-                                appearance="subtle"
-                                size="small"
-                                icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                                onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                                title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                              />
-                              <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
-                              {t.tdvsp_date && (
-                                <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                  {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                  {otherPersonal.length > 0 && (
-                    <>
-                      {topPriorityPersonal.length > 0 && <Divider style={{ margin: "4px 0" }} />}
-                      {otherPersonal.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => navigate(`/tasks?view=${t.tdvsp_actionitemid}`)}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                              </Caption1>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                              <Button
-                                appearance="subtle"
-                                size="small"
-                                icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                                onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                                title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                              />
-                              <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
-                              {t.tdvsp_date && (
-                                <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                  {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-          </Card>
-        </div>
         </div>
 
         {/* Right Sidebar — Pinned Notes only */}
@@ -1037,7 +1198,7 @@ export const Dashboard: React.FC = () => {
               <Card className={styles.pinnedPanel}>
                 <div className={styles.pinnedHeader}>
                   <Pin24Regular />
-                  <Subtitle1 style={{ flexGrow: 1 }}>Pinned Notes</Subtitle1>
+                  <Subtitle1 style={{ flexGrow: 1 }}>pinned notes</Subtitle1>
                   <Button
                     appearance="subtle"
                     size="small"
@@ -1542,68 +1703,47 @@ export const Dashboard: React.FC = () => {
             <DialogTitle
               action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setExpandedCard(null)} />}
             >
-              {expandedCard === "work" && <><Briefcase24Filled style={{ color: "#d13438", marginRight: 8, verticalAlign: "middle" }} />Work</>}
-              {expandedCard === "ideas" && <><LightbulbFilament24Filled style={{ color: "#a78bfa", marginRight: 8, verticalAlign: "middle" }} />Ideas</>}
-              {expandedCard === "personal" && <><Home24Filled style={{ color: "#0e7c7b", marginRight: 8, verticalAlign: "middle" }} />Personal</>}
+              {expandedCard === "work" && <><Briefcase24Filled style={{ color: "#d13438", marginRight: 8, verticalAlign: "middle" }} />work</>}
+              {expandedCard === "ideas" && <><LightbulbFilament24Filled style={{ color: "#a78bfa", marginRight: 8, verticalAlign: "middle" }} />ideas</>}
+              {expandedCard === "personal" && <><Home24Filled style={{ color: "#0e7c7b", marginRight: 8, verticalAlign: "middle" }} />personal</>}
             </DialogTitle>
             <DialogContent style={{ flexGrow: 1, overflowY: "auto" }}>
               {expandedCard === "work" && (
-                <>
-                  {topPriorityWork.length > 0 && (
-                    <>
-                      <div className={styles.subSectionLabel}>
-                        <Warning16Filled style={{ color: "#f87171" }} />
-                        <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
+                workItems.length === 0 ? (
+                  <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No work items</Body1>
+                ) : (
+                  <div className={styles.workTileGrid}>
+                    {[...topPriorityWork, ...otherWork].map((t) => (
+                      <div
+                        key={t.tdvsp_actionitemid}
+                        className={styles.workTile}
+                        onClick={() => { setExpandedCard(null); openViewTask(t); }}
+                      >
+                        <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
+                          <Button
+                            appearance="subtle"
+                            size="small"
+                            icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
+                            onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                            title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                          />
+                          <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                        </div>
+                        <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
+                        <Caption1 truncate style={{ color: tokens.colorNeutralForeground3, width: "100%" }}>
+                          {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                          {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                        </Caption1>
+                        {t.tdvsp_priority === 468510002 && (
+                          <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
+                        )}
+                        {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                          <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
+                        )}
                       </div>
-                      {topPriorityWork.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                                {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                              </Caption1>
-                            </div>
-                            {t.tdvsp_date && (
-                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                              </Badge>
-                            )}
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                  {otherWork.length > 0 && (
-                    <>
-                      {topPriorityWork.length > 0 && <Divider style={{ margin: "8px 0" }} />}
-                      {otherWork.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                                {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                              </Caption1>
-                            </div>
-                            {t.tdvsp_date && (
-                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                              </Badge>
-                            )}
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                  {workItems.length === 0 && <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No work items</Body1>}
-                </>
+                    ))}
+                  </div>
+                )
               )}
               {expandedCard === "personal" && (
                 <>
@@ -1616,7 +1756,7 @@ export const Dashboard: React.FC = () => {
                       {topPriorityPersonal.map((t, i) => (
                         <React.Fragment key={t.tdvsp_actionitemid}>
                           {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
+                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); openViewTask(t); }}>
                             <div style={{ minWidth: 0 }}>
                               <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
                               <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
@@ -1640,7 +1780,7 @@ export const Dashboard: React.FC = () => {
                       {otherPersonal.map((t, i) => (
                         <React.Fragment key={t.tdvsp_actionitemid}>
                           {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); navigate(`/tasks?view=${t.tdvsp_actionitemid}`); }}>
+                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); openViewTask(t); }}>
                             <div style={{ minWidth: 0 }}>
                               <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
                               <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
@@ -1669,7 +1809,7 @@ export const Dashboard: React.FC = () => {
                     ideas.map((idea, i) => (
                       <React.Fragment key={idea.tdvsp_ideaid}>
                         {i > 0 && <Divider />}
-                        <div className={styles.listItem} onClick={() => { setExpandedCard(null); navigate(`/ideas?view=${idea.tdvsp_ideaid}`); }} style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                        <div className={styles.listItem} onClick={() => { setExpandedCard(null); openViewIdea(idea); }} style={{ flexDirection: "column", alignItems: "flex-start" }}>
                           <Text weight="semibold" className={styles.nameLink}>
                             {idea.tdvsp_name}
                             {idea.tdvsp_category != null && (
@@ -1695,6 +1835,253 @@ export const Dashboard: React.FC = () => {
                 </>
               )}
             </DialogContent>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* View Action Item Dialog */}
+      <Dialog open={viewTaskOpen} onOpenChange={(_, d) => { setViewTaskOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
+        <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
+          <DialogBody>
+            <DialogTitle
+              action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setViewTaskOpen(false)} />}
+            >
+              Action Item Details
+            </DialogTitle>
+            <DialogContent>
+              {viewingTask && (
+                <div className={styles.viewLayout}>
+                  <div className={styles.viewDetails}>
+                    <div className={styles.viewField}>
+                      <Label>Name</Label>
+                      {isEditing ? (
+                        <Input value={editFormData.tdvsp_name} onChange={(_, d) => setEditFormData({ ...editFormData, tdvsp_name: d.value })} />
+                      ) : (
+                        <Text block size={400} weight="semibold">{viewingTask.tdvsp_name}</Text>
+                      )}
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Description</Label>
+                      {isEditing ? (
+                        <Textarea value={editFormData.tdvsp_description} onChange={(_, d) => setEditFormData({ ...editFormData, tdvsp_description: d.value })} rows={4} resize="vertical" />
+                      ) : (
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>{viewingTask.tdvsp_description || "--"}</Text>
+                      )}
+                    </div>
+                    <div className={styles.viewGrid}>
+                      <div className={styles.viewField}>
+                        <Label>Date</Label>
+                        {isEditing ? (
+                          <Input type="date" value={editFormData.tdvsp_date} onChange={(_, d) => setEditFormData({ ...editFormData, tdvsp_date: d.value })} />
+                        ) : (
+                          <Text block size={400}>{viewingTask.tdvsp_date ? formatDate(viewingTask.tdvsp_date) : "--"}</Text>
+                        )}
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Task Status</Label>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select status"
+                            value={editFormData.tdvsp_taskstatus ? taskStatusLabels[Number(editFormData.tdvsp_taskstatus) as TaskStatus] ?? "" : ""}
+                            onOptionSelect={(_, d) => setEditFormData({ ...editFormData, tdvsp_taskstatus: d.optionValue ?? "" })}
+                          >
+                            {(Object.entries(taskStatusLabels) as [string, string][]).map(([value, label]) => (
+                              <Option key={value} value={value}>{label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>{viewingTask.tdvsp_taskstatus != null ? taskStatusLabels[viewingTask.tdvsp_taskstatus as TaskStatus] ?? "--" : "--"}</Text>
+                        )}
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Priority</Label>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select priority"
+                            value={editFormData.tdvsp_priority ? taskPriorityLabels[Number(editFormData.tdvsp_priority) as TaskPriority] ?? "" : ""}
+                            onOptionSelect={(_, d) => setEditFormData({ ...editFormData, tdvsp_priority: d.optionValue ?? "" })}
+                          >
+                            {(Object.entries(taskPriorityLabels) as [string, string][]).map(([value, label]) => (
+                              <Option key={value} value={value}>{label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>{viewingTask.tdvsp_priority != null ? taskPriorityLabels[viewingTask.tdvsp_priority as TaskPriority] ?? "--" : "--"}</Text>
+                        )}
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Task Type</Label>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select type"
+                            value={editFormData.tdvsp_tasktype ? taskTypeLabels[Number(editFormData.tdvsp_tasktype) as TaskType] ?? "" : ""}
+                            onOptionSelect={(_, d) => setEditFormData({ ...editFormData, tdvsp_tasktype: d.optionValue ?? "" })}
+                          >
+                            {(Object.entries(taskTypeLabels) as [string, string][]).map(([value, label]) => (
+                              <Option key={value} value={value}>{label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>{viewingTask.tdvsp_tasktype != null ? taskTypeLabels[viewingTask.tdvsp_tasktype as TaskType] ?? "--" : "--"}</Text>
+                        )}
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Customer</Label>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select account"
+                            value={accounts.find((a) => a.accountid === editFormData.customerAccountId)?.name ?? ""}
+                            onOptionSelect={(_, d) => setEditFormData({ ...editFormData, customerAccountId: d.optionValue ?? "" })}
+                          >
+                            <Option value="" text="(None)">(None)</Option>
+                            {accounts.map((a) => (
+                              <Option key={a.accountid} value={a.accountid!}>{a.name}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>{viewingTask.tdvsp_Customer?.name || "--"}</Text>
+                        )}
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Created On</Label>
+                        <Text block size={400}>{viewingTask.createdon ? formatDate(viewingTask.createdon) : "--"}</Text>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.viewNotes}>
+                    <NotesTimeline
+                      entityId={viewingTask.tdvsp_actionitemid!}
+                      entityName={viewingTask.tdvsp_name}
+                      entityType="actionitem"
+                      odataBindKey="objectid_tdvsp_actionitem@odata.bind"
+                      entitySetPath="/tdvsp_actionitems"
+                    />
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEditTask} disabled={saving || !editFormData.tdvsp_name.trim()}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
+                </>
+              ) : (
+                <Button appearance="primary" icon={<Edit24Regular />} onClick={() => viewingTask && openEditTask(viewingTask)}>Edit</Button>
+              )}
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* View Idea Dialog */}
+      <Dialog open={viewIdeaOpen} onOpenChange={(_, d) => { setViewIdeaOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
+        <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
+          <DialogBody>
+            <DialogTitle
+              action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setViewIdeaOpen(false)} />}
+            >
+              Idea Details
+            </DialogTitle>
+            <DialogContent>
+              {viewingIdea && (
+                <div className={styles.viewLayout}>
+                  <div className={styles.viewDetails}>
+                    <div className={styles.viewField}>
+                      <Label>Name</Label>
+                      {isEditing ? (
+                        <Input value={editFormData.tdvsp_name} onChange={(_, d) => setEditFormData({ ...editFormData, tdvsp_name: d.value })} />
+                      ) : (
+                        <Text block size={400} weight="semibold">{viewingIdea.tdvsp_name}</Text>
+                      )}
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Description</Label>
+                      {isEditing ? (
+                        <Textarea value={editFormData.tdvsp_description} onChange={(_, d) => setEditFormData({ ...editFormData, tdvsp_description: d.value })} rows={4} />
+                      ) : (
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>{viewingIdea.tdvsp_description || "--"}</Text>
+                      )}
+                    </div>
+                    <div className={styles.viewGrid}>
+                      <div className={styles.viewField}>
+                        <Label>Category</Label>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select category"
+                            value={editFormData.tdvsp_category ? ideaCategoryLabels[editFormData.tdvsp_category as IdeaCategory] : ""}
+                            onOptionSelect={(_, d) => setEditFormData({ ...editFormData, tdvsp_category: d.optionValue ? (Number(d.optionValue) as IdeaCategory) : "" })}
+                          >
+                            {categoryOptions.map((cat) => (
+                              <Option key={cat.value} value={String(cat.value)}>{cat.label}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>{viewingIdea.tdvsp_category ? ideaCategoryLabels[viewingIdea.tdvsp_category] : "--"}</Text>
+                        )}
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Account</Label>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select account"
+                            value={accounts.find((a) => a.accountid === editFormData.accountId)?.name ?? ""}
+                            onOptionSelect={(_, d) => setEditFormData({ ...editFormData, accountId: d.optionValue ?? "" })}
+                          >
+                            <Option value="" text="(None)">(None)</Option>
+                            {accounts.map((a) => (
+                              <Option key={a.accountid} value={a.accountid!}>{a.name}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>{viewingIdea.tdvsp_Account?.name || "--"}</Text>
+                        )}
+                      </div>
+                      <div className={styles.viewField}>
+                        <Label>Contact</Label>
+                        {isEditing ? (
+                          <Dropdown
+                            placeholder="Select contact"
+                            value={contacts.find((c) => c.contactid === editFormData.contactId) ? `${contacts.find((c) => c.contactid === editFormData.contactId)!.firstname} ${contacts.find((c) => c.contactid === editFormData.contactId)!.lastname}` : ""}
+                            onOptionSelect={(_, d) => setEditFormData({ ...editFormData, contactId: d.optionValue ?? "" })}
+                          >
+                            <Option value="" text="(None)">(None)</Option>
+                            {contacts.map((c) => (
+                              <Option key={c.contactid} value={c.contactid!} text={`${c.firstname} ${c.lastname}`}>{c.firstname} {c.lastname}</Option>
+                            ))}
+                          </Dropdown>
+                        ) : (
+                          <Text block size={400}>{viewingIdea.tdvsp_Contact ? `${viewingIdea.tdvsp_Contact.firstname} ${viewingIdea.tdvsp_Contact.lastname}` : "--"}</Text>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.viewNotes}>
+                    <NotesTimeline
+                      entityId={viewingIdea.tdvsp_ideaid!}
+                      entityName={viewingIdea.tdvsp_name}
+                      entityType="idea"
+                      odataBindKey="objectid_tdvsp_idea@odata.bind"
+                      entitySetPath="/tdvsp_ideas"
+                    />
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEditIdea} disabled={saving || !editFormData.tdvsp_name.trim()}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
+                </>
+              ) : (
+                <Button appearance="primary" icon={<Edit24Regular />} onClick={() => viewingIdea && openEditIdea(viewingIdea)}>Edit</Button>
+              )}
+            </DialogActions>
           </DialogBody>
         </DialogSurface>
       </Dialog>

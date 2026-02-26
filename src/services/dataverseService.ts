@@ -295,7 +295,7 @@ export async function getAnnotationsByIds(ids: string[]): Promise<Annotation[]> 
 
 export async function getIdeas(): Promise<Idea[]> {
   const result = await apiRequest(
-    "/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category,_tdvsp_account_value,_tdvsp_contact_value&$expand=tdvsp_Account($select=accountid,name),tdvsp_Contact($select=contactid,firstname,lastname)&$filter=statecode eq 0&$orderby=tdvsp_name asc&$top=100"
+    "/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category,createdon,_tdvsp_account_value,_tdvsp_contact_value&$expand=tdvsp_Account($select=accountid,name),tdvsp_Contact($select=contactid,firstname,lastname)&$filter=statecode eq 0&$orderby=createdon desc&$top=100"
   );
   return result?.value ?? [];
 }

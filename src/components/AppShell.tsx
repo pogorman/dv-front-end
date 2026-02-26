@@ -173,7 +173,7 @@ const useStyles = makeStyles({
     fontWeight: "600",
     fontFamily: tokens.fontFamilyMonospace,
     color: tokens.colorNeutralForeground3,
-    textTransform: "uppercase",
+    textTransform: "none",
     letterSpacing: "1.5px",
   },
   sectionDivider: {
@@ -187,6 +187,7 @@ interface NavItem {
   path: string;
   icon: React.ReactElement;
   iconActive: React.ReactElement;
+  color?: string;
 }
 
 interface NavSection {
@@ -196,69 +197,77 @@ interface NavSection {
 
 const dashboardItem: NavItem = {
   key: "dashboard",
-  label: "Dashboard",
+  label: "dashboard",
   path: "/",
   icon: <Home24Regular />,
   iconActive: <Home24Filled />,
+  color: "#4a9eff",
 };
 
 const navSections: NavSection[] = [
   {
-    label: "Activity",
+    label: "activity",
     items: [
       {
         key: "tasks",
-        label: "Action Items",
+        label: "action items",
         path: "/tasks",
         icon: <CheckboxChecked24Regular />,
         iconActive: <CheckboxChecked24Filled />,
+        color: "#f87171",
       },
       {
         key: "ideas",
-        label: "Ideas",
+        label: "ideas",
         path: "/ideas",
         icon: <LightbulbFilament24Regular />,
         iconActive: <LightbulbFilament24Filled />,
+        color: "#a78bfa",
       },
       {
         key: "impacts",
-        label: "Impacts",
+        label: "impacts",
         path: "/impacts",
         icon: <Flash24Regular />,
         iconActive: <Flash24Filled />,
+        color: "#f59e0b",
       },
     ],
   },
   {
-    label: "Core",
+    label: "core",
     items: [
       {
         key: "accounts",
-        label: "Accounts",
+        label: "accounts",
         path: "/accounts",
         icon: <Building24Regular />,
         iconActive: <Building24Filled />,
+        color: "#3dd68c",
       },
       {
         key: "contacts",
-        label: "Contacts",
+        label: "contacts",
         path: "/contacts",
         icon: <Person24Regular />,
         iconActive: <Person24Filled />,
+        color: "#22d3ee",
       },
       {
         key: "projects",
-        label: "Projects",
+        label: "projects",
         path: "/projects",
         icon: <Briefcase24Regular />,
         iconActive: <Briefcase24Filled />,
+        color: "#e879f9",
       },
       {
         key: "summaries",
-        label: "Summaries",
+        label: "summaries",
         path: "/summaries",
         icon: <PeopleTeam24Regular />,
         iconActive: <PeopleTeam24Filled />,
+        color: "#fb923c",
       },
     ],
   },
@@ -267,7 +276,7 @@ const navSections: NavSection[] = [
     items: [
       {
         key: "about",
-        label: "About this site",
+        label: "about this site",
         path: "/about",
         icon: <Info24Regular />,
         iconActive: <Info24Filled />,
@@ -327,12 +336,18 @@ export const AppShell: React.FC = () => {
                   <stop offset="100%" style={{ stopColor: "#174f9d" }} />
                 </linearGradient>
               </defs>
-              <path d="M32 2 L58 14 V36 C58 50 46 60 32 62 C18 60 6 50 6 36 V14 Z" fill="url(#shield-bg)" stroke="#fff" strokeWidth="2" />
-              <text x="32" y="44" fontFamily="DM Sans,Arial,sans-serif" fontSize="26" fontWeight="800" fill="white" textAnchor="middle" letterSpacing="-1">OG</text>
+              <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#shield-bg)" />
+              <path d="M32 8 C28 16 25 26 25 38 L39 38 C39 26 36 16 32 8Z" fill="white" />
+              <circle cx="32" cy="26" r="4" fill="#174f9d" />
+              <path d="M25 34 L17 44 L25 40Z" fill="white" opacity="0.85" />
+              <path d="M39 34 L47 44 L39 40Z" fill="white" opacity="0.85" />
+              <rect x="27" y="38" width="10" height="3" rx="1" fill="#e0e0e0" />
+              <path d="M28 41 L32 54 L36 41Z" fill="#f59e0b" />
+              <path d="M30 41 L32 50 L34 41Z" fill="#f87171" />
             </svg>
             {expanded && (
               <Text weight="semibold" size={400}>
-                O'G Central
+                boom!
               </Text>
             )}
           </div>
@@ -357,7 +372,7 @@ export const AppShell: React.FC = () => {
               className={`${styles.navItem} ${currentPath === dashboardItem.path ? styles.navItemActive : ""}`}
               onClick={() => navigate(dashboardItem.path)}
             >
-              <span className={styles.navIcon}>
+              <span className={styles.navIcon} style={{ color: dashboardItem.color }}>
                 {currentPath === dashboardItem.path ? dashboardItem.iconActive : dashboardItem.icon}
               </span>
               {expanded && <span>{dashboardItem.label}</span>}
@@ -384,7 +399,7 @@ export const AppShell: React.FC = () => {
                       className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
                       onClick={() => navigate(item.path)}
                     >
-                      <span className={styles.navIcon}>
+                      <span className={styles.navIcon} style={{ color: item.color }}>
                         {isActive ? item.iconActive : item.icon}
                       </span>
                       {expanded && <span>{item.label}</span>}

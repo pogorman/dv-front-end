@@ -42,7 +42,7 @@ export const About: React.FC = () => {
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
-        <Subtitle1 style={{ marginBottom: "4px" }}>O'G Central</Subtitle1>
+        <Subtitle1 style={{ marginBottom: "4px" }}>boom!</Subtitle1>
         <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
           Internal business management tool
         </Caption1>

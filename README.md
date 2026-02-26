@@ -1,4 +1,4 @@
-# O'G Central
+# boom!
 
 Internal business management tool built as a React SPA that interfaces with Microsoft Dataverse via Web API. Hosted on Azure Static Web Apps at **ohgeesolutions.com**.
 
@@ -37,17 +37,17 @@ npm test      # Run tests
 
 ## Features
 
-- **Dashboard** — Two-column layout with Quick Create bar (buttons match nav order), Parking Lot strip, three-column cards (Work/Ideas/Personal), collapsible right sidebar with Pinned Notes
+- **Dashboard** — Quick create bar (nav order), then stacked inline tile strips (parking lot, ideas, personal), then full-width work tile grid (4 per row, 108px tiles, top priority first). Clicking any action item or idea opens an inline view/edit dialog with notes timeline — no navigation away. All sorted by date (past/closest first). Collapsible right sidebar with pinned notes
 - **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, Impacts, and Meeting Summaries
 - **Inline Edit** — View dialogs toggle between read-only and editable mode; edit state resets cleanly between records
 - **Save Progress** — All save/update/deactivate operations show spinner and disable buttons to prevent double-submissions
-- **Parking Lot** — Bookmark any dashboard item for quick access in a persistent sidebar panel (localStorage)
+- **Parking Lot** — Bookmark any dashboard item for quick access in a lime green inline tile strip (localStorage, max 5)
 - **Soft Delete** — All entities use deactivation (statecode=1) instead of hard deletion; trash icon on dashboard items shows "Are you sure?" confirmation dialog
 - **Account View** with 3-column related records layout (contacts, tasks, ideas, impacts, summaries, notes)
 - **Notes & Attachments** on Accounts, Action Items, Ideas, and Projects with file upload and pinning to dashboard
-- **Copilot Chat** — floating AI assistant (bottom-right) connected to Copilot Studio via SSO
+- **Copilot Chat** — floating rocket icon (bottom-right) opens AI assistant connected to Copilot Studio via SSO
 - **Dark/Light Theme** toggle with system preference detection and localStorage persistence
-- **Collapsible Sidebar** navigation organized into sections with Fluent UI icons
+- **Collapsible Sidebar** navigation organized into sections with Fluent UI icons (all labels lowercase)
 - **About this site** page with app and platform info
 
 ## Project Structure

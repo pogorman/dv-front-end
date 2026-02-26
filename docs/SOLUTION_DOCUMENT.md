@@ -1,6 +1,6 @@
-# O'G Central — Solution Document
+# boom! — Solution Document
 
-**Application Name:** O'G Central
+**Application Name:** boom!
 **Version:** 0.1.0
 **Platform:** Web (Single Page Application)
 **Hosting:** Azure Static Web Apps
@@ -30,7 +30,7 @@
 
 ## 1. Executive Summary
 
-O'G Central is an internal business management tool built as a React single-page application (SPA). It provides a unified interface for managing customer accounts, contacts, action items, projects, ideas, impacts, and meeting summaries. All data is stored in and retrieved from Microsoft Dataverse via its Web API.
+boom! is an internal business management tool built as a React single-page application (SPA). It provides a unified interface for managing customer accounts, contacts, action items, projects, ideas, impacts, and meeting summaries. All data is stored in and retrieved from Microsoft Dataverse via its Web API.
 
 The application is secured with Azure Active Directory (Azure AD) authentication, themed with Microsoft's Fluent UI design system, and deployed as an Azure Static Web App. An embedded AI assistant powered by Microsoft Copilot Studio provides conversational support directly within the app.
 
@@ -57,7 +57,7 @@ The application is secured with Azure Active Directory (Azure AD) authentication
 │                         End User (Browser)                         │
 │                                                                     │
 │  ┌───────────────────────────────────────────────────────────────┐  │
-│  │                    O'G Central React SPA                      │  │
+│  │                    boom! React SPA                      │  │
 │  │  ┌─────────┐  ┌──────────┐  ┌─────────┐  ┌───────────────┐  │  │
 │  │  │  MSAL   │  │ Fluent   │  │  React  │  │   Copilot     │  │  │
 │  │  │ React   │  │ UI v9    │  │ Router  │  │   Chat Widget │  │  │
@@ -663,7 +663,7 @@ Displayed to unauthenticated users.
 
 **Layout:** Centered card on blue gradient background with:
 - Shield icon
-- "O'G Central" heading
+- "boom!" heading
 - "Sign in to access your dashboard" description
 - "Sign in with Microsoft" button → triggers `instance.loginRedirect(loginRequest)`
 

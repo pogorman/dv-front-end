@@ -23,29 +23,23 @@ const useStyles = makeStyles({
     position: "fixed",
     bottom: "24px",
     right: "24px",
-    width: "56px",
-    height: "56px",
-    ...shorthands.borderRadius("50%"),
-    backgroundColor: tokens.colorNeutralBackground1,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    boxShadow: tokens.shadow16,
+    width: "48px",
+    height: "48px",
+    ...shorthands.borderRadius("0"),
+    backgroundColor: "transparent",
+    border: "none",
+    boxShadow: "none",
     zIndex: 1000,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     ...shorthands.padding("0"),
-    overflow: "hidden",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    overflow: "visible",
+    transition: "transform 0.2s ease",
     ":hover": {
-      transform: "scale(1.05)",
-      boxShadow: tokens.shadow28,
+      transform: "scale(1.15)",
     },
-  },
-  floatingButtonImg: {
-    width: "48px",
-    height: "48px",
-    objectFit: "contain" as const,
   },
   headerImg: {
     width: "24px",
@@ -326,7 +320,15 @@ export const CopilotChat: React.FC = () => {
         onClick={handleOpen}
         aria-label="Open chat"
       >
-        <img src="/images/og_logo_white.png" alt="O'G" className={styles.floatingButtonImg} />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="10 4 44 54" width="48" height="48">
+          <path d="M32 8 C28 16 25 26 25 38 L39 38 C39 26 36 16 32 8Z" fill="#4a9eff"/>
+          <circle cx="32" cy="26" r="4" fill="#174f9d"/>
+          <path d="M25 34 L17 44 L25 40Z" fill="#4a9eff" opacity="0.85"/>
+          <path d="M39 34 L47 44 L39 40Z" fill="#4a9eff" opacity="0.85"/>
+          <rect x="27" y="38" width="10" height="3" rx="1" fill="#a0c4ff"/>
+          <path d="M28 41 L32 54 L36 41Z" fill="#f59e0b"/>
+          <path d="M30 41 L32 50 L34 41Z" fill="#f87171"/>
+        </svg>
       </button>
     );
   }
@@ -335,9 +337,9 @@ export const CopilotChat: React.FC = () => {
     <div className={styles.chatPanel}>
       <div className={styles.chatHeader}>
         <div className={styles.headerTitle}>
-          <img src="/images/og_logo_white.png" alt="O'G" className={styles.headerImg} />
+          <img src="/images/og_logo_white.png" alt="boom!" className={styles.headerImg} />
           <Text weight="semibold" style={{ color: "white" }}>
-            O'G
+            boom!
           </Text>
         </div>
         <Button

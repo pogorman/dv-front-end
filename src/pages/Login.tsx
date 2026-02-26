@@ -59,9 +59,19 @@ export const LoginPage: React.FC = () => {
   return (
     <div className={styles.root}>
       <Card className={styles.card}>
-        <div className={styles.brandIcon}>OG</div>
+        <div className={styles.brandIcon}>
+          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ width: "40px", height: "40px" }}>
+            <path d="M32 8 C28 16 25 26 25 38 L39 38 C39 26 36 16 32 8Z" fill="white"/>
+            <circle cx="32" cy="26" r="4" fill="#4a9eff"/>
+            <path d="M25 34 L17 44 L25 40Z" fill="white" opacity="0.85"/>
+            <path d="M39 34 L47 44 L39 40Z" fill="white" opacity="0.85"/>
+            <rect x="27" y="38" width="10" height="3" rx="1" fill="rgba(255,255,255,0.7)"/>
+            <path d="M28 41 L32 54 L36 41Z" fill="#f59e0b"/>
+            <path d="M30 41 L32 50 L34 41Z" fill="#f87171"/>
+          </svg>
+        </div>
         <Text size={700} weight="bold" block>
-          O'G Central
+          boom!
         </Text>
         <Text
           size={400}
