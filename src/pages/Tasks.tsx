@@ -34,6 +34,7 @@ import {
   Add24Regular,
   Search24Regular,
   TaskListSquareLtr24Filled,
+  CheckboxChecked24Filled,
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
@@ -71,7 +72,13 @@ const useStyles = makeStyles({
     ...shorthands.borderRadius("8px"),
     overflow: "hidden",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: "3px solid #f87171",
     boxShadow: "none",
+  },
+  pageHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("10px"),
   },
   taskRow: {
     display: "flex",
@@ -151,6 +158,77 @@ const useStyles = makeStyles({
   },
 });
 
+// Short labels for grid display
+const statusShortLabels: Record<number, string> = {
+  468510000: "Pondering",
+  468510001: "In Progress",
+  468510002: "Pending Comm.",
+  468510003: "On Hold",
+  468510004: "Wrapping Up",
+  468510005: "Complete",
+};
+
+const priorityShortLabels: Record<number, string> = {
+  468510000: "Low",
+  468510001: "Medium",
+  468510002: "Top Priority",
+  468510003: "High",
+};
+
+// Color maps for badges
+const statusColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510001: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
+  468510002: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+  468510003: { bg: "rgba(234, 179, 8, 0.15)", text: "#eab308" },
+  468510004: { bg: "rgba(34, 211, 238, 0.15)", text: "#22d3ee" },
+  468510005: { bg: "rgba(61, 214, 140, 0.15)", text: "#3dd68c" },
+};
+
+const priorityColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510001: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
+  468510002: { bg: "rgba(248, 113, 113, 0.15)", text: "#f87171" },
+  468510003: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+};
+
+const typeColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(34, 211, 238, 0.15)", text: "#22d3ee" },
+  468510001: { bg: "rgba(248, 113, 113, 0.15)", text: "#f87171" },
+};
+
+const renderBadge = (label: string, colors: { bg: string; text: string }) => (
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    fontWeight: 500,
+    backgroundColor: colors.bg,
+    color: colors.text,
+    whiteSpace: "nowrap",
+  }}>
+    {label}
+  </span>
+);
+
+const isOverdue = (dateStr: string) => {
+  const d = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d < today;
+};
+
+const columnSizes: Record<string, React.CSSProperties> = {
+  date: { flex: "0 0 95px", minWidth: 95 },
+  name: { flex: "3 1 200px", minWidth: 200 },
+  taskStatus: { flex: "0 0 150px", minWidth: 150 },
+  taskPriority: { flex: "0 0 115px", minWidth: 115 },
+  taskType: { flex: "0 0 85px", minWidth: 85 },
+  customer: { flex: "1.5 1 120px", minWidth: 120 },
+  actions: { flex: "0 0 72px", minWidth: 72 },
+};
+
 interface FormData {
   tdvsp_name: string;
   tdvsp_date: string;
@@ -193,7 +271,7 @@ export const Tasks: React.FC = () => {
       const data = await getActionItems();
       setItems(data);
     } catch (err) {
-      console.error("Failed to load action items:", err);
+      console.error("Failed to load tasks:", err);
     } finally {
       setLoading(false);
     }
@@ -289,10 +367,10 @@ export const Tasks: React.FC = () => {
       setDialogOpen(false);
       setFormData(emptyForm);
       loadItems();
-      notify("Action item created");
+      notify("Task created");
     } catch (err) {
-      console.error("Failed to save action item:", err);
-      notify("Failed to save action item", undefined, "error");
+      console.error("Failed to save task:", err);
+      notify("Failed to save task", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -309,10 +387,10 @@ export const Tasks: React.FC = () => {
       setItems(updatedItems);
       const updated = updatedItems.find((t) => t.tdvsp_actionitemid === viewingItem?.tdvsp_actionitemid);
       if (updated) setViewingItem(updated);
-      notify("Action item updated");
+      notify("Task updated");
     } catch (err) {
-      console.error("Failed to save action item:", err);
-      notify("Failed to save action item", undefined, "error");
+      console.error("Failed to save task:", err);
+      notify("Failed to save task", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -323,10 +401,10 @@ export const Tasks: React.FC = () => {
     try {
       await deactivateActionItem(id);
       loadItems();
-      notify("Action item deactivated");
+      notify("Task deactivated");
     } catch (err) {
-      console.error("Failed to deactivate action item:", err);
-      notify("Failed to deactivate action item", undefined, "error");
+      console.error("Failed to deactivate task:", err);
+      notify("Failed to deactivate task", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -345,9 +423,14 @@ export const Tasks: React.FC = () => {
       columnId: "date",
       compare: (a, b) => (a.tdvsp_date ?? "").localeCompare(b.tdvsp_date ?? ""),
       renderHeaderCell: () => "Date",
-      renderCell: (item) => (
-        <Text>{item.tdvsp_date ? formatDate(item.tdvsp_date) : "--"}</Text>
-      ),
+      renderCell: (item) => {
+        const overdue = item.tdvsp_date ? isOverdue(item.tdvsp_date) : false;
+        return (
+          <Text style={overdue ? { color: "#f87171", fontWeight: 600 } : undefined}>
+            {item.tdvsp_date ? formatDate(item.tdvsp_date) : "--"}
+          </Text>
+        );
+      },
     }),
     createTableColumn({
       columnId: "name",
@@ -358,6 +441,8 @@ export const Tasks: React.FC = () => {
           weight="semibold"
           className={styles.nameLink}
           onClick={() => openView(item)}
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_name}
         >
           {item.tdvsp_name}
         </Text>
@@ -366,38 +451,35 @@ export const Tasks: React.FC = () => {
     createTableColumn({
       columnId: "taskStatus",
       compare: (a, b) => (a.tdvsp_taskstatus ?? 0) - (b.tdvsp_taskstatus ?? 0),
-      renderHeaderCell: () => "Task Status",
-      renderCell: (item) => (
-        <Text>
-          {item.tdvsp_taskstatus != null
-            ? taskStatusLabels[item.tdvsp_taskstatus as TaskStatus] ?? "--"
-            : "--"}
-        </Text>
-      ),
+      renderHeaderCell: () => "Status",
+      renderCell: (item) => {
+        if (item.tdvsp_taskstatus == null) return <Text>--</Text>;
+        const label = statusShortLabels[item.tdvsp_taskstatus] ?? "--";
+        const colors = statusColors[item.tdvsp_taskstatus];
+        return colors ? renderBadge(label, colors) : <Text>{label}</Text>;
+      },
     }),
     createTableColumn({
       columnId: "taskPriority",
       compare: (a, b) => (a.tdvsp_priority ?? 0) - (b.tdvsp_priority ?? 0),
       renderHeaderCell: () => "Priority",
-      renderCell: (item) => (
-        <Text>
-          {item.tdvsp_priority != null
-            ? taskPriorityLabels[item.tdvsp_priority as TaskPriority] ?? "--"
-            : "--"}
-        </Text>
-      ),
+      renderCell: (item) => {
+        if (item.tdvsp_priority == null) return <Text>--</Text>;
+        const label = priorityShortLabels[item.tdvsp_priority] ?? "--";
+        const colors = priorityColors[item.tdvsp_priority];
+        return colors ? renderBadge(label, colors) : <Text>{label}</Text>;
+      },
     }),
     createTableColumn({
       columnId: "taskType",
       compare: (a, b) => (a.tdvsp_tasktype ?? 0) - (b.tdvsp_tasktype ?? 0),
       renderHeaderCell: () => "Type",
-      renderCell: (item) => (
-        <Text>
-          {item.tdvsp_tasktype != null
-            ? taskTypeLabels[item.tdvsp_tasktype as TaskType] ?? "--"
-            : "--"}
-        </Text>
-      ),
+      renderCell: (item) => {
+        if (item.tdvsp_tasktype == null) return <Text>--</Text>;
+        const label = taskTypeLabels[item.tdvsp_tasktype as TaskType] ?? "--";
+        const colors = typeColors[item.tdvsp_tasktype];
+        return colors ? renderBadge(label, colors) : <Text>{label}</Text>;
+      },
     }),
     createTableColumn({
       columnId: "customer",
@@ -405,34 +487,17 @@ export const Tasks: React.FC = () => {
         (a.tdvsp_Customer?.name ?? "").localeCompare(b.tdvsp_Customer?.name ?? ""),
       renderHeaderCell: () => "Customer",
       renderCell: (item) => (
-        <Text>{item.tdvsp_Customer?.name ?? "--"}</Text>
-      ),
-    }),
-    createTableColumn({
-      columnId: "description",
-      renderHeaderCell: () => "Description",
-      renderCell: (item) => (
         <Text
-          truncate
-          wrap={false}
-          style={{ maxWidth: 200, display: "block", overflow: "hidden", textOverflow: "ellipsis" }}
-          title={item.tdvsp_description ?? ""}
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_Customer?.name ?? ""}
         >
-          {item.tdvsp_description || "--"}
+          {item.tdvsp_Customer?.name ?? "--"}
         </Text>
       ),
     }),
     createTableColumn({
-      columnId: "createdon",
-      compare: (a, b) => (a.createdon ?? "").localeCompare(b.createdon ?? ""),
-      renderHeaderCell: () => "Created On",
-      renderCell: (item) => (
-        <Text>{item.createdon ? formatDate(item.createdon) : "--"}</Text>
-      ),
-    }),
-    createTableColumn({
       columnId: "actions",
-      renderHeaderCell: () => "Actions",
+      renderHeaderCell: () => "",
       renderCell: (item) => (
         <div style={{ display: "flex", gap: 4 }}>
           <Button
@@ -460,21 +525,25 @@ export const Tasks: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <CheckboxChecked24Filled style={{ color: "#f87171", fontSize: 28 }} />
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>tasks</Subtitle1>
+      </div>
       <div className={styles.toolbar}>
         <Input
           className={styles.searchBox}
           contentBefore={<Search24Regular />}
-          placeholder="Search action items..."
+          placeholder="Search tasks..."
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
-            New Action Item
+            New Task
           </Button>
           <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
             <DialogBody>
-              <DialogTitle>New Action Item</DialogTitle>
+              <DialogTitle>New Task</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -494,7 +563,7 @@ export const Tasks: React.FC = () => {
                       onChange={(_, d) =>
                         setFormData({ ...formData, tdvsp_description: d.value })
                       }
-                      placeholder="Add details about this action item..."
+                      placeholder="Add details about this task..."
                       rows={4}
                       resize="vertical"
                     />
@@ -625,16 +694,16 @@ export const Tasks: React.FC = () => {
       <Card className={styles.card}>
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-            <Spinner label="Loading action items..." />
+            <Spinner label="Loading tasks..." />
           </div>
         ) : filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <TaskListSquareLtr24Filled
               style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }}
             />
-            <Subtitle1>No action items found</Subtitle1>
+            <Subtitle1>No tasks found</Subtitle1>
             <Caption1 style={{ marginTop: 8 }}>
-              Create your first action item to start tracking.
+              Create your first task to start tracking.
             </Caption1>
           </div>
         ) : (
@@ -646,16 +715,20 @@ export const Tasks: React.FC = () => {
           >
             <DataGridHeader>
               <DataGridRow>
-                {({ renderHeaderCell }) => (
-                  <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                {({ renderHeaderCell, columnId }) => (
+                  <DataGridHeaderCell style={columnSizes[columnId as string]}>
+                    {renderHeaderCell()}
+                  </DataGridHeaderCell>
                 )}
               </DataGridRow>
             </DataGridHeader>
             <DataGridBody<ActionItem>>
               {({ item, rowId }) => (
                 <DataGridRow<ActionItem> key={rowId}>
-                  {({ renderCell }) => (
-                    <DataGridCell>{renderCell(item)}</DataGridCell>
+                  {({ renderCell, columnId }) => (
+                    <DataGridCell style={columnSizes[columnId as string]}>
+                      {renderCell(item)}
+                    </DataGridCell>
                   )}
                 </DataGridRow>
               )}
@@ -677,7 +750,7 @@ export const Tasks: React.FC = () => {
                 />
               }
             >
-              Action Item Details
+              Task Details
             </DialogTitle>
             <DialogContent>
               {viewingItem && (

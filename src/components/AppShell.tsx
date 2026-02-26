@@ -82,8 +82,8 @@ const useStyles = makeStyles({
     whiteSpace: "nowrap",
   },
   brandIcon: {
-    width: "28px",
-    height: "28px",
+    width: "36px",
+    height: "36px",
     flexShrink: 0,
   },
   navSection: {
@@ -210,7 +210,7 @@ const navSections: NavSection[] = [
     items: [
       {
         key: "tasks",
-        label: "action items",
+        label: "tasks",
         path: "/tasks",
         icon: <CheckboxChecked24Regular />,
         iconActive: <CheckboxChecked24Filled />,
@@ -286,15 +286,27 @@ const navSections: NavSection[] = [
 ];
 
 const pageTitles: Record<string, string> = {
-  "/": "Dashboard",
-  "/accounts": "Accounts",
-  "/contacts": "Contacts",
-  "/tasks": "Action Items",
-  "/ideas": "Ideas",
-  "/projects": "Projects",
-  "/impacts": "Impacts",
-  "/summaries": "Summaries",
-  "/about": "About this site",
+  "/": "dashboard",
+  "/accounts": "accounts",
+  "/contacts": "contacts",
+  "/tasks": "tasks",
+  "/ideas": "ideas",
+  "/projects": "projects",
+  "/impacts": "impacts",
+  "/summaries": "summaries",
+  "/about": "about this site",
+};
+
+const pageIcons: Record<string, { icon: React.ReactNode; color: string }> = {
+  "/": { icon: <Home24Filled />, color: "#4a9eff" },
+  "/tasks": { icon: <CheckboxChecked24Filled />, color: "#f87171" },
+  "/ideas": { icon: <LightbulbFilament24Filled />, color: "#a78bfa" },
+  "/impacts": { icon: <Flash24Filled />, color: "#f59e0b" },
+  "/accounts": { icon: <Building24Filled />, color: "#3dd68c" },
+  "/contacts": { icon: <Person24Filled />, color: "#22d3ee" },
+  "/projects": { icon: <Briefcase24Filled />, color: "#e879f9" },
+  "/summaries": { icon: <PeopleTeam24Filled />, color: "#fb923c" },
+  "/about": { icon: <Info24Filled />, color: "#4a9eff" },
 };
 
 export const AppShell: React.FC = () => {
@@ -315,7 +327,7 @@ export const AppShell: React.FC = () => {
     .slice(0, 2);
 
   const currentPath = location.pathname;
-  const pageTitle = pageTitles[currentPath] ?? "Page";
+  const pageTitle = pageTitles[currentPath] ?? "page";
 
   const handleLogout = () => {
     instance.logoutRedirect();
@@ -330,17 +342,10 @@ export const AppShell: React.FC = () => {
         <div className={styles.sidebarHeader}>
           <div className={styles.brandArea}>
             <svg className={styles.brandIcon} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="shield-bg" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: "#4a9eff" }} />
-                  <stop offset="100%" style={{ stopColor: "#174f9d" }} />
-                </linearGradient>
-              </defs>
-              <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#shield-bg)" />
-              <path d="M32 8 C28 16 25 26 25 38 L39 38 C39 26 36 16 32 8Z" fill="white" />
-              <circle cx="32" cy="26" r="4" fill="#174f9d" />
-              <path d="M25 34 L17 44 L25 40Z" fill="white" opacity="0.85" />
-              <path d="M39 34 L47 44 L39 40Z" fill="white" opacity="0.85" />
+              <path d="M32 8 C28 16 25 26 25 38 L39 38 C39 26 36 16 32 8Z" fill="#4a9eff" />
+              <circle cx="32" cy="26" r="4" fill={tokens.colorNeutralBackground1} />
+              <path d="M25 34 L17 44 L25 40Z" fill="#4a9eff" opacity="0.85" />
+              <path d="M39 34 L47 44 L39 40Z" fill="#4a9eff" opacity="0.85" />
               <rect x="27" y="38" width="10" height="3" rx="1" fill="#e0e0e0" />
               <path d="M28 41 L32 54 L36 41Z" fill="#f59e0b" />
               <path d="M30 41 L32 50 L34 41Z" fill="#f87171" />
@@ -446,9 +451,16 @@ export const AppShell: React.FC = () => {
       {/* Main Content */}
       <div className={styles.mainContent}>
         <header className={styles.topBar}>
-          <Text size={500} weight="semibold">
-            {pageTitle}
-          </Text>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {pageIcons[currentPath] && (
+              <span style={{ display: "flex", color: pageIcons[currentPath].color }}>
+                {pageIcons[currentPath].icon}
+              </span>
+            )}
+            <Text size={500} weight="semibold">
+              {pageTitle}
+            </Text>
+          </div>
           <div className={styles.themeToggle}>
             <WeatherSunny24Regular />
             <Switch

@@ -88,10 +88,11 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 - **Sidebar Navigation** (168px expanded, 48px collapsed) - Collapsible with toggle button. All labels lowercase. Organized into sections with subtle dividers:
   - dashboard (top, Home icon)
-  - activity: action items (CheckboxChecked), ideas (LightbulbFilament), impacts (Flash)
+  - activity: tasks (CheckboxChecked), ideas (LightbulbFilament), impacts (Flash)
   - core: accounts (Building), contacts (Person), projects (Briefcase), summaries (PeopleTeam)
   - about this site (bottom, Info icon)
   - User area at bottom with avatar, name, Sign out button
+- **Page Title Icons** - Each page's top bar title shows the matching Fluent UI filled icon (in its accent color) to the left of the page name. Icon-to-color mapping defined in `pageIcons` in `AppShell.tsx`.
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.

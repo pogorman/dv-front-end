@@ -110,13 +110,11 @@ const useStyles = makeStyles({
     minHeight: "32px",
     height: "32px",
     ...shorthands.padding("0px", "10px"),
-    backgroundColor: tokens.colorBrandBackground2,
-    color: tokens.colorBrandForeground1,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    border: "1px solid transparent",
     flexGrow: 1,
     flexBasis: 0,
     ":hover": {
-      backgroundColor: tokens.colorBrandBackground2Hover,
+      filter: "brightness(1.3)",
     },
   },
   dashboardBody: {
@@ -456,7 +454,7 @@ const useStyles = makeStyles({
 });
 
 const parkedEntityLabels: Record<string, string> = {
-  actionitem: "Action Item",
+  actionitem: "Task",
   idea: "Idea",
   account: "Account",
   contact: "Contact",
@@ -701,10 +699,10 @@ export const Dashboard: React.FC = () => {
       setAddTaskOpen(false);
       setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
       getActionItems().then(setActionItems).catch(console.error);
-      notify("Action item created");
+      notify("Task created");
     } catch (err) {
-      console.error("Failed to add action item:", err);
-      notify("Failed to add action item", undefined, "error");
+      console.error("Failed to add task:", err);
+      notify("Failed to add task", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -824,7 +822,7 @@ export const Dashboard: React.FC = () => {
     { value: 468510008, label: "Other" },
   ];
 
-  // View/edit handlers for Action Items
+  // View/edit handlers for Tasks
   const openViewTask = (item: ActionItem) => {
     setIsEditing(false);
     setEditingId(null);
@@ -883,10 +881,10 @@ export const Dashboard: React.FC = () => {
       setActionItems(updatedItems);
       const updated = updatedItems.find((t) => t.tdvsp_actionitemid === viewingTask?.tdvsp_actionitemid);
       if (updated) setViewingTask(updated);
-      notify("Action item updated");
+      notify("Task updated");
     } catch (err) {
-      console.error("Failed to save action item:", err);
-      notify("Failed to save action item", undefined, "error");
+      console.error("Failed to save task:", err);
+      notify("Failed to save task", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -982,7 +980,7 @@ export const Dashboard: React.FC = () => {
   const entityTypeLabels: Record<NoteEntityType, string> = {
     account: "Account",
     project: "Project",
-    actionitem: "Action Item",
+    actionitem: "Task",
     idea: "Idea",
   };
 
@@ -1010,13 +1008,13 @@ export const Dashboard: React.FC = () => {
       <div className={styles.quickCreateSection}>
         <Text size={300} weight="semibold" style={{ whiteSpace: "nowrap", fontFamily: tokens.fontFamilyMonospace, letterSpacing: "1.5px", fontSize: "10px" }}>quick create</Text>
         <div className={styles.quickActions}>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)}>action item</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)}>idea</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)}>impact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)}>account</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)}>contact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)}>project</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)}>summary</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)} style={{ backgroundColor: "rgba(248,113,113,0.12)", color: "#f87171", borderColor: "rgba(248,113,113,0.25)" }}>task</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>idea</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)} style={{ backgroundColor: "rgba(245,158,11,0.12)", color: "#f59e0b", borderColor: "rgba(245,158,11,0.25)" }}>impact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)} style={{ backgroundColor: "rgba(61,214,140,0.12)", color: "#3dd68c", borderColor: "rgba(61,214,140,0.25)" }}>account</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>contact</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)} style={{ backgroundColor: "rgba(232,121,249,0.12)", color: "#e879f9", borderColor: "rgba(232,121,249,0.25)" }}>project</Button>
+          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>summary</Button>
         </div>
         {pinnedRefs.length > 0 && (
           <Button
@@ -1446,11 +1444,11 @@ export const Dashboard: React.FC = () => {
         </DialogSurface>
       </Dialog>
 
-      {/* Add Action Item Dialog */}
+      {/* Add Task Dialog */}
       <Dialog open={addTaskOpen} onOpenChange={(_, d) => setAddTaskOpen(d.open)}>
         <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
           <DialogBody>
-            <DialogTitle>New Action Item</DialogTitle>
+            <DialogTitle>New Task</DialogTitle>
             <DialogContent>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -1839,14 +1837,14 @@ export const Dashboard: React.FC = () => {
         </DialogSurface>
       </Dialog>
 
-      {/* View Action Item Dialog */}
+      {/* View Task Dialog */}
       <Dialog open={viewTaskOpen} onOpenChange={(_, d) => { setViewTaskOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
         <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
           <DialogBody>
             <DialogTitle
               action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setViewTaskOpen(false)} />}
             >
-              Action Item Details
+              Task Details
             </DialogTitle>
             <DialogContent>
               {viewingTask && (

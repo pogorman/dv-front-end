@@ -81,7 +81,7 @@ export const LoginPage: React.FC = () => {
             marginTop: 12,
           }}
         >
-          Manage your accounts, activities, and action items — all in one place.
+          Manage your accounts, activities, and tasks — all in one place.
         </Text>
         <Button
           className={styles.signInButton}

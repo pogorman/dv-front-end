@@ -368,10 +368,10 @@ export const Accounts: React.FC = () => {
       setAddActionItemOpen(false);
       setNewActionItem({ tdvsp_name: "", tdvsp_date: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
       loadRelatedRecords(viewingAccount.accountid);
-      notify("Action item added");
+      notify("Task added");
     } catch (err) {
-      console.error("Failed to add action item:", err);
-      notify("Failed to add action item", undefined, "error");
+      console.error("Failed to add task:", err);
+      notify("Failed to add task", undefined, "error");
     } finally {
       setSaving(false);
     }
@@ -652,10 +652,10 @@ export const Accounts: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Action Items */}
+                        {/* Tasks */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
-                            <Subtitle1>Action Items</Subtitle1>
+                            <Subtitle1>Tasks</Subtitle1>
                             <span className={styles.badge}>{relatedTasks.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddActionItemOpen(true)}>Add</Button>
                           </div>
@@ -821,11 +821,11 @@ export const Accounts: React.FC = () => {
         </DialogSurface>
       </Dialog>
 
-      {/* Add Action Item Dialog */}
+      {/* Add Task Dialog */}
       <Dialog open={addActionItemOpen} onOpenChange={(_, d) => setAddActionItemOpen(d.open)}>
         <DialogSurface>
           <DialogBody>
-            <DialogTitle>Add Action Item to {viewingAccount?.name}</DialogTitle>
+            <DialogTitle>Add Task to {viewingAccount?.name}</DialogTitle>
             <DialogContent>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div className={styles.formField}>

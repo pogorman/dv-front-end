@@ -48,6 +48,7 @@ npm test      # Run tests
 - **Copilot Chat** — floating rocket icon (bottom-right) opens AI assistant connected to Copilot Studio via SSO
 - **Dark/Light Theme** toggle with system preference detection and localStorage persistence
 - **Collapsible Sidebar** navigation organized into sections with Fluent UI icons (all labels lowercase)
+- **Page Title Icons** — each page's top bar shows its accent-colored Fluent UI icon next to the title
 - **About this site** page with app and platform info
 
 ## Project Structure
