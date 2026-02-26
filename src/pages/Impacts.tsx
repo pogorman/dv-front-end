@@ -10,9 +10,7 @@ import {
   Label,
   Text,
   Subtitle1,
-  Body1,
   Caption1,
-  Divider,
   Dialog,
   DialogSurface,
   DialogBody,
@@ -23,12 +21,19 @@ import {
   Dropdown,
   Option,
   Textarea,
+  DataGrid,
+  DataGridHeader,
+  DataGridHeaderCell,
+  DataGridBody,
+  DataGridRow,
+  DataGridCell,
+  TableColumnDefinition,
+  createTableColumn,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
   Search24Regular,
-  Trophy24Filled,
-  CalendarLtr24Regular,
+  Flash24Filled,
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
@@ -43,6 +48,24 @@ import {
   getAccounts,
 } from "../services/dataverseService";
 import { useNotification } from "../context/NotificationContext";
+
+const renderBadge = (label: string, colors: { bg: string; text: string }) => (
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    fontWeight: 500,
+    backgroundColor: colors.bg,
+    color: colors.text,
+    whiteSpace: "nowrap",
+  }}>
+    {label}
+  </span>
+);
+
+const dateBadgeColors = { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" };
+const accountBadgeColors = { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" };
 
 const useStyles = makeStyles({
   container: {
@@ -60,38 +83,18 @@ const useStyles = makeStyles({
   searchBox: {
     minWidth: "280px",
   },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-    ...shorthands.gap("16px"),
-  },
-  impactCard: {
-    ...shorthands.padding("16px"),
+  card: {
+    ...shorthands.padding("0px"),
     ...shorthands.borderRadius("8px"),
+    overflow: "hidden",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: "3px solid #f59e0b",
     boxShadow: "none",
-    transition: "background-color 0.15s ease",
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
-    },
   },
-  cardHeader: {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: "12px",
-  },
-  cardMeta: {
+  pageHeader: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("16px"),
-    marginTop: "12px",
-    color: tokens.colorNeutralForeground3,
-  },
-  metaItem: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("4px"),
+    ...shorthands.gap("10px"),
   },
   formGrid: {
     display: "grid",
@@ -132,6 +135,14 @@ const useStyles = makeStyles({
     ...shorthands.gap("16px"),
   },
 });
+
+const columnSizes: Record<string, React.CSSProperties> = {
+  date: { flex: "0 0 95px", minWidth: 95 },
+  name: { flex: "3 1 200px", minWidth: 200 },
+  description: { flex: "2 1 180px", minWidth: 180 },
+  customer: { flex: "1.5 1 120px", minWidth: 120 },
+  actions: { flex: "0 0 72px", minWidth: 72 },
+};
 
 interface FormData {
   tdvsp_name: string;
@@ -299,8 +310,92 @@ export const Impacts: React.FC = () => {
     );
   });
 
+  const gridColumns: TableColumnDefinition<Impact>[] = [
+    createTableColumn({
+      columnId: "date",
+      compare: (a, b) => (a.tdvsp_date ?? "").localeCompare(b.tdvsp_date ?? ""),
+      renderHeaderCell: () => "Date",
+      renderCell: (item) =>
+        item.tdvsp_date
+          ? renderBadge(formatDate(item.tdvsp_date), dateBadgeColors)
+          : <Text>--</Text>,
+    }),
+    createTableColumn({
+      columnId: "name",
+      compare: (a, b) => (a.tdvsp_name ?? "").localeCompare(b.tdvsp_name ?? ""),
+      renderHeaderCell: () => "Name",
+      renderCell: (item) => (
+        <Text
+          weight="semibold"
+          className={styles.nameLink}
+          onClick={() => openView(item)}
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_name}
+        >
+          {item.tdvsp_name}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "description",
+      compare: (a, b) => (a.tdvsp_description ?? "").localeCompare(b.tdvsp_description ?? ""),
+      renderHeaderCell: () => "Description",
+      renderCell: (item) => (
+        <Text
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_description ?? ""}
+        >
+          {item.tdvsp_description || "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "customer",
+      compare: (a, b) =>
+        (a.tdvsp_Customer?.name ?? "").localeCompare(b.tdvsp_Customer?.name ?? ""),
+      renderHeaderCell: () => "Account",
+      renderCell: (item) => (
+        <Text
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_Customer?.name ?? ""}
+        >
+          {item.tdvsp_Customer?.name ?? "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "actions",
+      renderHeaderCell: () => "",
+      renderCell: (item) => (
+        <div style={{ display: "flex", gap: 4 }}>
+          <Button
+            appearance="subtle"
+            icon={<Edit24Regular />}
+            size="small"
+            title="Edit"
+            onClick={() => openEdit(item)}
+          />
+          <Button
+            appearance="subtle"
+            icon={<Delete24Regular />}
+            size="small"
+            title="Deactivate"
+            disabled={saving}
+            onClick={() =>
+              item.tdvsp_impactid && handleDeactivate(item.tdvsp_impactid)
+            }
+          />
+        </div>
+      ),
+    }),
+  ];
+
   return (
     <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <Flash24Filled style={{ color: "#f59e0b", fontSize: 28 }} />
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>impacts</Subtitle1>
+      </div>
       <div className={styles.toolbar}>
         <Input
           className={styles.searchBox}
@@ -387,71 +482,49 @@ export const Impacts: React.FC = () => {
         </Dialog>
       </div>
 
-      {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-          <Spinner label="Loading impacts..." />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Trophy24Filled style={{ fontSize: 48, color: "#a78bfa", marginBottom: 16 }} />
-          <Subtitle1>No impacts found</Subtitle1>
-          <Caption1 style={{ marginTop: 8 }}>
-            Create your first impact to start tracking.
-          </Caption1>
-        </div>
-      ) : (
-        <div className={styles.grid}>
-          {filtered.map((impact) => (
-            <Card key={impact.tdvsp_impactid} className={styles.impactCard}>
-              <div className={styles.cardHeader}>
-                <Subtitle1
-                  block
-                  className={styles.nameLink}
-                  onClick={() => openView(impact)}
-                >
-                  {impact.tdvsp_name}
-                </Subtitle1>
-                <div style={{ display: "flex", gap: 4 }}>
-                  <Button
-                    appearance="subtle"
-                    icon={<Edit24Regular />}
-                    size="small"
-                    title="Edit"
-                    onClick={() => openEdit(impact)}
-                  />
-                  <Button
-                    appearance="subtle"
-                    icon={<Delete24Regular />}
-                    size="small"
-                    title="Deactivate"
-                    disabled={saving}
-                    onClick={() =>
-                      impact.tdvsp_impactid && handleDeactivate(impact.tdvsp_impactid)
-                    }
-                  />
-                </div>
-              </div>
-              {impact.tdvsp_description && (
-                <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
-                  {impact.tdvsp_description}
-                </Body1>
+      <Card className={styles.card}>
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+            <Spinner label="Loading impacts..." />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className={styles.emptyState}>
+            <Flash24Filled style={{ fontSize: 48, color: "#f59e0b", marginBottom: 16 }} />
+            <Subtitle1>No impacts found</Subtitle1>
+            <Caption1 style={{ marginTop: 8 }}>
+              Create your first impact to start tracking.
+            </Caption1>
+          </div>
+        ) : (
+          <DataGrid
+            items={filtered}
+            columns={gridColumns}
+            getRowId={(item) => item.tdvsp_impactid ?? item.tdvsp_name}
+            sortable
+          >
+            <DataGridHeader>
+              <DataGridRow>
+                {({ renderHeaderCell, columnId }) => (
+                  <DataGridHeaderCell style={columnSizes[columnId as string]}>
+                    {renderHeaderCell()}
+                  </DataGridHeaderCell>
+                )}
+              </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<Impact>>
+              {({ item, rowId }) => (
+                <DataGridRow<Impact> key={rowId}>
+                  {({ renderCell, columnId }) => (
+                    <DataGridCell style={columnSizes[columnId as string]}>
+                      {renderCell(item)}
+                    </DataGridCell>
+                  )}
+                </DataGridRow>
               )}
-              <Divider style={{ margin: "12px 0" }} />
-              <div className={styles.cardMeta}>
-                {impact.tdvsp_date && (
-                  <div className={styles.metaItem}>
-                    <CalendarLtr24Regular style={{ fontSize: 16 }} />
-                    <Caption1>{formatDate(impact.tdvsp_date)}</Caption1>
-                  </div>
-                )}
-                {impact.tdvsp_Customer?.name && (
-                  <Caption1>{impact.tdvsp_Customer.name}</Caption1>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+            </DataGridBody>
+          </DataGrid>
+        )}
+      </Card>
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
@@ -508,9 +581,9 @@ export const Impacts: React.FC = () => {
                           onChange={(_, d) => setFormData({ ...formData, tdvsp_date: d.value })}
                         />
                       ) : (
-                        <Text block size={400}>
-                          {viewingImpact.tdvsp_date ? formatDate(viewingImpact.tdvsp_date) : "--"}
-                        </Text>
+                        viewingImpact.tdvsp_date
+                          ? renderBadge(formatDate(viewingImpact.tdvsp_date), dateBadgeColors)
+                          : <Text block size={400}>--</Text>
                       )}
                     </div>
                     <div className={styles.viewField}>
@@ -526,9 +599,9 @@ export const Impacts: React.FC = () => {
                           ))}
                         </Dropdown>
                       ) : (
-                        <Text block size={400}>
-                          {viewingImpact.tdvsp_Customer?.name || "--"}
-                        </Text>
+                        viewingImpact.tdvsp_Customer?.name
+                          ? renderBadge(viewingImpact.tdvsp_Customer.name, accountBadgeColors)
+                          : <Text block size={400}>--</Text>
                       )}
                     </div>
                   </div>

@@ -10,9 +10,7 @@ import {
   Label,
   Text,
   Subtitle1,
-  Body1,
   Caption1,
-  Divider,
   Dialog,
   DialogSurface,
   DialogBody,
@@ -23,15 +21,22 @@ import {
   Textarea,
   Dropdown,
   Option,
+  DataGrid,
+  DataGridHeader,
+  DataGridHeaderCell,
+  DataGridBody,
+  DataGridRow,
+  DataGridCell,
+  TableColumnDefinition,
+  createTableColumn,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
   Search24Regular,
-  CalendarLtr24Regular,
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
-  Notebook24Filled,
+  PeopleTeam24Filled,
 } from "@fluentui/react-icons";
 import { MeetingSummary, Account } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -43,6 +48,32 @@ import {
   getAccounts,
 } from "../services/dataverseService";
 import { useNotification } from "../context/NotificationContext";
+
+const renderBadge = (label: string, colors: { bg: string; text: string }) => (
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    fontWeight: 500,
+    backgroundColor: colors.bg,
+    color: colors.text,
+    whiteSpace: "nowrap",
+  }}>
+    {label}
+  </span>
+);
+
+const dateBadgeColors = { bg: "rgba(61, 214, 140, 0.15)", text: "#3dd68c" };
+const accountBadgeColors = { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" };
+
+const columnSizes: Record<string, React.CSSProperties> = {
+  date: { flex: "0 0 95px", minWidth: 95 },
+  name: { flex: "2 1 200px", minWidth: 200 },
+  account: { flex: "1.5 1 140px", minWidth: 140 },
+  summary: { flex: "3 1 250px", minWidth: 250 },
+  actions: { flex: "0 0 72px", minWidth: 72 },
+};
 
 const useStyles = makeStyles({
   container: {
@@ -60,38 +91,18 @@ const useStyles = makeStyles({
   searchBox: {
     minWidth: "280px",
   },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-    ...shorthands.gap("16px"),
-  },
-  summaryCard: {
-    ...shorthands.padding("16px"),
+  card: {
+    ...shorthands.padding("0px"),
     ...shorthands.borderRadius("8px"),
+    overflow: "hidden",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: "3px solid #3dd68c",
     boxShadow: "none",
-    transition: "background-color 0.15s ease",
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
-    },
   },
-  cardHeader: {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: "12px",
-  },
-  cardMeta: {
+  pageHeader: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("16px"),
-    marginTop: "12px",
-    color: tokens.colorNeutralForeground3,
-  },
-  metaItem: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("4px"),
+    ...shorthands.gap("10px"),
   },
   formGrid: {
     display: "grid",
@@ -311,8 +322,88 @@ export const MeetingSummaries: React.FC = () => {
     );
   });
 
+  const gridColumns: TableColumnDefinition<MeetingSummary>[] = [
+    createTableColumn({
+      columnId: "date",
+      compare: (a, b) => (a.tdvsp_date ?? "").localeCompare(b.tdvsp_date ?? ""),
+      renderHeaderCell: () => "Date",
+      renderCell: (item) =>
+        item.tdvsp_date
+          ? renderBadge(formatDate(item.tdvsp_date), dateBadgeColors)
+          : <Text>--</Text>,
+    }),
+    createTableColumn({
+      columnId: "name",
+      compare: (a, b) => (a.tdvsp_name ?? "").localeCompare(b.tdvsp_name ?? ""),
+      renderHeaderCell: () => "Name",
+      renderCell: (item) => (
+        <Text
+          weight="semibold"
+          className={styles.nameLink}
+          onClick={() => openView(item)}
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_name}
+        >
+          {item.tdvsp_name}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "account",
+      compare: (a, b) =>
+        (a.tdvsp_Account?.name ?? "").localeCompare(b.tdvsp_Account?.name ?? ""),
+      renderHeaderCell: () => "Account",
+      renderCell: (item) =>
+        item.tdvsp_Account?.name
+          ? renderBadge(item.tdvsp_Account.name, accountBadgeColors)
+          : <Text>--</Text>,
+    }),
+    createTableColumn({
+      columnId: "summary",
+      compare: (a, b) => (a.tdvsp_summary ?? "").localeCompare(b.tdvsp_summary ?? ""),
+      renderHeaderCell: () => "Summary",
+      renderCell: (item) => (
+        <Text
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_summary ?? ""}
+        >
+          {item.tdvsp_summary || "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "actions",
+      renderHeaderCell: () => "",
+      renderCell: (item) => (
+        <div style={{ display: "flex", gap: 4 }}>
+          <Button
+            appearance="subtle"
+            icon={<Edit24Regular />}
+            size="small"
+            title="Edit"
+            onClick={() => openEdit(item)}
+          />
+          <Button
+            appearance="subtle"
+            icon={<Delete24Regular />}
+            size="small"
+            title="Deactivate"
+            disabled={saving}
+            onClick={() =>
+              item.tdvsp_meetingsummaryid && handleDeactivate(item.tdvsp_meetingsummaryid)
+            }
+          />
+        </div>
+      ),
+    }),
+  ];
+
   return (
     <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <PeopleTeam24Filled style={{ color: "#3dd68c", fontSize: 28 }} />
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>summaries</Subtitle1>
+      </div>
       <div className={styles.toolbar}>
         <Input
           className={styles.searchBox}
@@ -402,73 +493,49 @@ export const MeetingSummaries: React.FC = () => {
         </Dialog>
       </div>
 
-      {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-          <Spinner label="Loading summaries..." />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Notebook24Filled style={{ fontSize: 48, color: "#4a9eff", marginBottom: 16 }} />
-          <Subtitle1>No summaries found</Subtitle1>
-          <Caption1 style={{ marginTop: 8 }}>
-            Create your first summary to start tracking.
-          </Caption1>
-        </div>
-      ) : (
-        <div className={styles.grid}>
-          {filtered.map((summary) => (
-            <Card key={summary.tdvsp_meetingsummaryid} className={styles.summaryCard}>
-              <div className={styles.cardHeader}>
-                <Subtitle1
-                  block
-                  className={styles.nameLink}
-                  onClick={() => openView(summary)}
-                >
-                  {summary.tdvsp_name}
-                </Subtitle1>
-                <div style={{ display: "flex", gap: 4 }}>
-                  <Button
-                    appearance="subtle"
-                    icon={<Edit24Regular />}
-                    size="small"
-                    title="Edit"
-                    onClick={() => openEdit(summary)}
-                  />
-                  <Button
-                    appearance="subtle"
-                    icon={<Delete24Regular />}
-                    size="small"
-                    title="Deactivate"
-                    disabled={saving}
-                    onClick={() =>
-                      summary.tdvsp_meetingsummaryid && handleDeactivate(summary.tdvsp_meetingsummaryid)
-                    }
-                  />
-                </div>
-              </div>
-              {summary.tdvsp_summary && (
-                <Body1 style={{ color: tokens.colorNeutralForeground2 }}>
-                  {summary.tdvsp_summary.length > 150
-                    ? summary.tdvsp_summary.substring(0, 150) + "..."
-                    : summary.tdvsp_summary}
-                </Body1>
+      <Card className={styles.card}>
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+            <Spinner label="Loading summaries..." />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className={styles.emptyState}>
+            <PeopleTeam24Filled style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }} />
+            <Subtitle1>No summaries found</Subtitle1>
+            <Caption1 style={{ marginTop: 8 }}>
+              Create your first summary to start tracking.
+            </Caption1>
+          </div>
+        ) : (
+          <DataGrid
+            items={filtered}
+            columns={gridColumns}
+            getRowId={(item) => item.tdvsp_meetingsummaryid ?? item.tdvsp_name}
+            sortable
+          >
+            <DataGridHeader>
+              <DataGridRow>
+                {({ renderHeaderCell, columnId }) => (
+                  <DataGridHeaderCell style={columnSizes[columnId as string]}>
+                    {renderHeaderCell()}
+                  </DataGridHeaderCell>
+                )}
+              </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<MeetingSummary>>
+              {({ item, rowId }) => (
+                <DataGridRow<MeetingSummary> key={rowId}>
+                  {({ renderCell, columnId }) => (
+                    <DataGridCell style={columnSizes[columnId as string]}>
+                      {renderCell(item)}
+                    </DataGridCell>
+                  )}
+                </DataGridRow>
               )}
-              <Divider style={{ margin: "12px 0" }} />
-              <div className={styles.cardMeta}>
-                {summary.tdvsp_date && (
-                  <div className={styles.metaItem}>
-                    <CalendarLtr24Regular style={{ fontSize: 16 }} />
-                    <Caption1>{formatDate(summary.tdvsp_date)}</Caption1>
-                  </div>
-                )}
-                {summary.tdvsp_Account?.name && (
-                  <Caption1>{summary.tdvsp_Account.name}</Caption1>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+            </DataGridBody>
+          </DataGrid>
+        )}
+      </Card>
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
@@ -511,9 +578,9 @@ export const MeetingSummaries: React.FC = () => {
                           onChange={(_, d) => setFormData({ ...formData, tdvsp_date: d.value })}
                         />
                       ) : (
-                        <Text block size={400}>
-                          {viewingSummary.tdvsp_date ? formatDate(viewingSummary.tdvsp_date) : "--"}
-                        </Text>
+                        viewingSummary.tdvsp_date
+                          ? renderBadge(formatDate(viewingSummary.tdvsp_date), dateBadgeColors)
+                          : <Text block size={400}>--</Text>
                       )}
                     </div>
                     <div className={styles.viewField}>
@@ -529,9 +596,9 @@ export const MeetingSummaries: React.FC = () => {
                           ))}
                         </Dropdown>
                       ) : (
-                        <Text block size={400}>
-                          {viewingSummary.tdvsp_Account?.name || "--"}
-                        </Text>
+                        viewingSummary.tdvsp_Account?.name
+                          ? renderBadge(viewingSummary.tdvsp_Account.name, accountBadgeColors)
+                          : <Text block size={400}>--</Text>
                       )}
                     </div>
                   </div>

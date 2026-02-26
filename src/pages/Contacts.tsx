@@ -35,6 +35,8 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
+  LightbulbFilament20Filled,
+  Person24Filled,
 } from "@fluentui/react-icons";
 import { Customer, Account, Idea, ideaCategoryLabels } from "../types";
 import {
@@ -46,6 +48,33 @@ import {
   getIdeasByContact,
 } from "../services/dataverseService";
 import { useNotification } from "../context/NotificationContext";
+
+const renderBadge = (label: string, colors: { bg: string; text: string }) => (
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    fontWeight: 500,
+    backgroundColor: colors.bg,
+    color: colors.text,
+    whiteSpace: "nowrap",
+  }}>
+    {label}
+  </span>
+);
+
+const categoryColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(167, 139, 250, 0.15)", text: "#a78bfa" },
+  468510001: { bg: "rgba(61, 214, 140, 0.15)", text: "#3dd68c" },
+  468510002: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
+  468510003: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+  468510004: { bg: "rgba(34, 211, 238, 0.15)", text: "#22d3ee" },
+  468510005: { bg: "rgba(96, 165, 250, 0.15)", text: "#60a5fa" },
+  468510006: { bg: "rgba(244, 114, 182, 0.15)", text: "#f472b6" },
+  468510007: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510008: { bg: "rgba(107, 114, 128, 0.15)", text: "#6b7280" },
+};
 
 const useStyles = makeStyles({
   container: {
@@ -63,10 +92,17 @@ const useStyles = makeStyles({
   searchBox: {
     minWidth: "280px",
   },
+  pageHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("10px"),
+  },
   card: {
-    ...shorthands.padding("16px"),
+    ...shorthands.padding("0px"),
     ...shorthands.borderRadius("8px"),
+    overflow: "hidden" as const,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: "3px solid #22d3ee",
     boxShadow: "none",
   },
   formGrid: {
@@ -398,6 +434,10 @@ export const Contacts: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <Person24Filled style={{ color: "#22d3ee", fontSize: 28 }} />
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" as const }}>contacts</Subtitle1>
+      </div>
       <div className={styles.toolbar}>
         <Input
           className={styles.searchBox}
@@ -615,6 +655,7 @@ export const Contacts: React.FC = () => {
                   {/* Related Ideas */}
                   <div className={styles.relatedSection}>
                     <div className={styles.relatedHeader}>
+                      <LightbulbFilament20Filled style={{ color: "#a78bfa" }} />
                       <Subtitle1>Ideas</Subtitle1>
                       <span className={styles.badge}>{relatedIdeas.length}</span>
                     </div>
@@ -627,8 +668,8 @@ export const Contacts: React.FC = () => {
                         {relatedIdeas.map((idea) => (
                           <div key={idea.tdvsp_ideaid} className={styles.relatedItem}>
                             <Text weight="semibold">{idea.tdvsp_name}</Text>
-                            {idea.tdvsp_category && (
-                              <Caption1 style={{ marginLeft: 8 }}>{ideaCategoryLabels[idea.tdvsp_category]}</Caption1>
+                            {idea.tdvsp_category != null && categoryColors[idea.tdvsp_category] && (
+                              <span style={{ marginLeft: 8 }}>{renderBadge(ideaCategoryLabels[idea.tdvsp_category] ?? "", categoryColors[idea.tdvsp_category])}</span>
                             )}
                           </div>
                         ))}

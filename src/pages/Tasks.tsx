@@ -794,7 +794,7 @@ export const Tasks: React.FC = () => {
                             onChange={(_, d) => setFormData({ ...formData, tdvsp_date: d.value })}
                           />
                         ) : (
-                          <Text block size={400}>
+                          <Text block size={400} style={viewingItem.tdvsp_date && isOverdue(viewingItem.tdvsp_date) ? { color: "#f87171", fontWeight: 600 } : undefined}>
                             {viewingItem.tdvsp_date ? formatDate(viewingItem.tdvsp_date) : "--"}
                           </Text>
                         )}
@@ -812,11 +812,9 @@ export const Tasks: React.FC = () => {
                             ))}
                           </Dropdown>
                         ) : (
-                          <Text block size={400}>
-                            {viewingItem.tdvsp_taskstatus != null
-                              ? taskStatusLabels[viewingItem.tdvsp_taskstatus as TaskStatus] ?? "--"
-                              : "--"}
-                          </Text>
+                          viewingItem.tdvsp_taskstatus != null && statusColors[viewingItem.tdvsp_taskstatus]
+                            ? renderBadge(statusShortLabels[viewingItem.tdvsp_taskstatus] ?? "--", statusColors[viewingItem.tdvsp_taskstatus])
+                            : <Text block size={400}>--</Text>
                         )}
                       </div>
                       <div className={styles.viewField}>
@@ -832,11 +830,9 @@ export const Tasks: React.FC = () => {
                             ))}
                           </Dropdown>
                         ) : (
-                          <Text block size={400}>
-                            {viewingItem.tdvsp_priority != null
-                              ? taskPriorityLabels[viewingItem.tdvsp_priority as TaskPriority] ?? "--"
-                              : "--"}
-                          </Text>
+                          viewingItem.tdvsp_priority != null && priorityColors[viewingItem.tdvsp_priority]
+                            ? renderBadge(priorityShortLabels[viewingItem.tdvsp_priority] ?? "--", priorityColors[viewingItem.tdvsp_priority])
+                            : <Text block size={400}>--</Text>
                         )}
                       </div>
                       <div className={styles.viewField}>
@@ -852,11 +848,9 @@ export const Tasks: React.FC = () => {
                             ))}
                           </Dropdown>
                         ) : (
-                          <Text block size={400}>
-                            {viewingItem.tdvsp_tasktype != null
-                              ? taskTypeLabels[viewingItem.tdvsp_tasktype as TaskType] ?? "--"
-                              : "--"}
-                          </Text>
+                          viewingItem.tdvsp_tasktype != null && typeColors[viewingItem.tdvsp_tasktype]
+                            ? renderBadge(taskTypeLabels[viewingItem.tdvsp_tasktype as TaskType] ?? "--", typeColors[viewingItem.tdvsp_tasktype])
+                            : <Text block size={400}>--</Text>
                         )}
                       </div>
                       <div className={styles.viewField}>

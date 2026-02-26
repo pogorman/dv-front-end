@@ -37,6 +37,12 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
+  Person20Filled,
+  CheckboxChecked20Filled,
+  LightbulbFilament20Filled,
+  Flash20Filled,
+  PeopleTeam20Filled,
+  Building24Filled,
 } from "@fluentui/react-icons";
 import { Account, Customer, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -59,6 +65,65 @@ import {
   createMeetingSummary,
 } from "../services/dataverseService";
 
+const renderBadge = (label: string, colors: { bg: string; text: string }) => (
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    fontWeight: 500,
+    backgroundColor: colors.bg,
+    color: colors.text,
+    whiteSpace: "nowrap",
+  }}>
+    {label}
+  </span>
+);
+
+const statusColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510001: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
+  468510002: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+  468510003: { bg: "rgba(234, 179, 8, 0.15)", text: "#eab308" },
+  468510004: { bg: "rgba(34, 211, 238, 0.15)", text: "#22d3ee" },
+  468510005: { bg: "rgba(61, 214, 140, 0.15)", text: "#3dd68c" },
+};
+
+const statusShortLabels: Record<number, string> = {
+  468510000: "Pondering",
+  468510001: "In Progress",
+  468510002: "Pending Comm.",
+  468510003: "On Hold",
+  468510004: "Wrapping Up",
+  468510005: "Complete",
+};
+
+const priorityColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510001: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
+  468510002: { bg: "rgba(248, 113, 113, 0.15)", text: "#f87171" },
+  468510003: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+};
+
+const priorityShortLabels: Record<number, string> = {
+  468510000: "Low",
+  468510001: "Medium",
+  468510002: "Top Priority",
+  468510003: "High",
+};
+
+const categoryColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(167, 139, 250, 0.15)", text: "#a78bfa" },
+  468510001: { bg: "rgba(61, 214, 140, 0.15)", text: "#3dd68c" },
+  468510002: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
+  468510003: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+  468510004: { bg: "rgba(34, 211, 238, 0.15)", text: "#22d3ee" },
+  468510005: { bg: "rgba(96, 165, 250, 0.15)", text: "#60a5fa" },
+  468510006: { bg: "rgba(244, 114, 182, 0.15)", text: "#f472b6" },
+  468510007: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510008: { bg: "rgba(107, 114, 128, 0.15)", text: "#6b7280" },
+};
+
 const useStyles = makeStyles({
   container: {
     display: "flex",
@@ -75,10 +140,17 @@ const useStyles = makeStyles({
   searchBox: {
     minWidth: "280px",
   },
+  pageHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("10px"),
+  },
   card: {
-    ...shorthands.padding("16px"),
+    ...shorthands.padding("0px"),
     ...shorthands.borderRadius("8px"),
+    overflow: "hidden" as const,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: "3px solid #4a9eff",
     boxShadow: "none",
   },
   formField: {
@@ -499,6 +571,10 @@ export const Accounts: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <Building24Filled style={{ color: "#4a9eff", fontSize: 28 }} />
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" as const }}>accounts</Subtitle1>
+      </div>
       <div className={styles.toolbar}>
         <Input
           className={styles.searchBox}
@@ -634,6 +710,7 @@ export const Accounts: React.FC = () => {
                         {/* Contacts */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
+                            <Person20Filled style={{ color: "#22d3ee" }} />
                             <Subtitle1>Contacts</Subtitle1>
                             <span className={styles.badge}>{relatedContacts.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddContactOpen(true)}>Add</Button>
@@ -655,6 +732,7 @@ export const Accounts: React.FC = () => {
                         {/* Tasks */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
+                            <CheckboxChecked20Filled style={{ color: "#f87171" }} />
                             <Subtitle1>Tasks</Subtitle1>
                             <span className={styles.badge}>{relatedTasks.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddActionItemOpen(true)}>Add</Button>
@@ -666,12 +744,11 @@ export const Accounts: React.FC = () => {
                               {relatedTasks.map((t) => (
                                 <div key={t.tdvsp_actionitemid} className={styles.relatedItem}>
                                   <Text weight="semibold">{t.tdvsp_name}</Text>
-                                  <Caption1 style={{ marginLeft: 8, color: tokens.colorNeutralForeground3 }}>
-                                    {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                    {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                                    {t.tdvsp_priority != null && ` · ${taskPriorityLabels[t.tdvsp_priority as TaskPriority] ?? ""}`}
-                                    {t.tdvsp_tasktype != null && ` · ${taskTypeLabels[t.tdvsp_tasktype as TaskType] ?? ""}`}
-                                  </Caption1>
+                                  <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                                    {t.tdvsp_date && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{formatDate(t.tdvsp_date)}</Caption1>}
+                                    {t.tdvsp_taskstatus != null && statusColors[t.tdvsp_taskstatus] && renderBadge(statusShortLabels[t.tdvsp_taskstatus] ?? "", statusColors[t.tdvsp_taskstatus])}
+                                    {t.tdvsp_priority != null && priorityColors[t.tdvsp_priority] && renderBadge(priorityShortLabels[t.tdvsp_priority] ?? "", priorityColors[t.tdvsp_priority])}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -681,6 +758,7 @@ export const Accounts: React.FC = () => {
                         {/* Ideas */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
+                            <LightbulbFilament20Filled style={{ color: "#a78bfa" }} />
                             <Subtitle1>Ideas</Subtitle1>
                             <span className={styles.badge}>{relatedIdeas.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddIdeaOpen(true)}>Add</Button>
@@ -692,8 +770,8 @@ export const Accounts: React.FC = () => {
                               {relatedIdeas.map((idea) => (
                                 <div key={idea.tdvsp_ideaid} className={styles.relatedItem}>
                                   <Text weight="semibold">{idea.tdvsp_name}</Text>
-                                  {idea.tdvsp_category && (
-                                    <Caption1 style={{ marginLeft: 8 }}>{ideaCategoryLabels[idea.tdvsp_category]}</Caption1>
+                                  {idea.tdvsp_category != null && categoryColors[idea.tdvsp_category] && (
+                                    <span style={{ marginLeft: 8 }}>{renderBadge(ideaCategoryLabels[idea.tdvsp_category] ?? "", categoryColors[idea.tdvsp_category])}</span>
                                   )}
                                 </div>
                               ))}
@@ -707,6 +785,7 @@ export const Accounts: React.FC = () => {
                         {/* Impacts */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
+                            <Flash20Filled style={{ color: "#f59e0b" }} />
                             <Subtitle1>Impacts</Subtitle1>
                             <span className={styles.badge}>{relatedImpacts.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddImpactOpen(true)}>Add</Button>
@@ -718,7 +797,7 @@ export const Accounts: React.FC = () => {
                               {relatedImpacts.map((i) => (
                                 <div key={i.tdvsp_impactid} className={styles.relatedItem}>
                                   <Text weight="semibold">{i.tdvsp_name}</Text>
-                                  {i.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(i.tdvsp_date)}</Caption1>}
+                                  {i.tdvsp_date && <span style={{ marginLeft: 8 }}>{renderBadge(formatDate(i.tdvsp_date), { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" })}</span>}
                                 </div>
                               ))}
                             </div>
@@ -728,6 +807,7 @@ export const Accounts: React.FC = () => {
                         {/* Meeting Summaries */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
+                            <PeopleTeam20Filled style={{ color: "#3dd68c" }} />
                             <Subtitle1>Summaries</Subtitle1>
                             <span className={styles.badge}>{relatedSummaries.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Add</Button>
@@ -739,7 +819,7 @@ export const Accounts: React.FC = () => {
                               {relatedSummaries.map((s) => (
                                 <div key={s.tdvsp_meetingsummaryid} className={styles.relatedItem}>
                                   <Text weight="semibold">{s.tdvsp_name}</Text>
-                                  {s.tdvsp_date && <Caption1 style={{ marginLeft: 8 }}>{formatDate(s.tdvsp_date)}</Caption1>}
+                                  {s.tdvsp_date && <span style={{ marginLeft: 8 }}>{renderBadge(formatDate(s.tdvsp_date), { bg: "rgba(61, 214, 140, 0.15)", text: "#3dd68c" })}</span>}
                                 </div>
                               ))}
                             </div>

@@ -27,13 +27,13 @@ src/
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
 │   ├── Dashboard.tsx        # Quick create bar, Work/Personal cards (maximize), Action Items & Ideas sections, inline view/edit dialogs, collapsible right sidebar (pinned notes)
-│   ├── Accounts.tsx         # CRUD + inline edit view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
-│   ├── Contacts.tsx         # CRUD + inline edit view dialog with related ideas
+│   ├── Accounts.tsx         # CRUD (DataGrid) + page header + inline edit view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
+│   ├── Contacts.tsx         # CRUD (DataGrid) + page header + inline edit view dialog with related ideas
 │   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + inline edit view dialog with notes timeline
-│   ├── Impacts.tsx          # Impacts CRUD + inline edit view dialog
-│   ├── Ideas.tsx            # Ideas CRUD with category dropdown + inline edit view dialog with notes timeline (200px fixed tile height)
-│   ├── Projects.tsx         # Projects CRUD + inline edit view dialog with notes timeline
-│   ├── MeetingSummaries.tsx # Meeting Summaries CRUD + inline edit view dialog
+│   ├── Impacts.tsx          # Impacts CRUD (DataGrid) + page header + inline edit view dialog
+│   ├── Ideas.tsx            # Ideas CRUD (DataGrid) + page header + category badges + inline edit view dialog with notes timeline
+│   ├── Projects.tsx         # Projects CRUD (DataGrid) + page header + inline edit view dialog with notes timeline
+│   ├── MeetingSummaries.tsx # Meeting Summaries CRUD (DataGrid) + page header + inline edit view dialog
 │   ├── Activities.tsx       # (ORPHANED — not routed) High-Value Activities CRUD, kept for potential future use
 │   ├── About.tsx            # About this site info page
 │   └── Login.tsx            # Unauthenticated login page
@@ -93,6 +93,7 @@ Values: 468510000 (Personal), 468510001 (Work)
   - about this site (bottom, Info icon)
   - User area at bottom with avatar, name, Sign out button
 - **Page Title Icons** - Each page's top bar title shows the matching Fluent UI filled icon (in its accent color) to the left of the page name. Icon-to-color mapping defined in `pageIcons` in `AppShell.tsx`.
+- **DataGrid List View Pattern** - All 7 entity pages (Tasks, Ideas, Impacts, Accounts, Contacts, Projects, MeetingSummaries) use Fluent UI `DataGrid` inside a `Card` wrapper with: `padding: "0px"`, `overflow: "hidden"`, accent-colored 3px left border, page header with filled icon + lowercase monospace title. Each grid has sortable columns, colored `renderBadge` pills for choice fields (status, priority, category, dates, accounts), clickable name links that open view dialogs, and edit/deactivate action buttons. Accent colors: Tasks=#f87171, Ideas=#a78bfa, Impacts=#f59e0b, Accounts=#4a9eff, Contacts=#22d3ee, Projects=#4a9eff, Summaries=#3dd68c.
 - **Account View Dialog** - Shows account details plus all related records in a 3-column layout: (Contacts, Action Items, Ideas) | (Impacts, Meeting Summaries) | (Notes timeline). Each section has inline "Add" buttons.
 - **Contact View Dialog** - Shows contact details plus related Ideas.
 - **Parent Account** - Accounts can have a parent account set via dropdown in new/edit form.
@@ -123,6 +124,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Keep it simple** - minimal abstractions, straightforward code
 - Use functional components with hooks
 - Fluent UI components for all UI elements (DataGrid for tables, Dialog for modals, Dropdown for lookups, Card for layouts)
+- **DataGrid List View Convention** (all 7 entity pages): Each page uses a `Card` with `padding: "0px"`, `overflow: "hidden"`, accent-colored 3px `borderLeft`, wrapping a Fluent UI `DataGrid` with `columnSizes` flex layout. Pages include a `pageHeader` div (icon + lowercase monospace `Subtitle1`). Choice fields render as colored `renderBadge` pills (`<span>` with semi-transparent background). Name column is a clickable link (`nameLink` style). Actions column has edit/deactivate buttons.
 - TypeScript interfaces in `src/types/index.ts`
 - API calls go through `dataverseService.ts` using a shared `apiRequest` helper
 - Dataverse lookups use `@odata.bind` syntax for setting relationships (e.g., `"parentcustomerid_account@odata.bind": "/accounts(guid)"`)

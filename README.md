@@ -38,7 +38,7 @@ npm test      # Run tests
 ## Features
 
 - **Dashboard** — Quick create bar (nav order), then stacked inline tile strips (parking lot, ideas, personal), then full-width work tile grid (4 per row, 108px tiles, top priority first). Clicking any action item or idea opens an inline view/edit dialog with notes timeline — no navigation away. All sorted by date (past/closest first). Collapsible right sidebar with pinned notes
-- **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, Impacts, and Meeting Summaries
+- **Full CRUD** for Accounts, Contacts, Action Items, Projects, Ideas, Impacts, and Meeting Summaries — all displayed as sortable DataGrid tables with accent-colored left borders, page header icons, and colored badge pills for choice fields
 - **Inline Edit** — View dialogs toggle between read-only and editable mode; edit state resets cleanly between records
 - **Save Progress** — All save/update/deactivate operations show spinner and disable buttons to prevent double-submissions
 - **Parking Lot** — Bookmark any dashboard item for quick access in a lime green inline tile strip (localStorage, max 5)

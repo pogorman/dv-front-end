@@ -10,7 +10,6 @@ import {
   Label,
   Text,
   Subtitle1,
-  Body1,
   Caption1,
   Dialog,
   DialogSurface,
@@ -22,6 +21,14 @@ import {
   Dropdown,
   Option,
   Textarea,
+  DataGrid,
+  DataGridHeader,
+  DataGridHeaderCell,
+  DataGridBody,
+  DataGridRow,
+  DataGridCell,
+  TableColumnDefinition,
+  createTableColumn,
 } from "@fluentui/react-components";
 import {
   Add24Regular,
@@ -42,6 +49,30 @@ import {
 import { NotesTimeline } from "../components/NotesTimeline";
 import { useNotification } from "../context/NotificationContext";
 
+const renderBadge = (label: string, colors: { bg: string; text: string }) => (
+  <span style={{
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    fontWeight: 500,
+    backgroundColor: colors.bg,
+    color: colors.text,
+    whiteSpace: "nowrap",
+  }}>
+    {label}
+  </span>
+);
+
+const accountBadgeColors = { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" };
+
+const columnSizes: Record<string, React.CSSProperties> = {
+  name: { flex: "3 1 200px", minWidth: 200 },
+  description: { flex: "4 1 250px", minWidth: 250 },
+  account: { flex: "1.5 1 120px", minWidth: 120 },
+  actions: { flex: "0 0 72px", minWidth: 72 },
+};
+
 const useStyles = makeStyles({
   container: {
     display: "flex",
@@ -58,33 +89,18 @@ const useStyles = makeStyles({
   searchBox: {
     minWidth: "280px",
   },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-    ...shorthands.gap("16px"),
-  },
-  projectCard: {
-    ...shorthands.padding("16px"),
+  card: {
+    ...shorthands.padding("0px"),
     ...shorthands.borderRadius("8px"),
+    overflow: "hidden",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: "3px solid #4a9eff",
     boxShadow: "none",
-    transition: "background-color 0.15s ease",
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
-    },
   },
-  cardHeader: {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: "12px",
-  },
-  cardMeta: {
+  pageHeader: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("16px"),
-    marginTop: "12px",
-    color: tokens.colorNeutralForeground3,
+    ...shorthands.gap("10px"),
   },
   formGrid: {
     display: "grid",
@@ -300,8 +316,79 @@ export const Projects: React.FC = () => {
     );
   });
 
+  const gridColumns: TableColumnDefinition<Project>[] = [
+    createTableColumn({
+      columnId: "name",
+      compare: (a, b) => (a.tdvsp_name ?? "").localeCompare(b.tdvsp_name ?? ""),
+      renderHeaderCell: () => "Name",
+      renderCell: (item) => (
+        <Text
+          weight="semibold"
+          className={styles.nameLink}
+          onClick={() => openView(item)}
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_name}
+        >
+          {item.tdvsp_name}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "description",
+      compare: (a, b) => (a.tdvsp_description ?? "").localeCompare(b.tdvsp_description ?? ""),
+      renderHeaderCell: () => "Description",
+      renderCell: (item) => (
+        <Text
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_description ?? ""}
+        >
+          {item.tdvsp_description || "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "account",
+      compare: (a, b) =>
+        (a.tdvsp_Account?.name ?? "").localeCompare(b.tdvsp_Account?.name ?? ""),
+      renderHeaderCell: () => "Account",
+      renderCell: (item) =>
+        item.tdvsp_Account?.name
+          ? renderBadge(item.tdvsp_Account.name, accountBadgeColors)
+          : <Text>--</Text>,
+    }),
+    createTableColumn({
+      columnId: "actions",
+      renderHeaderCell: () => "",
+      renderCell: (item) => (
+        <div style={{ display: "flex", gap: 4 }}>
+          <Button
+            appearance="subtle"
+            icon={<Edit24Regular />}
+            size="small"
+            title="Edit"
+            onClick={() => openEdit(item)}
+          />
+          <Button
+            appearance="subtle"
+            icon={<Delete24Regular />}
+            size="small"
+            title="Deactivate"
+            disabled={saving}
+            onClick={() =>
+              item.tdvsp_projectid && handleDeactivate(item.tdvsp_projectid)
+            }
+          />
+        </div>
+      ),
+    }),
+  ];
+
   return (
     <div className={styles.container}>
+      <div className={styles.pageHeader}>
+        <Briefcase24Filled style={{ color: "#4a9eff", fontSize: 28 }} />
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>projects</Subtitle1>
+      </div>
       <div className={styles.toolbar}>
         <Input
           className={styles.searchBox}
@@ -385,78 +472,51 @@ export const Projects: React.FC = () => {
         </Dialog>
       </div>
 
-      {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-          <Spinner label="Loading projects..." />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Briefcase24Filled
-            style={{ fontSize: 48, color: tokens.colorBrandForeground1, marginBottom: 16 }}
-          />
-          <Subtitle1>No projects found</Subtitle1>
-          <Caption1 style={{ marginTop: 8 }}>
-            Create your first project to get started.
-          </Caption1>
-        </div>
-      ) : (
-        <div className={styles.grid}>
-          {filtered.map((project) => (
-            <Card key={project.tdvsp_projectid} className={styles.projectCard}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <Text
-                    weight="semibold"
-                    size={400}
-                    className={styles.nameLink}
-                    onClick={() => openView(project)}
-                  >
-                    {project.tdvsp_name}
-                  </Text>
-                  {project.tdvsp_description && (
-                    <Body1
-                      style={{
-                        marginTop: 8,
-                        color: tokens.colorNeutralForeground2,
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {project.tdvsp_description}
-                    </Body1>
+      <Card className={styles.card}>
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+            <Spinner label="Loading projects..." />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className={styles.emptyState}>
+            <Briefcase24Filled
+              style={{ fontSize: 48, color: "#4a9eff", marginBottom: 16 }}
+            />
+            <Subtitle1>No projects found</Subtitle1>
+            <Caption1 style={{ marginTop: 8 }}>
+              Create your first project to get started.
+            </Caption1>
+          </div>
+        ) : (
+          <DataGrid
+            items={filtered}
+            columns={gridColumns}
+            getRowId={(item) => item.tdvsp_projectid ?? item.tdvsp_name}
+            sortable
+          >
+            <DataGridHeader>
+              <DataGridRow>
+                {({ renderHeaderCell, columnId }) => (
+                  <DataGridHeaderCell style={columnSizes[columnId as string]}>
+                    {renderHeaderCell()}
+                  </DataGridHeaderCell>
+                )}
+              </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<Project>>
+              {({ item, rowId }) => (
+                <DataGridRow<Project> key={rowId}>
+                  {({ renderCell, columnId }) => (
+                    <DataGridCell style={columnSizes[columnId as string]}>
+                      {renderCell(item)}
+                    </DataGridCell>
                   )}
-                </div>
-                <div style={{ display: "flex", gap: 4 }}>
-                  <Button
-                    appearance="subtle"
-                    icon={<Edit24Regular />}
-                    size="small"
-                    title="Edit"
-                    onClick={() => openEdit(project)}
-                  />
-                  <Button
-                    appearance="subtle"
-                    icon={<Delete24Regular />}
-                    size="small"
-                    title="Deactivate"
-                    disabled={saving}
-                    onClick={() =>
-                      project.tdvsp_projectid && handleDeactivate(project.tdvsp_projectid)
-                    }
-                  />
-                </div>
-              </div>
-              {project.tdvsp_Account?.name && (
-                <div className={styles.cardMeta}>
-                  <Caption1>{project.tdvsp_Account.name}</Caption1>
-                </div>
+                </DataGridRow>
               )}
-            </Card>
-          ))}
-        </div>
-      )}
+            </DataGridBody>
+          </DataGrid>
+        )}
+      </Card>
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
@@ -519,9 +579,9 @@ export const Projects: React.FC = () => {
                           ))}
                         </Dropdown>
                       ) : (
-                        <Text block size={400}>
-                          {viewingProject.tdvsp_Account?.name || "--"}
-                        </Text>
+                        viewingProject.tdvsp_Account?.name
+                          ? renderBadge(viewingProject.tdvsp_Account.name, accountBadgeColors)
+                          : <Text block size={400}>--</Text>
                       )}
                     </div>
                   </div>
