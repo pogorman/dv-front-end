@@ -40,6 +40,19 @@ src/
 ├── services/       # API layer (dataverseService.ts)
 ├── types/          # TypeScript interfaces (index.ts)
 └── utils/          # Helper functions (formatDate.ts, pinnedNotes.ts, parkingLot.ts)
+docs/
+├── README.md                # Documentation index
+├── ARCHITECTURE.md          # System design, auth flow, data architecture, deployment
+├── USER-GUIDE.md            # End-user guide
+├── FAQ.md                   # Frequently asked questions
+├── HOW-I-WAS-BUILT.md      # Build narrative with prompts, decisions, lessons
+├── SOLUTION_DOCUMENT.md     # Comprehensive technical reference
+└── pdf/                     # Generated PDFs (from scripts/)
+scripts/
+├── generate-architecture-pdf.py     # -> docs/pdf/architecture.pdf
+├── generate-user-guide-pdf.py       # -> docs/pdf/user-guide.pdf
+├── generate-faq-pdf.py              # -> docs/pdf/faq.pdf
+└── generate-how-i-was-built-pdf.py  # -> docs/pdf/how-i-was-built.pdf
 ```
 
 ## Commands

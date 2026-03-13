@@ -72,9 +72,24 @@ npm run build
 npx @azure/static-web-apps-cli deploy ./build --deployment-token "<token>" --env production
 ```
 
-See [docs/SOLUTION_DOCUMENT.md](docs/SOLUTION_DOCUMENT.md) for the full technical solution document including architecture diagrams, security details, data model, and user guide.
+See [docs/](docs/README.md) for the full documentation index.
 
 ## Documentation
 
 - **[CLAUDE.md](CLAUDE.md)** — Coding conventions and AI assistant context
-- **[docs/SOLUTION_DOCUMENT.md](docs/SOLUTION_DOCUMENT.md)** — Comprehensive solution document
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — System design, auth flow, data architecture, deployment
+- **[docs/USER-GUIDE.md](docs/USER-GUIDE.md)** — End-user guide for navigation, dashboard, CRUD, notes, theme
+- **[docs/FAQ.md](docs/FAQ.md)** — Frequently asked questions
+- **[docs/HOW-I-WAS-BUILT.md](docs/HOW-I-WAS-BUILT.md)** — Build narrative with prompts, decisions, and lessons learned
+- **[docs/SOLUTION_DOCUMENT.md](docs/SOLUTION_DOCUMENT.md)** — Comprehensive technical reference
+
+### PDF Generation
+
+Each doc has a corresponding PDF generator in `scripts/`. Requires `pip install fpdf2`.
+
+```bash
+python scripts/generate-architecture-pdf.py      # -> docs/pdf/architecture.pdf
+python scripts/generate-user-guide-pdf.py         # -> docs/pdf/user-guide.pdf
+python scripts/generate-faq-pdf.py                # -> docs/pdf/faq.pdf
+python scripts/generate-how-i-was-built-pdf.py    # -> docs/pdf/how-i-was-built.pdf
+```
