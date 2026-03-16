@@ -1,6 +1,6 @@
-# boom! — Architecture
+# My Work — Architecture
 
-**Application Name:** boom!
+**Application Name:** My Work
 **Version:** 0.1.0
 **Last Updated:** March 2026
 
@@ -8,14 +8,14 @@
 
 ## 1. High-Level Architecture
 
-boom! is a React single-page application (SPA) hosted on Azure Static Web Apps. It connects to Microsoft Dataverse via the Web API for all data operations and embeds a Copilot Studio agent for conversational AI assistance.
+My Work is a React single-page application (SPA) hosted on Azure Static Web Apps. It connects to Microsoft Dataverse via the Web API for all data operations and embeds a Copilot Studio agent for conversational AI assistance.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Browser                               │
 │                                                              │
 │   ┌──────────────────────────────────────────────────────┐  │
-│   │              boom! React SPA                          │  │
+│   │              My Work React SPA                          │  │
 │   │                                                       │  │
 │   │   ┌─────────────┐  ┌──────────┐  ┌───────────────┐  │  │
 │   │   │  AppShell    │  │  Pages   │  │ CopilotChat   │  │  │
@@ -61,7 +61,7 @@ boom! is a React single-page application (SPA) hosted on Azure Static Web Apps. 
 ```
 ┌──────────────┐         ┌────────────────┐
 │ User visits  │         │ MSAL checks    │
-│ boom!        ├────────►│ session cache   │
+│ My Work        ├────────►│ session cache   │
 └──────────────┘         └───────┬────────┘
                                  │
                     ┌────────────┼────────────┐

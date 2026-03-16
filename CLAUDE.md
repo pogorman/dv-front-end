@@ -26,7 +26,7 @@ src/
 ├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat header)
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
-│   ├── Dashboard.tsx        # Quick create bar, Work/Personal cards (maximize), Action Items & Ideas sections, inline view/edit dialogs, collapsible right sidebar (pinned notes)
+│   ├── Dashboard.tsx        # Quick create bar, Work cards, Ideas strip, Parking Lot, inline view/edit dialogs, collapsible right sidebar (pinned notes)
 │   ├── Accounts.tsx         # CRUD (DataGrid) + page header + inline edit view dialog with related records (contacts, tasks, impacts, ideas, summaries, notes)
 │   ├── Contacts.tsx         # CRUD (DataGrid) + page header + inline edit view dialog with related ideas
 │   ├── Tasks.tsx            # Action Items CRUD (DataGrid) + task status/priority/type + inline edit view dialog with notes timeline
@@ -121,16 +121,18 @@ Values: 468510000 (Personal), 468510001 (Work)
   5. **pinned notes panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog. Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record.
-- **Dashboard Inline View Dialogs** - Clicking action items or ideas anywhere on the dashboard (Work, Personal, Ideas strips, Parking Lot, expanded cards) opens a 70vw view/edit dialog directly on the dashboard with NotesTimeline. Same inline edit pattern as entity pages (isEditing toggle, Edit/Save/Cancel buttons). No navigation away from dashboard.
+- **Dashboard Inline View Dialogs** - Clicking action items or ideas anywhere on the dashboard (Work, Ideas strips, Parking Lot, expanded cards) opens a 70vw view/edit dialog directly on the dashboard with NotesTimeline. Same inline edit pattern as entity pages (isEditing toggle, Edit/Save/Cancel buttons). No navigation away from dashboard.
 - **Notes Timeline** - Shared `NotesTimeline` component used by Accounts, Action Items, Ideas, and Projects. Features:
   - Add notes with optional file attachments (stored as base64 in Dataverse)
   - Pin notes to dashboard
   - Download attached files
   - Delete notes (actual deletion, not deactivation)
-- **Parking Lot** - Dashboard bookmarking feature. Any record visible on the dashboard (Work, Ideas, Personal) can be "parked" via a bookmark icon. Parked items appear in a full-width inline tile strip with lime green (`#84cc16`) left border as square tiles (160px wide). Max 5 items enforced by `MAX_PARKED_ITEMS` in `parkingLot.ts`. No scrolling. Lime green car icon (`VehicleCarParking24Filled`). Clicking action items/ideas opens inline view dialog; other entity types navigate. X button removes. `parkingLot.ts` stores `ParkedItemRef { id, name, entityType, route }` in localStorage. Entity types: actionitem, idea, account, contact, project, impact, summary.
+- **Parking Lot** - Dashboard bookmarking feature. Any record visible on the dashboard (Work, Ideas) can be "parked" via a bookmark icon. Parked items appear in a full-width inline tile strip with lime green (`#84cc16`) left border as square tiles (160px wide). Max 5 items enforced by `MAX_PARKED_ITEMS` in `parkingLot.ts`. No scrolling. Lime green car icon (`VehicleCarParking24Filled`). Clicking action items/ideas opens inline view dialog; other entity types navigate. X button removes. `parkingLot.ts` stores `ParkedItemRef { id, name, entityType, route }` in localStorage. Entity types: actionitem, idea, account, contact, project, impact, summary.
 - **Pinned Notes** - Notes from Accounts, Action Items, Ideas, or Projects can be pinned to the Dashboard. Pinned notes show entity type label, 3-line preview, attachment indicator, click to expand in dialog. `pinnedNotes.ts` stores refs with `annotationid`, `entityName`, and `entityType`.
 - **Copilot Chat** - Floating rocket icon button (bottom-right, inline SVG matching favicon, no background/border) opens chat panel connected to Copilot Studio agent. Uses `CopilotChat.tsx` with Bot Framework Web Chat. Authenticates via Direct Line secret (from `REACT_APP_COPILOT_DIRECT_LINE_SECRET` env var) and SSO token exchange (scope: `api://3c6a1f01-09c5-49c7-8be7-48c33e177432/mcs-read-scope`). Bot avatar uses O'G logo (`/images/og_logo_white.png`). Sends `startConversation` event on connect to trigger bot greeting.
 - **Toast Notifications** - All CRUD operations show toast notifications (top-right) on success and error. Uses `NotificationContext` with Fluent UI `Toaster`. Success toasts auto-dismiss after 3s, errors after 5s.
+- **Personal Page** - Dedicated page (`Personal.tsx`) for personal action items displayed as a tile grid with view/edit dialog and NotesTimeline. Accessed via sidebar under activity section.
+- **Tasks Filter** - Tasks page includes a Work/Personal/All filter dropdown (defaults to Work) to filter action items by task type.
 
 ## Coding Conventions
 

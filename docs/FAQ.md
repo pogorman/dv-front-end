@@ -1,4 +1,4 @@
-# boom! — Frequently Asked Questions
+# My Work — Frequently Asked Questions
 
 **Last Updated:** March 2026
 
@@ -6,15 +6,15 @@
 
 ## General
 
-### What is boom!?
+### What is My Work?
 
-boom! is an internal business management tool built as a React SPA. It provides a unified interface for managing customer accounts, contacts, action items, projects, ideas, impacts, and meeting summaries -- all backed by Microsoft Dataverse.
+My Work is an internal business management tool built as a React SPA. It provides a unified interface for managing customer accounts, contacts, action items, projects, ideas, impacts, and meeting summaries -- all backed by Microsoft Dataverse.
 
-### Who is boom! for?
+### Who is My Work for?
 
-boom! is built for a Microsoft technical seller who needs to track customer relationships, action items, and ideas in a single place. It's also a reference architecture and sales demo for enterprise customers evaluating React + Dataverse + Copilot Studio.
+My Work is built for a Microsoft technical seller who needs to track customer relationships, action items, and ideas in a single place. It's also a reference architecture and sales demo for enterprise customers evaluating React + Dataverse + Copilot Studio.
 
-### Where is boom! hosted?
+### Where is My Work hosted?
 
 Azure Static Web Apps with a custom domain at ohgeesolutions.com. Global CDN distribution with automatic SSL.
 
@@ -24,15 +24,15 @@ Azure Static Web Apps with a custom domain at ohgeesolutions.com. Global CDN dis
 
 ### How do I sign in?
 
-Click "Sign in with Microsoft" on the login page. boom! uses Azure AD (MSAL) with your organizational account. No separate credentials needed.
+Click "Sign in with Microsoft" on the login page. My Work uses Azure AD (MSAL) with your organizational account. No separate credentials needed.
 
 ### Why do I have to sign in again after closing the tab?
 
 Tokens are stored in session storage, which is cleared when the browser tab closes. This is a security choice -- open a new tab and sign in again.
 
-### Does boom! support multiple tenants?
+### Does My Work support multiple tenants?
 
-No. boom! is configured for a single Azure AD tenant. Multi-tenant access would require configuration changes to the MSAL setup.
+No. My Work is configured for a single Azure AD tenant. Multi-tenant access would require configuration changes to the MSAL setup.
 
 ---
 
@@ -104,7 +104,7 @@ The Direct Line connection may have timed out. Close the chat panel and reopen i
 
 Use the sun/moon toggle in the top bar. Your preference is saved to localStorage and persists across sessions.
 
-### What font does boom! use?
+### What font does My Work use?
 
 Inter, loaded via Google Fonts. It's set as both the base font and monospace font in the Fluent UI theme tokens.
 
@@ -116,7 +116,7 @@ Subtle 1px borders over shadows, 8px border-radius cards, lowercase monospace se
 
 ## Development
 
-### How do I run boom! locally?
+### How do I run My Work locally?
 
 ```bash
 npm install

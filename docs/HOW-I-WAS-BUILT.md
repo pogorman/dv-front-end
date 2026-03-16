@@ -1,4 +1,4 @@
-# boom! — How I Was Built
+# My Work — How I Was Built
 
 **Last Updated:** March 2026
 
@@ -6,7 +6,7 @@
 
 ## The Short Version
 
-boom! is a React single-page application built almost entirely through conversations with Claude Code. The human (O'G) provided direction, design taste, and Dataverse domain knowledge. Claude wrote the code, built the components, and iterated on the design. The result is an internal business tool that manages customer data in Microsoft Dataverse with a custom UI, dark/light theming, and an embedded Copilot Studio AI assistant.
+My Work is a React single-page application built almost entirely through conversations with Claude Code. The human (O'G) provided direction, design taste, and Dataverse domain knowledge. Claude wrote the code, built the components, and iterated on the design. The result is an internal business tool that manages customer data in Microsoft Dataverse with a custom UI, dark/light theming, and an embedded Copilot Studio AI assistant.
 
 ---
 

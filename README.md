@@ -1,4 +1,4 @@
-# boom!
+# My Work
 
 Internal business management tool built as a React SPA that interfaces with Microsoft Dataverse via Web API. Hosted on Azure Static Web Apps at **ohgeesolutions.com**.
 

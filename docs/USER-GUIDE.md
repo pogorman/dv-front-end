@@ -1,6 +1,6 @@
-# boom! — User Guide
+# My Work — User Guide
 
-**Application Name:** boom!
+**Application Name:** My Work
 **URL:** ohgeesolutions.com
 **Last Updated:** March 2026
 
