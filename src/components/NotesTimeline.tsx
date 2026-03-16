@@ -27,6 +27,7 @@ import {
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { pinNote, unpinNote, getPinnedNoteRefs } from "../utils/pinnedNotes";
+import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
   container: {
@@ -109,6 +110,18 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     fontStyle: "italic",
   },
+  noteBody: {
+    fontSize: "13px",
+    lineHeight: "1.5",
+    color: tokens.colorNeutralForeground1,
+    wordBreak: "break-word" as const,
+    "& p": { marginTop: "0", marginBottom: "4px" },
+    "& ul, & ol": { marginTop: "0", marginBottom: "4px", paddingLeft: "20px" },
+    "& table": { borderCollapse: "collapse" as const, fontSize: "12px", width: "100%" },
+    "& td, & th": { border: `1px solid ${tokens.colorNeutralStroke2}`, padding: "4px 6px" },
+    "& a": { color: tokens.colorBrandForeground1 },
+    "& img": { maxWidth: "100%", height: "auto" },
+  },
 });
 
 interface NotesTimelineProps {
@@ -141,6 +154,7 @@ export const NotesTimeline: React.FC<NotesTimelineProps> = ({
 }) => {
   const styles = useStyles();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { notify } = useNotification();
 
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [loading, setLoading] = useState(false);
@@ -196,6 +210,7 @@ export const NotesTimeline: React.FC<NotesTimelineProps> = ({
       loadAnnotations();
     } catch (err) {
       console.error("Failed to add note:", err);
+      notify("Failed to add note", String(err), "error");
     } finally {
       setSubmitting(false);
     }
@@ -216,6 +231,7 @@ export const NotesTimeline: React.FC<NotesTimelineProps> = ({
       loadAnnotations();
     } catch (err) {
       console.error("Failed to delete note:", err);
+      notify("Failed to delete note", String(err), "error");
     }
   };
 
@@ -327,9 +343,10 @@ export const NotesTimeline: React.FC<NotesTimelineProps> = ({
                   </Tooltip>
                 </div>
               </div>
-              <Text size={200} style={{ whiteSpace: "pre-wrap" }}>
-                {note.notetext}
-              </Text>
+              <div
+                className={styles.noteBody}
+                dangerouslySetInnerHTML={{ __html: note.notetext }}
+              />
               {note.isdocument && note.filename && (
                 <div
                   className={styles.attachmentRow}

@@ -257,6 +257,7 @@ export const Tasks: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "work" | "personal">("work");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
@@ -411,6 +412,8 @@ export const Tasks: React.FC = () => {
   };
 
   const filtered = items.filter((t) => {
+    if (typeFilter === "work" && t.tdvsp_tasktype !== (468510001 as TaskType)) return false;
+    if (typeFilter === "personal" && t.tdvsp_tasktype !== (468510000 as TaskType)) return false;
     const q = searchQuery.toLowerCase();
     return (
       t.tdvsp_name?.toLowerCase().includes(q) ||
@@ -537,6 +540,16 @@ export const Tasks: React.FC = () => {
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
+        <Dropdown
+          value={typeFilter === "all" ? "All" : typeFilter === "work" ? "Work" : "Personal"}
+          selectedOptions={[typeFilter]}
+          onOptionSelect={(_, d) => setTypeFilter((d.optionValue as "all" | "work" | "personal") ?? "work")}
+          style={{ minWidth: "130px" }}
+        >
+          <Option value="work">Work</Option>
+          <Option value="personal">Personal</Option>
+          <Option value="all">All</Option>
+        </Dropdown>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             New Task

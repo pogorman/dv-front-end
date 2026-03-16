@@ -1,8 +1,8 @@
-# boom!
+# My Work
 
 Internal business tool - React SPA that interfaces with Microsoft Dataverse via Web API.
 
-**App Name:** boom!
+**App Name:** My Work
 
 ## Tech Stack
 
@@ -34,6 +34,7 @@ src/
 │   ├── Ideas.tsx            # Ideas CRUD (DataGrid) + page header + category badges + inline edit view dialog with notes timeline
 │   ├── Projects.tsx         # Projects CRUD (DataGrid) + page header + inline edit view dialog with notes timeline
 │   ├── MeetingSummaries.tsx # Meeting Summaries CRUD (DataGrid) + page header + inline edit view dialog
+│   ├── Personal.tsx         # Personal action items tile grid + view/edit dialog with notes timeline
 │   ├── Activities.tsx       # (ORPHANED — not routed) High-Value Activities CRUD, kept for potential future use
 │   ├── About.tsx            # About this site info page
 │   └── Login.tsx            # Unauthenticated login page
@@ -101,7 +102,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 
 - **Sidebar Navigation** (168px expanded, 48px collapsed) - Collapsible with toggle button. All labels lowercase. Organized into sections with subtle dividers:
   - dashboard (top, Home icon)
-  - activity: tasks (CheckboxChecked), ideas (LightbulbFilament), impacts (Flash)
+  - activity: tasks (CheckboxChecked), ideas (LightbulbFilament), personal (Home), impacts (Flash)
   - core: accounts (Building), contacts (Person), projects (Briefcase), summaries (PeopleTeam)
   - about this site (bottom, Info icon)
   - User area at bottom with avatar, name, Sign out button
@@ -115,10 +116,9 @@ Values: 468510000 (Personal), 468510001 (Work)
   1. **quick create bar** - Subtle surface background with border, monospace chip-style pill buttons in nav order: action item, idea, impact, account, contact, project, summary (each opens inline dialog, stays on dashboard). Panel toggle button on the right (only when pinned notes exist). Save buttons disable with spinner during save.
   2. **parking lot strip** - Full-width inline tile strip with lime green (`#84cc16`) left border and car icon (`VehicleCarParking24Filled`). Label on left, up to 5 square tiles (160px wide) inline to the right. No scrolling. Bookmarked items for quick access. Items can be parked from any dashboard list via bookmark icon. Clicking action items/ideas opens inline view dialog; other entity types navigate to list page. X dismisses. `parkingLot.ts` stores refs in localStorage with `MAX_PARKED_ITEMS = 5` cap.
   3. **ideas strip** (purple `#a78bfa` accent, LightbulbFilament icon) — inline tile strip (same layout as Parking Lot). All ideas as 160px tiles with category subtitle, maximize/bookmark/deactivate icons per item. Click opens inline view dialog. Sorted by `createdon` desc.
-  4. **personal strip** (cyan `#22d3ee` accent, Home icon) — inline tile strip (same layout as Ideas). All non-complete personal action items as 160px tiles with date + "Top Priority" label. Click opens inline view dialog. Sorted by `tdvsp_date` asc.
-  5. **work card** (red `#f87171` accent, Briefcase icon) — full-width tile grid with all non-complete work action items. 4 tiles per row (`calc((100% - 18px) / 4)`), 108px tall, wrapping naturally (last row has whatever's left). Top priority items listed first, then the rest — single unified grid, no sub-sections. Each tile shows name, date + account (truncated with ellipsis), and a "Top Priority" or "Overdue" badge. Bookmark/deactivate icons in top-right corner. Click opens inline view dialog. Sorted by `tdvsp_date` asc.
+  4. **work card** (red `#f87171` accent, Briefcase icon) — full-width tile grid with all non-complete work action items. 3 tiles per row (`calc((100% - 12px) / 3)`), 108px tall, wrapping naturally (last row has whatever's left). Top priority items listed first, then the rest — single unified grid, no sub-sections. Each tile shows name (2-line ellipsis clamp), date + account as body text top-aligned under title, and status badges ("Top Priority" or "Overdue") pinned to bottom-left of card. Bookmark/deactivate icons in top-right corner. Click opens inline view dialog. Sorted by `tdvsp_date` asc.
   Right sidebar (pinned notes only):
-  6. **pinned notes panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
+  5. **pinned notes panel** - Pinned notes (appears when notes are pinned, grows to fill remaining sidebar space)
 - **About this site** - Simple info page showing platform, backend, authentication, UI framework, and domain.
 - **Auto-open Dialogs** - All entity pages support `?new=true` query parameter to auto-open the new record dialog. Tasks (`/tasks?view=<id>`) and Ideas (`/ideas?view=<id>`) also support `?view=<id>` to auto-open the view dialog for a specific record.
 - **Dashboard Inline View Dialogs** - Clicking action items or ideas anywhere on the dashboard (Work, Personal, Ideas strips, Parking Lot, expanded cards) opens a 70vw view/edit dialog directly on the dashboard with NotesTimeline. Same inline edit pattern as entity pages (isEditing toggle, Edit/Save/Cancel buttons). No navigation away from dashboard.

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+
 import {
   makeStyles,
   tokens,
@@ -33,9 +34,7 @@ import {
   Dismiss24Regular,
   Add16Regular,
   Attach16Regular,
-  Home24Filled,
   LightbulbFilament24Filled,
-  Warning16Filled,
   ArrowMaximize16Regular,
   Bookmark16Regular,
   Bookmark16Filled,
@@ -76,7 +75,7 @@ import {
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
-import { getParkedItems, parkItem, unparkItem, isItemParked, ParkedItemRef, MAX_PARKED_ITEMS } from "../utils/parkingLot";
+import { getParkedItems, parkItem, unparkItem, isItemParked, ParkedItemRef } from "../utils/parkingLot";
 import { useNotification } from "../context/NotificationContext";
 
 const useStyles = makeStyles({
@@ -329,54 +328,7 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "flex-start",
-    justifyContent: "center",
-    ...shorthands.gap("2px"),
-    ...shorthands.padding("3px", "3px", "3px", "7px"),
-    width: "160px",
-    height: "62px",
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    cursor: "pointer",
-    transition: "background-color 0.15s ease",
-    position: "relative" as const,
-    flexShrink: 0,
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-    },
-  },
-  personalPanel: {
-    ...shorthands.padding("5px", "3px"),
-    ...shorthands.borderRadius("8px"),
-    display: "flex",
-    flexDirection: "row" as const,
-    alignItems: "center",
-    ...shorthands.gap("12px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderLeftWidth: "3px",
-    borderLeftStyle: "solid",
-    borderLeftColor: "#22d3ee",
-    boxShadow: "none",
-    overflow: "hidden" as const,
-  },
-  personalPanelHeader: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("8px"),
-    flexShrink: 0,
-    minWidth: "170px",
-  },
-  personalPanelGrid: {
-    display: "flex",
-    ...shorthands.gap("6px"),
-    flexGrow: 1,
-    overflow: "hidden" as const,
-  },
-  personalPanelItem: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "flex-start",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     ...shorthands.gap("2px"),
     ...shorthands.padding("3px", "3px", "3px", "7px"),
     width: "160px",
@@ -409,7 +361,7 @@ const useStyles = makeStyles({
     justifyContent: "flex-start",
     ...shorthands.gap("2px"),
     ...shorthands.padding("3px", "3px", "3px", "7px"),
-    width: "calc((100% - 18px) / 4)",
+    width: "calc((100% - 12px) / 3)",
     minWidth: 0,
     height: "108px",
     overflow: "hidden" as const,
@@ -994,11 +946,6 @@ export const Dashboard: React.FC = () => {
   const topPriorityWork = workItems.filter((t) => t.tdvsp_priority === 468510002);
   const otherWork = workItems.filter((t) => t.tdvsp_priority !== 468510002);
 
-  const personalFilteredItems = actionItems
-    .filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
-    .sort(dateAsc);
-  const topPriorityPersonal = personalFilteredItems.filter((t) => t.tdvsp_priority === 468510002);
-  const otherPersonal = personalFilteredItems.filter((t) => t.tdvsp_priority !== 468510002);
 
   return (
     <div className={styles.container}>
@@ -1059,8 +1006,8 @@ export const Dashboard: React.FC = () => {
                       title="Remove"
                     />
                   </div>
-                  <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "20px" }}>{item.name}</Text>
-                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                  <Text weight="semibold" style={{ width: "100%", paddingRight: "20px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{item.name}</Text>
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
                     {parkedEntityLabels[item.entityType]}
                   </Caption1>
                 </div>
@@ -1096,47 +1043,9 @@ export const Dashboard: React.FC = () => {
                     />
                     <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
                   </div>
-                  <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{idea.tdvsp_name}</Text>
-                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                  <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{idea.tdvsp_name}</Text>
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
                     {idea.tdvsp_category != null ? ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] : "Idea"}
-                  </Caption1>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-
-      {/* Personal Strip — inline tiles below Ideas */}
-        <Card className={styles.personalPanel}>
-          <div className={styles.personalPanelHeader}>
-            <Home24Filled style={{ color: "#22d3ee" }} />
-            <Subtitle1 style={{ flexGrow: 1 }}>personal</Subtitle1>
-            <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("personal"); }} title="Expand" />
-          </div>
-          <div className={styles.personalPanelGrid}>
-            {personalFilteredItems.length === 0 ? (
-              <Body1 style={{ color: tokens.colorNeutralForeground3, padding: "4px 0" }}>No personal items</Body1>
-            ) : (
-              personalFilteredItems.map((t) => (
-                <div
-                  key={t.tdvsp_actionitemid}
-                  className={styles.personalPanelItem}
-                  onClick={() => openViewTask(t)}
-                >
-                  <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
-                    <Button
-                      appearance="subtle"
-                      size="small"
-                      icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                      onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                      title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                    />
-                    <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
-                  </div>
-                  <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
-                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                    {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                    {t.tdvsp_priority === 468510002 && " · Top Priority"}
                   </Caption1>
                 </div>
               ))
@@ -1171,17 +1080,19 @@ export const Dashboard: React.FC = () => {
                       />
                       <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
                     </div>
-                    <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
-                    <Caption1 truncate style={{ color: tokens.colorNeutralForeground3, width: "100%" }}>
+                    <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{t.tdvsp_name}</Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground2, width: "100%", fontSize: "10px" }}>
                       {t.tdvsp_date && formatDate(t.tdvsp_date)}
                       {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                     </Caption1>
-                    {t.tdvsp_priority === 468510002 && (
-                      <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
-                    )}
-                    {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
-                      <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
-                    )}
+                    <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-start", gap: "4px" }}>
+                      {t.tdvsp_priority === 468510002 && (
+                        <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
+                      )}
+                      {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                        <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1703,7 +1614,6 @@ export const Dashboard: React.FC = () => {
             >
               {expandedCard === "work" && <><Briefcase24Filled style={{ color: "#d13438", marginRight: 8, verticalAlign: "middle" }} />work</>}
               {expandedCard === "ideas" && <><LightbulbFilament24Filled style={{ color: "#a78bfa", marginRight: 8, verticalAlign: "middle" }} />ideas</>}
-              {expandedCard === "personal" && <><Home24Filled style={{ color: "#0e7c7b", marginRight: 8, verticalAlign: "middle" }} />personal</>}
             </DialogTitle>
             <DialogContent style={{ flexGrow: 1, overflowY: "auto" }}>
               {expandedCard === "work" && (
@@ -1742,62 +1652,6 @@ export const Dashboard: React.FC = () => {
                     ))}
                   </div>
                 )
-              )}
-              {expandedCard === "personal" && (
-                <>
-                  {topPriorityPersonal.length > 0 && (
-                    <>
-                      <div className={styles.subSectionLabel}>
-                        <Warning16Filled style={{ color: "#f87171" }} />
-                        <Text size={200} weight="semibold" style={{ color: "#f87171" }}>Top Priority</Text>
-                      </div>
-                      {topPriorityPersonal.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); openViewTask(t); }}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                              </Caption1>
-                            </div>
-                            {t.tdvsp_date && (
-                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                              </Badge>
-                            )}
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                  {otherPersonal.length > 0 && (
-                    <>
-                      {topPriorityPersonal.length > 0 && <Divider style={{ margin: "8px 0" }} />}
-                      {otherPersonal.map((t, i) => (
-                        <React.Fragment key={t.tdvsp_actionitemid}>
-                          {i > 0 && <Divider />}
-                          <div className={styles.topPriorityItem} onClick={() => { setExpandedCard(null); openViewTask(t); }}>
-                            <div style={{ minWidth: 0 }}>
-                              <Text weight="semibold" block className={styles.nameLink}>{t.tdvsp_name}</Text>
-                              <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
-                                {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                                {t.tdvsp_taskstatus != null && ` · ${taskStatusLabels[t.tdvsp_taskstatus as TaskStatus] ?? ""}`}
-                              </Caption1>
-                            </div>
-                            {t.tdvsp_date && (
-                              <Badge appearance="filled" color={new Date(t.tdvsp_date) < new Date() ? "danger" : "informative"} style={{ flexShrink: 0 }}>
-                                {new Date(t.tdvsp_date) < new Date() ? "Overdue" : "Upcoming"}
-                              </Badge>
-                            )}
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                  {personalFilteredItems.length === 0 && <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No personal items</Body1>}
-                </>
               )}
               {expandedCard === "ideas" && (
                 <>

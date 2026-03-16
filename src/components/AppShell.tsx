@@ -224,6 +224,14 @@ const navSections: NavSection[] = [
         iconActive: <LightbulbFilament24Filled />,
         color: "#a78bfa",
       },
+      {
+        key: "personal",
+        label: "personal",
+        path: "/personal",
+        icon: <Home24Regular />,
+        iconActive: <Home24Filled />,
+        color: "#22d3ee",
+      },
     ],
   },
   {
@@ -296,6 +304,7 @@ const pageTitles: Record<string, string> = {
   "/contacts": "contacts",
   "/tasks": "tasks",
   "/ideas": "ideas",
+  "/personal": "personal",
   "/projects": "projects",
   "/impacts": "impacts",
   "/summaries": "summaries",
@@ -306,6 +315,7 @@ const pageIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   "/": { icon: <Home24Filled />, color: "#4a9eff" },
   "/tasks": { icon: <CheckboxChecked24Filled />, color: "#f87171" },
   "/ideas": { icon: <LightbulbFilament24Filled />, color: "#a78bfa" },
+  "/personal": { icon: <Home24Filled />, color: "#22d3ee" },
   "/impacts": { icon: <Flash24Filled />, color: "#f59e0b" },
   "/accounts": { icon: <Building24Filled />, color: "#3dd68c" },
   "/contacts": { icon: <Person24Filled />, color: "#22d3ee" },
@@ -357,7 +367,7 @@ export const AppShell: React.FC = () => {
             </svg>
             {expanded && (
               <Text weight="semibold" size={400}>
-                boom!
+                My Work
               </Text>
             )}
           </div>

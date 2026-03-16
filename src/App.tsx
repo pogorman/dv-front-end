@@ -30,6 +30,7 @@ import { Contacts } from "./pages/Contacts";
 import { Tasks } from "./pages/Tasks";
 import { Impacts } from "./pages/Impacts";
 import { Ideas } from "./pages/Ideas";
+import { Personal } from "./pages/Personal";
 import { Projects } from "./pages/Projects";
 import { MeetingSummaries } from "./pages/MeetingSummaries";
 import { LoginPage } from "./pages/Login";
@@ -183,6 +184,7 @@ const ThemedApp: React.FC = () => {
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/impacts" element={<Impacts />} />
                 <Route path="/ideas" element={<Ideas />} />
+                <Route path="/personal" element={<Personal />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/summaries" element={<MeetingSummaries />} />
                 <Route path="/about" element={<About />} />

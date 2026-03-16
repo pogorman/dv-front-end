@@ -71,7 +71,7 @@ export const LoginPage: React.FC = () => {
           </svg>
         </div>
         <Text size={700} weight="bold" block>
-          boom!
+          My Work
         </Text>
         <Text
           size={400}

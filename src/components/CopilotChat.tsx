@@ -337,9 +337,9 @@ export const CopilotChat: React.FC = () => {
     <div className={styles.chatPanel}>
       <div className={styles.chatHeader}>
         <div className={styles.headerTitle}>
-          <img src="/images/og_logo_white.png" alt="boom!" className={styles.headerImg} />
+          <img src="/images/og_logo_white.png" alt="My Work" className={styles.headerImg} />
           <Text weight="semibold" style={{ color: "white" }}>
-            boom!
+            My Work
           </Text>
         </div>
         <Button
