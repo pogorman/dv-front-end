@@ -24,6 +24,7 @@ import {
   Option,
   Textarea,
   Spinner,
+  Tooltip,
 } from "@fluentui/react-components";
 import {
   Briefcase24Filled,
@@ -36,8 +37,8 @@ import {
   Attach16Regular,
   LightbulbFilament24Filled,
   ArrowMaximize16Regular,
-  Bookmark16Regular,
-  Bookmark16Filled,
+  VehicleCar16Regular,
+  VehicleCar16Filled,
   VehicleCarParking24Filled,
   Delete16Regular,
   CheckboxChecked20Regular,
@@ -402,6 +403,26 @@ const useStyles = makeStyles({
   viewNotes: {
     display: "flex",
     flexDirection: "column",
+  },
+  tooltipContent: {
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("4px"),
+    maxWidth: "300px",
+  },
+  tooltipDesc: {
+    display: "-webkit-box",
+    WebkitLineClamp: 4,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    lineHeight: "1.4",
+    color: tokens.colorNeutralForeground2,
+    fontSize: "12px",
+  },
+  tooltipMeta: {
+    fontSize: "11px",
+    color: tokens.colorNeutralForeground3,
+    fontFamily: tokens.fontFamilyMonospace,
   },
 });
 
@@ -963,19 +984,17 @@ export const Dashboard: React.FC = () => {
           <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)} style={{ backgroundColor: "rgba(232,121,249,0.12)", color: "#e879f9", borderColor: "rgba(232,121,249,0.25)" }}>project</Button>
           <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>summary</Button>
         </div>
-        {pinnedRefs.length > 0 && (
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={rightPanelOpen ? <PanelRight20Filled /> : <PanelRight20Regular />}
-            onClick={() => {
-              const next = !rightPanelOpen;
-              setRightPanelOpen(next);
-              localStorage.setItem("og-right-panel-open", String(next));
-            }}
-            title={rightPanelOpen ? "Hide sidebar" : "Show sidebar"}
-          />
-        )}
+        <Button
+          appearance="subtle"
+          size="small"
+          icon={rightPanelOpen ? <PanelRight20Filled /> : <PanelRight20Regular />}
+          onClick={() => {
+            const next = !rightPanelOpen;
+            setRightPanelOpen(next);
+            localStorage.setItem("og-right-panel-open", String(next));
+          }}
+          title={rightPanelOpen ? "Hide sidebar" : "Show sidebar"}
+        />
       </div>
 
 
@@ -988,29 +1007,42 @@ export const Dashboard: React.FC = () => {
             </div>
             <div className={styles.parkingLotGrid}>
               {parkedItems.map((item) => (
-                <div
+                <Tooltip
                   key={`${item.entityType}-${item.id}`}
-                  className={styles.parkingLotItem}
-                  onClick={() => handleParkedItemClick(item)}
+                  content={
+                    <div className={styles.tooltipContent}>
+                      <Text weight="semibold" size={300}>{item.name}</Text>
+                      <span className={styles.tooltipMeta}>{parkedEntityLabels[item.entityType]}</span>
+                    </div>
+                  }
+                  relationship="description"
+                  positioning="below"
+                  withArrow
+                  showDelay={400}
                 >
-                  <div className={styles.parkingLotItemDismiss}>
-                    <Button
-                      appearance="subtle"
-                      size="small"
-                      icon={<Dismiss24Regular />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        unparkItem(item.id);
-                        setParkedItems(getParkedItems());
-                      }}
-                      title="Remove"
-                    />
+                  <div
+                    className={styles.parkingLotItem}
+                    onClick={() => handleParkedItemClick(item)}
+                  >
+                    <div className={styles.parkingLotItemDismiss}>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<Dismiss24Regular />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          unparkItem(item.id);
+                          setParkedItems(getParkedItems());
+                        }}
+                        title="Remove"
+                      />
+                    </div>
+                    <Text weight="semibold" style={{ width: "100%", paddingRight: "20px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{item.name}</Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
+                      {parkedEntityLabels[item.entityType]}
+                    </Caption1>
                   </div>
-                  <Text weight="semibold" style={{ width: "100%", paddingRight: "20px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{item.name}</Text>
-                  <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
-                    {parkedEntityLabels[item.entityType]}
-                  </Caption1>
-                </div>
+                </Tooltip>
               ))}
             </div>
           </Card>
@@ -1028,26 +1060,44 @@ export const Dashboard: React.FC = () => {
               <Body1 style={{ color: tokens.colorNeutralForeground3, padding: "4px 0" }}>No ideas yet</Body1>
             ) : (
               ideas.map((idea) => (
-                <div
+                <Tooltip
                   key={idea.tdvsp_ideaid}
-                  className={styles.ideasPanelItem}
-                  onClick={() => openViewIdea(idea)}
+                  content={
+                    <div className={styles.tooltipContent}>
+                      <Text weight="semibold" size={300}>{idea.tdvsp_name}</Text>
+                      {idea.tdvsp_description && <div className={styles.tooltipDesc}>{idea.tdvsp_description}</div>}
+                      <div className={styles.tooltipMeta}>
+                        {idea.tdvsp_category != null && <div>{ideaCategoryLabels[idea.tdvsp_category as IdeaCategory]}</div>}
+                        {idea.tdvsp_Account?.name && <div>{idea.tdvsp_Account.name}</div>}
+                        {idea.tdvsp_Contact && <div>{idea.tdvsp_Contact.firstname} {idea.tdvsp_Contact.lastname}</div>}
+                      </div>
+                    </div>
+                  }
+                  relationship="description"
+                  positioning="below"
+                  withArrow
+                  showDelay={400}
                 >
-                  <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
-                    <Button
-                      appearance="subtle"
-                      size="small"
-                      icon={isItemParked(idea.tdvsp_ideaid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                      onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
-                      title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
-                    />
-                    <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
+                  <div
+                    className={styles.ideasPanelItem}
+                    onClick={() => openViewIdea(idea)}
+                  >
+                    <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={isItemParked(idea.tdvsp_ideaid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
+                        onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
+                        title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
+                      />
+                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
+                    </div>
+                    <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{idea.tdvsp_name}</Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
+                      {idea.tdvsp_category != null ? ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] : "Idea"}
+                    </Caption1>
                   </div>
-                  <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{idea.tdvsp_name}</Text>
-                  <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
-                    {idea.tdvsp_category != null ? ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] : "Idea"}
-                  </Caption1>
-                </div>
+                </Tooltip>
               ))
             )}
           </div>
@@ -1065,35 +1115,54 @@ export const Dashboard: React.FC = () => {
             ) : (
               <div className={styles.workTileGrid}>
                 {[...topPriorityWork, ...otherWork].map((t) => (
-                  <div
+                  <Tooltip
                     key={t.tdvsp_actionitemid}
-                    className={styles.workTile}
-                    onClick={() => openViewTask(t)}
+                    content={
+                      <div className={styles.tooltipContent}>
+                        <Text weight="semibold" size={300}>{t.tdvsp_name}</Text>
+                        {t.tdvsp_description && <div className={styles.tooltipDesc}>{t.tdvsp_description}</div>}
+                        <div className={styles.tooltipMeta}>
+                          {t.tdvsp_date && <div>Date: {formatDate(t.tdvsp_date)}</div>}
+                          {t.tdvsp_Customer?.name && <div>Account: {t.tdvsp_Customer.name}</div>}
+                          {t.tdvsp_taskstatus != null && <div>Status: {taskStatusLabels[t.tdvsp_taskstatus as TaskStatus]}</div>}
+                          {t.tdvsp_priority != null && <div>Priority: {taskPriorityLabels[t.tdvsp_priority as TaskPriority]}</div>}
+                        </div>
+                      </div>
+                    }
+                    relationship="description"
+                    positioning="above"
+                    withArrow
+                    showDelay={400}
                   >
-                    <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
-                      <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                        onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                        title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                      />
-                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                    <div
+                      className={styles.workTile}
+                      onClick={() => openViewTask(t)}
+                    >
+                      <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
+                        <Button
+                          appearance="subtle"
+                          size="small"
+                          icon={isItemParked(t.tdvsp_actionitemid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
+                          onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                          title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                        />
+                        <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                      </div>
+                      <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{t.tdvsp_name}</Text>
+                      <Caption1 style={{ color: tokens.colorNeutralForeground2, width: "100%", fontSize: "10px" }}>
+                        {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                        {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                      </Caption1>
+                      <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-start", gap: "4px" }}>
+                        {t.tdvsp_priority === 468510002 && (
+                          <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
+                        )}
+                        {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                          <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
+                        )}
+                      </div>
                     </div>
-                    <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{t.tdvsp_name}</Text>
-                    <Caption1 style={{ color: tokens.colorNeutralForeground2, width: "100%", fontSize: "10px" }}>
-                      {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                      {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                    </Caption1>
-                    <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-start", gap: "4px" }}>
-                      {t.tdvsp_priority === 468510002 && (
-                        <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
-                      )}
-                      {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
-                        <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
-                      )}
-                    </div>
-                  </div>
+                  </Tooltip>
                 ))}
               </div>
             )}
@@ -1101,69 +1170,73 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Right Sidebar — Pinned Notes only */}
-        {pinnedRefs.length > 0 && (
-          <div className={`${styles.rightSidebar} ${!rightPanelOpen ? styles.rightSidebarCollapsed : ""}`}>
-            {pinnedRefs.length > 0 && (
-              <Card className={styles.pinnedPanel}>
-                <div className={styles.pinnedHeader}>
-                  <Pin24Regular />
-                  <Subtitle1 style={{ flexGrow: 1 }}>pinned notes</Subtitle1>
-                  <Button
-                    appearance="subtle"
-                    size="small"
-                    icon={<Add16Regular />}
-                    onClick={() => navigate("/accounts")}
-                    title="Add notes from an account"
-                  />
-                </div>
-                <div className={styles.pinnedList}>
-                  {pinnedAnnotations.map((note) => {
-                    const entityInfo = getEntityInfo(note.annotationid!);
-                    return (
-                      <div
-                        key={note.annotationid}
-                        className={styles.pinnedNoteItem}
-                        onClick={() => {
-                          setSelectedNote({
-                            annotation: note,
-                            entityName: entityInfo.entityName,
-                            entityType: entityInfo.entityType,
-                          });
-                          setNoteDialogOpen(true);
-                        }}
-                      >
-                        <div className={styles.pinnedNoteAccount}>
-                          <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
-                            {entityTypeLabels[entityInfo.entityType]}:
-                          </span>{" "}
-                          {entityInfo.entityName}
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          {note.createdon && (
-                            <div className={styles.pinnedNoteDate}>
-                              {formatDate(note.createdon)}
-                            </div>
-                          )}
-                          {note.isdocument && (
-                            <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
-                          )}
-                        </div>
-                        {note.subject && (
-                          <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
-                            {note.subject}
-                          </Text>
-                        )}
-                        <div className={styles.pinnedNotePreview}>
-                          <Text size={200}>{note.notetext}</Text>
-                        </div>
+        <div className={`${styles.rightSidebar} ${!rightPanelOpen ? styles.rightSidebarCollapsed : ""}`}>
+          <Card className={styles.pinnedPanel}>
+            <div className={styles.pinnedHeader}>
+              <Pin24Regular />
+              <Subtitle1 style={{ flexGrow: 1 }}>pinned notes</Subtitle1>
+              <Button
+                appearance="subtle"
+                size="small"
+                icon={<Add16Regular />}
+                onClick={() => navigate("/accounts")}
+                title="Add notes from an account"
+              />
+            </div>
+            {pinnedAnnotations.length > 0 ? (
+              <div className={styles.pinnedList}>
+                {pinnedAnnotations.map((note) => {
+                  const entityInfo = getEntityInfo(note.annotationid!);
+                  return (
+                    <div
+                      key={note.annotationid}
+                      className={styles.pinnedNoteItem}
+                      onClick={() => {
+                        setSelectedNote({
+                          annotation: note,
+                          entityName: entityInfo.entityName,
+                          entityType: entityInfo.entityType,
+                        });
+                        setNoteDialogOpen(true);
+                      }}
+                    >
+                      <div className={styles.pinnedNoteAccount}>
+                        <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
+                          {entityTypeLabels[entityInfo.entityType]}:
+                        </span>{" "}
+                        {entityInfo.entityName}
                       </div>
-                    );
-                  })}
-                </div>
-              </Card>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {note.createdon && (
+                          <div className={styles.pinnedNoteDate}>
+                            {formatDate(note.createdon)}
+                          </div>
+                        )}
+                        {note.isdocument && (
+                          <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
+                        )}
+                      </div>
+                      {note.subject && (
+                        <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
+                          {note.subject}
+                        </Text>
+                      )}
+                      <div className={styles.pinnedNotePreview}>
+                        <Text size={200}>{note.notetext}</Text>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: "16px 8px", textAlign: "center" }}>
+                <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                  pin notes from accounts, tasks, ideas, or projects to see them here
+                </Text>
+              </div>
             )}
-          </div>
-        )}
+          </Card>
+        </div>
       </div>
 
       {/* Note Detail Dialog */}
@@ -1622,33 +1695,52 @@ export const Dashboard: React.FC = () => {
                 ) : (
                   <div className={styles.workTileGrid}>
                     {[...topPriorityWork, ...otherWork].map((t) => (
-                      <div
+                      <Tooltip
                         key={t.tdvsp_actionitemid}
-                        className={styles.workTile}
-                        onClick={() => { setExpandedCard(null); openViewTask(t); }}
+                        content={
+                          <div className={styles.tooltipContent}>
+                            <Text weight="semibold" size={300}>{t.tdvsp_name}</Text>
+                            {t.tdvsp_description && <div className={styles.tooltipDesc}>{t.tdvsp_description}</div>}
+                            <div className={styles.tooltipMeta}>
+                              {t.tdvsp_date && <div>Date: {formatDate(t.tdvsp_date)}</div>}
+                              {t.tdvsp_Customer?.name && <div>Account: {t.tdvsp_Customer.name}</div>}
+                              {t.tdvsp_taskstatus != null && <div>Status: {taskStatusLabels[t.tdvsp_taskstatus as TaskStatus]}</div>}
+                              {t.tdvsp_priority != null && <div>Priority: {taskPriorityLabels[t.tdvsp_priority as TaskPriority]}</div>}
+                            </div>
+                          </div>
+                        }
+                        relationship="description"
+                        positioning="above"
+                        withArrow
+                        showDelay={400}
                       >
-                        <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
-                          <Button
-                            appearance="subtle"
-                            size="small"
-                            icon={isItemParked(t.tdvsp_actionitemid!) ? <Bookmark16Filled /> : <Bookmark16Regular />}
-                            onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                            title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                          />
-                          <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                        <div
+                          className={styles.workTile}
+                          onClick={() => { setExpandedCard(null); openViewTask(t); }}
+                        >
+                          <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={isItemParked(t.tdvsp_actionitemid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
+                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                              title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                            />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                          </div>
+                          <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
+                          <Caption1 truncate style={{ color: tokens.colorNeutralForeground3, width: "100%" }}>
+                            {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                            {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                          </Caption1>
+                          {t.tdvsp_priority === 468510002 && (
+                            <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
+                          )}
+                          {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                            <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
+                          )}
                         </div>
-                        <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
-                        <Caption1 truncate style={{ color: tokens.colorNeutralForeground3, width: "100%" }}>
-                          {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                          {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                        </Caption1>
-                        {t.tdvsp_priority === 468510002 && (
-                          <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
-                        )}
-                        {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
-                          <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
-                        )}
-                      </div>
+                      </Tooltip>
                     ))}
                   </div>
                 )

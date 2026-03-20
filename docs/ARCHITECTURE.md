@@ -357,3 +357,7 @@ All 7 entity pages use a consistent pattern:
 - Choice fields as colored badge pills
 - Clickable name links opening view dialogs
 - Edit/deactivate action buttons
+
+### Dashboard Tile Tooltips
+
+All dashboard tiles use Fluent UI `Tooltip` with `withArrow` and `showDelay={400}` to reveal full record details on hover. Content varies by tile type (work tiles show description/status/priority; idea tiles show description/category/contacts; parking lot tiles show entity type). Tooltip positioning is `"above"` for work tiles and `"below"` for ideas and parking lot tiles.

@@ -53,6 +53,10 @@ A cyan-accented horizontal strip showing all non-complete personal action items 
 
 A full-width tile grid showing all non-complete work action items. Tiles are arranged 4 per row. Top priority items appear first, then the rest -- all in a single unified grid. Each tile shows name, date, account, and badges for "Top Priority" or "Overdue". Click to open the view/edit dialog inline.
 
+### Tile Tooltips
+
+Hover over any dashboard tile (work, ideas, or parking lot) for about half a second and a rich tooltip appears with an arrow showing the full details that get truncated on the small tiles. Work tile tooltips show the full name, description, date, account, status, and priority. Idea tile tooltips show name, description, category, account, and contact. Parking lot tile tooltips show the full name and entity type.
+
 ### Right Sidebar (Pinned Notes)
 
 The right sidebar (260px, collapsible) shows pinned notes. Toggle it with the button in the quick create bar. Notes pinned from any entity appear here with an entity type label, 3-line preview, and attachment indicator. Click to expand in a dialog.

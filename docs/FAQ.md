@@ -70,6 +70,10 @@ Notes from accounts, action items, ideas, or projects that you've pinned to the 
 
 The right sidebar only appears when you have pinned notes. If you have no pinned notes, it's hidden. You can also toggle it with the button in the quick create bar.
 
+### How do I see full details for a dashboard tile?
+
+Hover over any tile (work, ideas, or parking lot) for about half a second. A tooltip with an arrow appears showing the full details that get truncated on the small tile -- name, description, date, account, status, priority (for work tiles) or category and contact (for idea tiles). You can also click the tile to open the full view/edit dialog.
+
 ### How is the dashboard sorted?
 
 - **Action items:** By date ascending (past/overdue first, then nearest upcoming)

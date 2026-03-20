@@ -87,6 +87,19 @@ The NotesTimeline component:
 - **Result:** Shared `NotesTimeline` component with add/delete/pin/download capabilities
 - **Key decision:** Polymorphic `annotations` table in Dataverse -- one table handles notes for all entity types via the `objectid` lookup
 
+### Phase 7: Tile Tooltips
+
+Adding discoverability to the compact dashboard tiles:
+
+- **Prompt pattern:** "Add Fluent UI Tooltip components on all dashboard tiles so hovering shows the full record details"
+- **Result:** All work, idea, and parking lot tiles wrapped with Fluent UI `Tooltip` (`withArrow`, `showDelay={400}`). Each tooltip shows the full details that get truncated on the small tile.
+- **Key decisions:**
+  - Work tile tooltips show name, description (4-line clamp), date, account, status, and priority
+  - Idea tile tooltips show name, description, category, account, and contact
+  - Parking lot tile tooltips show name and entity type
+  - Positioning varies: `"above"` for work tiles, `"below"` for ideas and parking lot to avoid overlapping content above/below
+  - 400ms delay prevents tooltips from firing on casual mouse movement
+
 ---
 
 ## Design Principles

@@ -357,13 +357,8 @@ export const AppShell: React.FC = () => {
         <div className={styles.sidebarHeader}>
           <div className={styles.brandArea}>
             <svg className={styles.brandIcon} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-              <path d="M32 8 C28 16 25 26 25 38 L39 38 C39 26 36 16 32 8Z" fill="#4a9eff" />
-              <circle cx="32" cy="26" r="4" fill={tokens.colorNeutralBackground1} />
-              <path d="M25 34 L17 44 L25 40Z" fill="#4a9eff" opacity="0.85" />
-              <path d="M39 34 L47 44 L39 40Z" fill="#4a9eff" opacity="0.85" />
-              <rect x="27" y="38" width="10" height="3" rx="1" fill="#e0e0e0" />
-              <path d="M28 41 L32 54 L36 41Z" fill="#f59e0b" />
-              <path d="M30 41 L32 50 L34 41Z" fill="#f87171" />
+              <circle cx="32" cy="32" r="18" fill="none" stroke="#4a9eff" strokeWidth="3" />
+              <path d="M22 32 L29 39 L42 24" fill="none" stroke="#4a9eff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             {expanded && (
               <Text weight="semibold" size={400}>
