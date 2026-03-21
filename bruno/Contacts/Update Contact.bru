@@ -1,0 +1,25 @@
+meta {
+  name: Update Contact
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/contacts({{contactId}})
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "firstname": "John",
+    "lastname": "Doe",
+    "emailaddress1": "john.doe@example.com",
+    "telephone1": "555-0100",
+    "jobtitle": "Director"
+  }
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Update Meeting Summary
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/tdvsp_meetingsummaries({{meetingSummaryId}})
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "Updated Meeting Summary",
+    "tdvsp_summary": "Updated summary text"
+  }
+}

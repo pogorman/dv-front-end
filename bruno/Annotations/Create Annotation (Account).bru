@@ -1,0 +1,36 @@
+meta {
+  name: Create Annotation (Account)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/annotations
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "subject": "Note subject",
+    "notetext": "Note body text",
+    "objectid_account@odata.bind": "/accounts({{accountId}})"
+  }
+}
+
+docs {
+  For other entities, change the odata.bind field:
+  - Action Items: `objectid_tdvsp_actionitem@odata.bind`: `/tdvsp_actionitems(<id>)`
+  - Ideas: `objectid_tdvsp_idea@odata.bind`: `/tdvsp_ideas(<id>)`
+  - Projects: `objectid_tdvsp_project@odata.bind`: `/tdvsp_projects(<id>)`
+
+  To attach a file, add:
+  - `"filename": "file.pdf"`
+  - `"mimetype": "application/pdf"`
+  - `"documentbody": "<base64-encoded content>"`
+  - `"isdocument": true`
+}

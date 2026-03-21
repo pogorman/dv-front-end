@@ -1,0 +1,17 @@
+meta {
+  name: Deactivate Impact
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/tdvsp_impacts({{impactId}})
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "statecode": 1
+  }
+}

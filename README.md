@@ -74,6 +74,14 @@ npx @azure/static-web-apps-cli deploy ./build --deployment-token "<token>" --env
 
 See [docs/](docs/README.md) for the full documentation index.
 
+## Bruno API Collection
+
+The `bruno/` folder contains a [Bruno](https://www.usebruno.com/) collection with all Dataverse Web API requests the app uses. Open it in Bruno to test endpoints directly.
+
+**Setup:** Open Collection → select `bruno/` folder → choose **Dataverse** environment → set `token` variable to a valid Bearer token (grab from browser dev tools while app is running).
+
+Folders: Accounts, Contacts, Action Items, Ideas, Impacts, Projects, Meeting Summaries, Annotations, Related Records.
+
 ## Documentation
 
 - **[CLAUDE.md](CLAUDE.md)** — Coding conventions and AI assistant context

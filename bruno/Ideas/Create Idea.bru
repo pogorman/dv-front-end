@@ -1,0 +1,37 @@
+meta {
+  name: Create Idea
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/tdvsp_ideas
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "New Idea",
+    "tdvsp_description": "Idea description",
+    "tdvsp_category": 468510000,
+    "tdvsp_Account@odata.bind": "/accounts({{accountId}})"
+  }
+}
+
+docs {
+  ## Category Values
+  - 468510000: Copilot Studio
+  - 468510001: Canvas Apps
+  - 468510002: Model-Driven Apps
+  - 468510003: Power Automate
+  - 468510004: Power Pages
+  - 468510005: Azure
+  - 468510006: AI General
+  - 468510007: App General
+  - 468510008: Other
+}

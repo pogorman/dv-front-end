@@ -1,0 +1,11 @@
+meta {
+  name: Action Items by Account
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype&$filter=_tdvsp_customer_value eq {{accountId}} and statecode eq 0&$orderby=tdvsp_date desc
+  body: none
+  auth: inherit
+}

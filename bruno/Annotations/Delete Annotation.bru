@@ -1,0 +1,15 @@
+meta {
+  name: Delete Annotation
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/annotations({{annotationId}})
+  body: none
+  auth: inherit
+}
+
+docs {
+  Annotations use actual DELETE (not deactivation like other entities).
+}

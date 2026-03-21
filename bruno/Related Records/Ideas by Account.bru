@@ -1,0 +1,11 @@
+meta {
+  name: Ideas by Account
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category&$filter=_tdvsp_account_value eq {{accountId}} and statecode eq 0&$orderby=tdvsp_name asc
+  body: none
+  auth: inherit
+}

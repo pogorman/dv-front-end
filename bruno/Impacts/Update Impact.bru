@@ -1,0 +1,22 @@
+meta {
+  name: Update Impact
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/tdvsp_impacts({{impactId}})
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "Updated Impact",
+    "tdvsp_description": "Updated description"
+  }
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Get Annotations by Object
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/annotations?$select=annotationid,subject,notetext,createdon,_objectid_value,filename,mimetype,filesize,isdocument&$filter=_objectid_value eq {{accountId}}&$orderby=createdon desc&$top=50
+  body: none
+  auth: inherit
+}
+
+docs {
+  Replace {{accountId}} with any entity ID (account, action item, idea, project) to get its notes.
+}

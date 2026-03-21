@@ -54,6 +54,17 @@ scripts/
 ├── generate-user-guide-pdf.py       # -> docs/pdf/user-guide.pdf
 ├── generate-faq-pdf.py              # -> docs/pdf/faq.pdf
 └── generate-how-i-was-built-pdf.py  # -> docs/pdf/how-i-was-built.pdf
+bruno/              # Bruno API collection (Dataverse Web API requests)
+├── environments/   # Dataverse environment config (baseUrl, token, entity IDs)
+├── Accounts/       # Account CRUD requests
+├── Contacts/       # Contact CRUD requests
+├── Action Items/   # Action Item CRUD requests (includes choice field docs)
+├── Ideas/          # Idea CRUD requests (includes category docs)
+├── Impacts/        # Impact CRUD requests
+├── Projects/       # Project CRUD requests
+├── Meeting Summaries/ # Meeting Summary CRUD requests
+├── Annotations/    # Notes CRUD + file download requests
+└── Related Records/   # By-account and by-contact queries
 ```
 
 ## Commands

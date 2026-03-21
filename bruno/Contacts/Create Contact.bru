@@ -1,0 +1,26 @@
+meta {
+  name: Create Contact
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/contacts
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "firstname": "John",
+    "lastname": "Doe",
+    "emailaddress1": "john.doe@example.com",
+    "telephone1": "555-0100",
+    "jobtitle": "Manager",
+    "parentcustomerid_account@odata.bind": "/accounts({{accountId}})"
+  }
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Update Action Item
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/tdvsp_actionitems({{actionItemId}})
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "Updated Action Item",
+    "tdvsp_taskstatus": 468510001
+  }
+}

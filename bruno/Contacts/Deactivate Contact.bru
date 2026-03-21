@@ -1,0 +1,17 @@
+meta {
+  name: Deactivate Contact
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/contacts({{contactId}})
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "statecode": 1
+  }
+}

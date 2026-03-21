@@ -1,0 +1,11 @@
+meta {
+  name: Get All Contacts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/contacts?$select=contactid,firstname,lastname,emailaddress1,telephone1,jobtitle,_parentcustomerid_value&$expand=parentcustomerid_account($select=accountid,name)&$filter=statecode eq 0&$orderby=lastname asc&$top=100
+  body: none
+  auth: inherit
+}

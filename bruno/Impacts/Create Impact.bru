@@ -1,0 +1,24 @@
+meta {
+  name: Create Impact
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/tdvsp_impacts
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "New Impact",
+    "tdvsp_date": "2026-03-20",
+    "tdvsp_description": "Impact description",
+    "tdvsp_Customer@odata.bind": "/accounts({{accountId}})"
+  }
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Deactivate Action Item
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/tdvsp_actionitems({{actionItemId}})
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "statecode": 1
+  }
+}

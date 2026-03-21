@@ -1,0 +1,24 @@
+meta {
+  name: Create Meeting Summary
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/tdvsp_meetingsummaries
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "New Meeting Summary",
+    "tdvsp_date": "2026-03-20",
+    "tdvsp_summary": "Summary of the meeting",
+    "tdvsp_Account@odata.bind": "/accounts({{accountId}})"
+  }
+}

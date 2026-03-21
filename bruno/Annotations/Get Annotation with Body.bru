@@ -1,0 +1,15 @@
+meta {
+  name: Get Annotation with Body
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/annotations({{annotationId}})?$select=annotationid,filename,mimetype,documentbody
+  body: none
+  auth: inherit
+}
+
+docs {
+  Fetches a single annotation INCLUDING the base64-encoded file body for download.
+}

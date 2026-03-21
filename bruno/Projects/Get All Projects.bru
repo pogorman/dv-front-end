@@ -1,0 +1,11 @@
+meta {
+  name: Get All Projects
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/tdvsp_projects?$select=tdvsp_projectid,tdvsp_name,tdvsp_description,_tdvsp_account_value&$expand=tdvsp_Account($select=accountid,name)&$filter=statecode eq 0&$orderby=tdvsp_name asc&$top=100
+  body: none
+  auth: inherit
+}

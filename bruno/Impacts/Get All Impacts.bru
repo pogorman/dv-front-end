@@ -1,0 +1,11 @@
+meta {
+  name: Get All Impacts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/tdvsp_impacts?$select=tdvsp_impactid,tdvsp_name,tdvsp_date,tdvsp_description,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$filter=statecode eq 0&$orderby=tdvsp_date desc&$top=100
+  body: none
+  auth: inherit
+}

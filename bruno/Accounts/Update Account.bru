@@ -1,0 +1,21 @@
+meta {
+  name: Update Account
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/accounts({{accountId}})
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "name": "Updated Account Name"
+  }
+}

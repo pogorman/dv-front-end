@@ -1,0 +1,11 @@
+meta {
+  name: Ideas by Contact
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category&$filter=_tdvsp_contact_value eq {{contactId}} and statecode eq 0&$orderby=tdvsp_name asc
+  body: none
+  auth: inherit
+}

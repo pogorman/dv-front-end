@@ -1,0 +1,15 @@
+meta {
+  name: Get Annotations by IDs
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/annotations?$select=annotationid,subject,notetext,createdon,_objectid_value,filename,mimetype,filesize,isdocument&$filter=annotationid eq {{annotationId}}
+  body: none
+  auth: inherit
+}
+
+docs {
+  To fetch multiple: use `annotationid eq <id1> or annotationid eq <id2>` in $filter.
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Update Idea
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/tdvsp_ideas({{ideaId}})
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "Updated Idea",
+    "tdvsp_description": "Updated description",
+    "tdvsp_category": 468510005
+  }
+}

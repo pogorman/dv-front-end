@@ -1,0 +1,17 @@
+meta {
+  name: Deactivate Meeting Summary
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/tdvsp_meetingsummaries({{meetingSummaryId}})
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "statecode": 1
+  }
+}

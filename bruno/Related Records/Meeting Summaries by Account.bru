@@ -1,0 +1,11 @@
+meta {
+  name: Meeting Summaries by Account
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/tdvsp_meetingsummaries?$select=tdvsp_meetingsummaryid,tdvsp_name,tdvsp_date&$filter=_tdvsp_account_value eq {{accountId}} and statecode eq 0&$orderby=tdvsp_date desc
+  body: none
+  auth: inherit
+}

@@ -1,0 +1,11 @@
+meta {
+  name: Get All Accounts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/accounts?$select=accountid,name,_parentaccountid_value&$expand=parentaccountid($select=accountid,name)&$filter=statecode eq 0&$orderby=name asc&$top=100
+  body: none
+  auth: inherit
+}

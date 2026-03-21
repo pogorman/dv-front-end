@@ -1,0 +1,23 @@
+meta {
+  name: Create Project
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/tdvsp_projects
+  body: json
+  auth: inherit
+}
+
+headers {
+  Prefer: return=representation
+}
+
+body:json {
+  {
+    "tdvsp_name": "New Project",
+    "tdvsp_description": "Project description",
+    "tdvsp_Account@odata.bind": "/accounts({{accountId}})"
+  }
+}
