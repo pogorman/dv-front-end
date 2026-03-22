@@ -21,7 +21,7 @@ The **sidebar** (left) organizes pages into sections. Click the chevron at the t
 | Section | Pages | Icon |
 |---------|-------|------|
 | *(Top)* | dashboard | Home |
-| **activity** | tasks, ideas, impacts | CheckboxChecked, LightbulbFilament, Flash |
+| **activity** | tasks, ideas, personal, impacts | CheckboxChecked, LightbulbFilament, Home, Flash |
 | **core** | accounts, contacts, projects, summaries | Building, Person, Briefcase, PeopleTeam |
 | *(Bottom)* | about this site | Info |
 
@@ -41,25 +41,24 @@ The top bar has pill-style buttons for creating any record type: action item, id
 
 A full-width strip below the quick create bar with a lime green left border and car icon. Bookmark any item from the dashboard lists to "park" it here for quick access. Up to 5 items can be parked at a time. Click an action item or idea tile to open its view dialog inline; other entity types navigate to their list page. Click X to remove an item.
 
-### Ideas Strip
+### Projects Strip
 
-A purple-accented horizontal strip showing all your ideas as tiles (160px wide). Each tile shows the idea name and category. Click to open the view/edit dialog inline on the dashboard.
-
-### Personal Strip
-
-A cyan-accented horizontal strip showing all non-complete personal action items as tiles. Each tile shows the name, date, and "Top Priority" label if applicable. Click to open the view/edit dialog inline.
+A blue-accented horizontal strip showing all your projects as tiles (160px wide). Each tile shows the project name and account. Click to open the view/edit dialog inline on the dashboard (with notes timeline).
 
 ### Work Card
 
-A full-width tile grid showing all non-complete work action items. Tiles are arranged 4 per row. Top priority items appear first, then the rest -- all in a single unified grid. Each tile shows name, date, account, and badges for "Top Priority" or "Overdue". Click to open the view/edit dialog inline.
+A full-width tile grid showing all non-complete work action items. Tiles are arranged 3 per row. Top priority items appear first, then the rest -- all in a single unified grid. Each tile shows name, date, account, and badges for "Top Priority" or "Overdue". Click to open the view/edit dialog inline.
 
 ### Tile Tooltips
 
-Hover over any dashboard tile (work, ideas, or parking lot) for about half a second and a rich tooltip appears with an arrow showing the full details that get truncated on the small tiles. Work tile tooltips show the full name, description, date, account, status, and priority. Idea tile tooltips show name, description, category, account, and contact. Parking lot tile tooltips show the full name and entity type.
+Hover over any dashboard tile (work, projects, or parking lot) for about half a second and a rich tooltip appears with an arrow showing the full details that get truncated on the small tiles. Work tile tooltips show the full name, description, date, account, status, and priority. Project tile tooltips show name, description, and account. Parking lot tile tooltips show the full name and entity type.
 
-### Right Sidebar (Pinned Notes)
+### Right Sidebar (Ideas + Pinned Notes)
 
-The right sidebar (260px, collapsible) shows pinned notes. Toggle it with the button in the quick create bar. Notes pinned from any entity appear here with an entity type label, 3-line preview, and attachment indicator. Click to expand in a dialog.
+The right sidebar (260px, collapsible) has two tabs: **ideas** (default) and **pinned notes**. Toggle it with the button in the quick create bar.
+
+- **Ideas tab** -- A scrollable vertical list of all ideas with name, category badge, account, plus park/deactivate actions. Click an idea to open the view/edit dialog inline on the dashboard.
+- **Pinned notes tab** -- Notes pinned from any entity appear here with an entity type label, 3-line preview, and attachment indicator. Click to expand in a dialog.
 
 ---
 
@@ -159,6 +158,6 @@ Click the **rocket icon button** (bottom-right corner) to open the AI chat panel
 
 - **Quick navigation:** Use the sidebar to jump between pages. Collapsed mode shows icons with tooltips.
 - **Keyboard shortcut:** All entity pages support `?new=true` in the URL to auto-open the create dialog.
-- **Deep links:** Tasks and Ideas support `?view=<id>` to link directly to a specific record's view dialog.
+- **Deep links:** Tasks, Ideas, and Projects support `?view=<id>` to link directly to a specific record's view dialog.
 - **Parking lot:** Bookmark frequently-referenced items from dashboard lists for quick access (max 5).
 - **Pin notes:** Pin important notes to the dashboard sidebar so they're always visible.

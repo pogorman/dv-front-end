@@ -51,11 +51,13 @@ Each entity page followed the same pattern, built one at a time:
 The dashboard went through the most iterations:
 
 - **Started as:** Simple card grid with counts
-- **Evolved to:** Quick create bar + parking lot strip + ideas strip + personal strip + work tile grid + right sidebar with pinned notes
+- **Evolved to:** Quick create bar + parking lot strip + projects strip + work tile grid + right sidebar with tabbed Ideas and Pinned Notes
 - **Key decisions:**
-  - Inline view/edit dialogs on the dashboard (clicking an action item or idea opens its full dialog without navigating away)
+  - Inline view/edit dialogs on the dashboard (clicking an action item, idea, or project opens its full dialog without navigating away)
   - Parking lot for bookmarking (localStorage, max 5 items)
-  - Tile-based layout instead of lists (160px tiles for strips, 4-per-row grid for work)
+  - Tile-based layout instead of lists (160px tiles for strips, 3-per-row grid for work)
+  - Ideas moved from a main-area strip to a tabbed right sidebar (alongside pinned notes) for better use of space
+  - Projects strip added to the main area, giving projects first-class dashboard visibility
 
 ### Phase 4: Design System
 
@@ -92,12 +94,12 @@ The NotesTimeline component:
 Adding discoverability to the compact dashboard tiles:
 
 - **Prompt pattern:** "Add Fluent UI Tooltip components on all dashboard tiles so hovering shows the full record details"
-- **Result:** All work, idea, and parking lot tiles wrapped with Fluent UI `Tooltip` (`withArrow`, `showDelay={400}`). Each tooltip shows the full details that get truncated on the small tile.
+- **Result:** All work, project, and parking lot tiles wrapped with Fluent UI `Tooltip` (`withArrow`, `showDelay={400}`). Each tooltip shows the full details that get truncated on the small tile.
 - **Key decisions:**
   - Work tile tooltips show name, description (4-line clamp), date, account, status, and priority
-  - Idea tile tooltips show name, description, category, account, and contact
+  - Project tile tooltips show name, description, and account
   - Parking lot tile tooltips show name and entity type
-  - Positioning varies: `"above"` for work tiles, `"below"` for ideas and parking lot to avoid overlapping content above/below
+  - Positioning varies: `"above"` for work tiles, `"below"` for projects and parking lot to avoid overlapping content above/below
   - 400ms delay prevents tooltips from firing on casual mouse movement
 
 ---

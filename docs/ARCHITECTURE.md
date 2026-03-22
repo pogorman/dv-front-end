@@ -358,6 +358,10 @@ All 7 entity pages use a consistent pattern:
 - Clickable name links opening view dialogs
 - Edit/deactivate action buttons
 
+### Dashboard Layout
+
+The dashboard uses a two-column layout: main area (flex-grow) + right sidebar (260px, collapsible). The main area contains (top to bottom): Quick Create bar, Parking Lot strip, Projects strip (blue accent, 160px tiles), and Work tile grid (3 per row). The right sidebar has a Fluent UI `TabList` with two tabs: "ideas" (default, scrollable vertical list with category badges and actions) and "pinned notes" (pinned annotations from any entity). Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
+
 ### Dashboard Tile Tooltips
 
-All dashboard tiles use Fluent UI `Tooltip` with `withArrow` and `showDelay={400}` to reveal full record details on hover. Content varies by tile type (work tiles show description/status/priority; idea tiles show description/category/contacts; parking lot tiles show entity type). Tooltip positioning is `"above"` for work tiles and `"below"` for ideas and parking lot tiles.
+All dashboard tiles use Fluent UI `Tooltip` with `withArrow` and `showDelay={400}` to reveal full record details on hover. Content varies by tile type (work tiles show description/status/priority; project tiles show description/account; parking lot tiles show entity type). Tooltip positioning is `"above"` for work tiles and `"below"` for projects and parking lot tiles.

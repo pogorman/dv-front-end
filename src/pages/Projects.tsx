@@ -209,13 +209,22 @@ export const Projects: React.FC = () => {
     loadAccounts();
   }, [loadProjects, loadAccounts]);
 
-  // Auto-open new dialog if ?new=true
+  // Auto-open new dialog if ?new=true, or view dialog if ?view=<id>
   useEffect(() => {
     if (searchParams.get("new") === "true") {
       setDialogOpen(true);
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+    const viewId = searchParams.get("view");
+    if (viewId && projects.length > 0) {
+      const project = projects.find((p) => p.tdvsp_projectid === viewId);
+      if (project) {
+        setViewingProject(project);
+        setViewDialogOpen(true);
+      }
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams, projects]);
 
   const openNew = () => {
     setEditingId(null);

@@ -541,27 +541,20 @@ All pages follow consistent patterns:
 
 The landing page providing an at-a-glance overview.
 
-**Layout:** Two-column layout — `dashboardMain` (flex-grow) + `rightSidebar` (280px fixed). The right sidebar spans full height.
+**Layout:** Two-column layout — `dashboardMain` (flex-grow) + `rightSidebar` (260px, collapsible). The right sidebar spans full height and contains a tabbed interface.
 
 **Main Column (top to bottom):**
-1. **Quick Create Bar** — Steel blue gradient banner (`#4682B4` → `#5A9BC9`) with white "Quick Create" label and pill buttons (Action Item, Project, Summary, Idea, Impact, Account, Contact) — create any record type without leaving the dashboard. Save buttons disable with spinner during save.
-2. **Stats Grid** — 7 compact quick-launch tiles in a fixed row:
-   - Accounts (blue) — total count
-   - Contacts (purple) — total count
-   - Projects (indigo) — total count
-   - Summaries (teal) — total count
-   - Action Items (green) — total count
-   - Ideas (amber) — total count
-   - Impacts (red) — total count
-3. **Work Card** — Card with red left accent border and Briefcase icon showing all non-complete, non-personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, account, overdue/upcoming badge, bookmark icon, and deactivate icon with confirmation. Only visible when matching items exist.
-4. **Personal Card** — Card with teal left accent border and Home icon showing all non-complete personal action items. Contains a "Top Priority" sub-section (red warning icon + label) for top-priority personal items, followed by remaining items. Scrollable with max-height (~4 items visible). Each item shows name, due date, status, overdue/upcoming badge, bookmark icon, and deactivate icon with confirmation. Only visible when incomplete personal items exist.
-5. **Section Cards** (2-column grid, 180px max-height with scroll):
-   - **Action Items** — Latest 8 items with due date, status, priority, and account name; badge (Overdue/Upcoming/Complete); bookmark and deactivate icons per item
-   - **Ideas** — Latest 8 items showing name, category, account on line 1; description preview on line 2; bookmark and deactivate icons per item
+1. **Quick Create Bar** — Subtle surface background with border, monospace chip-style pill buttons in nav order: action item, idea, impact, account, contact, project, summary — create any record type without leaving the dashboard. Panel toggle button on the right. Save buttons disable with spinner during save.
+2. **Parking Lot Strip** — Full-width inline tile strip with lime green (`#84cc16`) left border and car icon. Up to 5 square tiles (160px wide) inline. Bookmarked items for quick access. Items can be parked from any dashboard list via car icon (filled when parked, outline when not). Clicking action items/ideas opens inline view dialog; other entity types navigate to list page. X dismisses. `parkingLot.ts` stores refs in localStorage with `MAX_PARKED_ITEMS = 5` cap.
+3. **Projects Strip** — Blue-accented (`#4a9eff`) inline tile strip with Briefcase icon (same layout as Parking Lot). All projects as 160px tiles with name and account. Click opens inline view/edit dialog with name, description, account fields and NotesTimeline.
+4. **Work Card** — Full-width tile grid with red (`#f87171`) accent and Briefcase icon showing all non-complete work action items. 3 tiles per row, 108px tall, wrapping naturally. Top priority items listed first, then the rest — single unified grid. Each tile shows name (2-line ellipsis clamp), date + account, and status badges ("Top Priority" or "Overdue"). Bookmark/deactivate icons in top-right corner. Click opens inline view dialog. Sorted by date ascending.
 
-**Right Sidebar (top to bottom):**
-7. **Parking Lot Panel** — Bookmarked items for quick access. Items can be parked from any dashboard list via the bookmark icon (Bookmark16Regular/Filled). Shows entity type label and item name. Click navigates to the record; X button removes from lot. Uses `parkingLot.ts` for localStorage persistence.
-8. **Pinned Notes Panel** — Appears when notes are pinned; grows to fill remaining sidebar space. Shows entity type label, date, subject, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog.
+**Right Sidebar (tabbed):**
+5. **TabList** — Fluent UI `TabList` at the top with two tabs: "ideas" (default) and "pinned notes".
+6. **Ideas Tab** — Scrollable vertical list of all ideas with name, category badge, account, plus park/deactivate actions. Clicking an idea opens the inline view/edit dialog on the dashboard.
+7. **Pinned Notes Tab** — Pinned notes with entity type label, 3-line preview, attachment indicator; click to expand in dialog; unpin from dialog. Uses `pinnedNotes.ts` for localStorage persistence.
+
+**Inline View Dialogs:** Clicking action items, ideas, or projects anywhere on the dashboard opens a 70vw view/edit dialog directly on the dashboard with NotesTimeline. Same inline edit pattern as entity pages (isEditing toggle, Edit/Save/Cancel buttons). No navigation away from dashboard.
 
 **Save Progress:** All quick-create save buttons use the `saving` state pattern — disabled with `<Spinner size="tiny" /> Saving...` while in progress, preventing double-submissions.
 
@@ -620,7 +613,7 @@ Project tracking with notes.
 
 **Main View:** Responsive card grid showing name, description preview (2-line clamp), and account
 
-**View Dialog:** Two-column layout — Details on the left, Notes Timeline on the right
+**View Dialog:** Two-column layout — Details on the left, Notes Timeline on the right. Supports `?view=<id>` query parameter to auto-open a specific project's view dialog.
 
 **Forms:** Name (required), Account (dropdown), Description (textarea)
 
@@ -856,15 +849,12 @@ The **sidebar** (left) organizes pages into sections:
 
 ### Dashboard
 
-- **Quick Create Bar** — Steel blue gradient banner at the top with compact buttons to create any record type without leaving the dashboard. Save buttons show a spinner and disable while saving to prevent duplicates.
-- **Stat Tiles** — 7 compact quick-launch tiles (Accounts, Contacts, Projects, Summaries, Action Items, Ideas, Impacts) — click to navigate to that page
-- **Work** — Card (red accent) showing all non-complete work action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when work items exist)
-- **Personal** — Card (teal accent) showing all non-complete personal action items, with a "Top Priority" sub-section at the top; scrollable when items exceed ~4 (only appears when personal items exist)
-- **Action Items** — Shows the 8 most recent tasks with status, priority, and badges (Overdue, Upcoming, Complete); 180px scrollable area
-- **Ideas** — Shows the 8 most recent ideas with category and account; 180px scrollable area
-- **Quick Deactivate** — Every item on the dashboard (Work, Personal, Action Items, Ideas) has a trash icon for quick deactivation with an "Are you sure?" confirmation dialog. Deactivation sets `statecode` to 1 (Inactive) rather than deleting the record.
-- **Parking Lot** (right sidebar, top) — Bookmark any item from Work, Personal, Action Items, or Ideas cards using the bookmark icon. Parked items appear here for quick access — click to navigate, X to remove.
-- **Pinned Notes** (right sidebar, bottom) — Appears when you have pinned notes; click to expand
+- **Quick Create Bar** — Subtle surface background with border, monospace chip-style pill buttons to create any record type without leaving the dashboard. Panel toggle button on the right. Save buttons show a spinner and disable while saving to prevent duplicates.
+- **Parking Lot Strip** — Full-width inline tile strip with lime green accent. Up to 5 bookmarked items as 160px tiles. Click action items/ideas to open inline view dialog; other types navigate.
+- **Projects Strip** — Blue-accented horizontal tile strip showing all projects as 160px tiles with name and account. Click to open inline view/edit dialog with notes.
+- **Work Card** — Full-width tile grid (3 per row) showing all non-complete work action items. Top priority first. Tiles show name, date, account, and status badges. Click opens inline view dialog.
+- **Quick Deactivate** — Every item on the dashboard (Work, Projects, Ideas) has a deactivate icon with an "Are you sure?" confirmation dialog. Deactivation sets `statecode` to 1 (Inactive) rather than deleting the record.
+- **Right Sidebar** — Collapsible panel with two tabs: **Ideas** (default, scrollable list with category badges and park/deactivate actions) and **Pinned Notes** (pinned annotations from any entity, click to expand)
 
 ### Working with Records
 

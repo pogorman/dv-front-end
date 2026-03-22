@@ -25,17 +25,19 @@ import {
   Textarea,
   Spinner,
   Tooltip,
+  TabList,
+  Tab,
+  SelectTabData,
 } from "@fluentui/react-components";
 import {
   Briefcase24Filled,
+  Briefcase24Regular,
   PanelRight20Regular,
   PanelRight20Filled,
   Pin24Regular,
   PinOff16Regular,
   Dismiss24Regular,
-  Add16Regular,
   Attach16Regular,
-  LightbulbFilament24Filled,
   ArrowMaximize16Regular,
   VehicleCar16Regular,
   VehicleCar16Filled,
@@ -71,6 +73,7 @@ import {
   createMeetingSummary,
   updateActionItem,
   updateIdea,
+  updateProject,
   deactivateActionItem,
   deactivateIdea,
 } from "../services/dataverseService";
@@ -298,7 +301,7 @@ const useStyles = makeStyles({
       backgroundColor: tokens.colorNeutralBackground1Hover,
     },
   },
-  ideasPanel: {
+  projectsPanel: {
     ...shorthands.padding("5px", "3px"),
     ...shorthands.borderRadius("8px"),
     display: "flex",
@@ -308,24 +311,24 @@ const useStyles = makeStyles({
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderLeftWidth: "3px",
     borderLeftStyle: "solid",
-    borderLeftColor: "#a78bfa",
+    borderLeftColor: "#4a9eff",
     boxShadow: "none",
     overflow: "hidden" as const,
   },
-  ideasPanelHeader: {
+  projectsPanelHeader: {
     display: "flex",
     alignItems: "center",
     ...shorthands.gap("8px"),
     flexShrink: 0,
     minWidth: "170px",
   },
-  ideasPanelGrid: {
+  projectsPanelGrid: {
     display: "flex",
     ...shorthands.gap("6px"),
     flexGrow: 1,
     overflow: "hidden" as const,
   },
-  ideasPanelItem: {
+  projectsPanelItem: {
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "flex-start",
@@ -344,6 +347,19 @@ const useStyles = makeStyles({
     ":hover": {
       backgroundColor: tokens.colorNeutralBackground2Hover,
     },
+  },
+  sidebarIdeaItem: {
+    ...shorthands.padding("8px", "10px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("8px"),
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
+  },
+  sidebarTabList: {
+    marginBottom: "8px",
   },
   cardScrollArea: {
     maxHeight: "600px",
@@ -448,7 +464,7 @@ export const Dashboard: React.FC = () => {
   const [parkedItems, setParkedItems] = useState<ParkedItemRef[]>(() => getParkedItems());
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Customer[]>([]);
-  const [, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [, setImpacts] = useState<Impact[]>([]);
@@ -469,12 +485,15 @@ export const Dashboard: React.FC = () => {
   const [addImpactOpen, setAddImpactOpen] = useState(false);
   const [addSummaryOpen, setAddSummaryOpen] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<string>("ideas");
 
   // View/edit dialog state
   const [viewTaskOpen, setViewTaskOpen] = useState(false);
   const [viewingTask, setViewingTask] = useState<ActionItem | null>(null);
   const [viewIdeaOpen, setViewIdeaOpen] = useState(false);
   const [viewingIdea, setViewingIdea] = useState<Idea | null>(null);
+  const [viewProjectOpen, setViewProjectOpen] = useState(false);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState({
@@ -929,6 +948,62 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  // View/edit handlers for Projects
+  const openViewProject = (project: Project) => {
+    setIsEditing(false);
+    setEditingId(null);
+    setViewingProject(project);
+    setViewProjectOpen(true);
+  };
+
+  const openEditProject = (project: Project) => {
+    setViewingProject(project);
+    setViewProjectOpen(true);
+    setEditingId(project.tdvsp_projectid ?? null);
+    setEditFormData({
+      ...editFormData,
+      tdvsp_name: project.tdvsp_name,
+      tdvsp_description: project.tdvsp_description ?? "",
+      accountId: project.tdvsp_Account?.accountid ?? "",
+    });
+    setIsEditing(true);
+  };
+
+  const buildProjectEditPayload = () => {
+    const payload: {
+      tdvsp_name: string;
+      tdvsp_description?: string;
+      "tdvsp_Account@odata.bind"?: string;
+    } = {
+      tdvsp_name: editFormData.tdvsp_name,
+      tdvsp_description: editFormData.tdvsp_description || undefined,
+    };
+    if (editFormData.accountId) {
+      payload["tdvsp_Account@odata.bind"] = `/accounts(${editFormData.accountId})`;
+    }
+    return payload;
+  };
+
+  const handleSaveEditProject = async () => {
+    if (!editingId) return;
+    setSaving(true);
+    try {
+      await updateProject(editingId, buildProjectEditPayload());
+      setIsEditing(false);
+      setEditingId(null);
+      const updatedProjects = await getProjects();
+      setProjects(updatedProjects);
+      const updated = updatedProjects.find((p) => p.tdvsp_projectid === viewingProject?.tdvsp_projectid);
+      if (updated) setViewingProject(updated);
+      notify("Project updated");
+    } catch (err) {
+      console.error("Failed to save project:", err);
+      notify("Failed to save project", undefined, "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Parking lot click handler — opens inline view dialog instead of navigating
   const handleParkedItemClick = (item: ParkedItemRef) => {
     if (item.entityType === "actionitem") {
@@ -1048,29 +1123,29 @@ export const Dashboard: React.FC = () => {
           </Card>
         )}
 
-      {/* Ideas Strip — always visible */}
-        <Card className={styles.ideasPanel}>
-          <div className={styles.ideasPanelHeader}>
-            <LightbulbFilament24Filled style={{ color: "#a78bfa" }} />
-            <Subtitle1 style={{ flexGrow: 1 }}>ideas</Subtitle1>
-            <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("ideas"); }} title="Expand" />
+      {/* Projects Strip — always visible */}
+        <Card className={styles.projectsPanel}>
+          <div className={styles.projectsPanelHeader}>
+            <Briefcase24Regular style={{ color: "#4a9eff" }} />
+            <Subtitle1 style={{ flexGrow: 1 }}>projects</Subtitle1>
+            <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("projects"); }} title="Expand" />
           </div>
-          <div className={styles.ideasPanelGrid}>
-            {ideas.length === 0 ? (
-              <Body1 style={{ color: tokens.colorNeutralForeground3, padding: "4px 0" }}>No ideas yet</Body1>
+          <div className={styles.projectsPanelGrid}>
+            {projects.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3, padding: "4px 0" }}>No projects yet</Body1>
             ) : (
-              ideas.map((idea) => (
+              projects.map((project) => (
                 <Tooltip
-                  key={idea.tdvsp_ideaid}
+                  key={project.tdvsp_projectid}
                   content={
                     <div className={styles.tooltipContent}>
-                      <Text weight="semibold" size={300}>{idea.tdvsp_name}</Text>
-                      {idea.tdvsp_description && <div className={styles.tooltipDesc}>{idea.tdvsp_description}</div>}
-                      <div className={styles.tooltipMeta}>
-                        {idea.tdvsp_category != null && <div>{ideaCategoryLabels[idea.tdvsp_category as IdeaCategory]}</div>}
-                        {idea.tdvsp_Account?.name && <div>{idea.tdvsp_Account.name}</div>}
-                        {idea.tdvsp_Contact && <div>{idea.tdvsp_Contact.firstname} {idea.tdvsp_Contact.lastname}</div>}
-                      </div>
+                      <Text weight="semibold" size={300}>{project.tdvsp_name}</Text>
+                      {project.tdvsp_description && <div className={styles.tooltipDesc}>{project.tdvsp_description}</div>}
+                      {project.tdvsp_Account?.name && (
+                        <div className={styles.tooltipMeta}>
+                          <div>{project.tdvsp_Account.name}</div>
+                        </div>
+                      )}
                     </div>
                   }
                   relationship="description"
@@ -1079,22 +1154,12 @@ export const Dashboard: React.FC = () => {
                   showDelay={400}
                 >
                   <div
-                    className={styles.ideasPanelItem}
-                    onClick={() => openViewIdea(idea)}
+                    className={styles.projectsPanelItem}
+                    onClick={() => openViewProject(project)}
                   >
-                    <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
-                      <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={isItemParked(idea.tdvsp_ideaid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
-                        onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
-                        title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
-                      />
-                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
-                    </div>
-                    <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{idea.tdvsp_name}</Text>
+                    <Text weight="semibold" style={{ width: "100%", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{project.tdvsp_name}</Text>
                     <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
-                      {idea.tdvsp_category != null ? ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] : "Idea"}
+                      {project.tdvsp_Account?.name || "Project"}
                     </Caption1>
                   </div>
                 </Tooltip>
@@ -1169,71 +1234,122 @@ export const Dashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Right Sidebar — Pinned Notes only */}
+        {/* Right Sidebar — Ideas + Pinned Notes tabs */}
         <div className={`${styles.rightSidebar} ${!rightPanelOpen ? styles.rightSidebarCollapsed : ""}`}>
           <Card className={styles.pinnedPanel}>
-            <div className={styles.pinnedHeader}>
-              <Pin24Regular />
-              <Subtitle1 style={{ flexGrow: 1 }}>pinned notes</Subtitle1>
-              <Button
-                appearance="subtle"
-                size="small"
-                icon={<Add16Regular />}
-                onClick={() => navigate("/accounts")}
-                title="Add notes from an account"
-              />
-            </div>
-            {pinnedAnnotations.length > 0 ? (
-              <div className={styles.pinnedList}>
-                {pinnedAnnotations.map((note) => {
-                  const entityInfo = getEntityInfo(note.annotationid!);
-                  return (
-                    <div
-                      key={note.annotationid}
-                      className={styles.pinnedNoteItem}
-                      onClick={() => {
-                        setSelectedNote({
-                          annotation: note,
-                          entityName: entityInfo.entityName,
-                          entityType: entityInfo.entityType,
-                        });
-                        setNoteDialogOpen(true);
-                      }}
-                    >
-                      <div className={styles.pinnedNoteAccount}>
-                        <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
-                          {entityTypeLabels[entityInfo.entityType]}:
-                        </span>{" "}
-                        {entityInfo.entityName}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {note.createdon && (
-                          <div className={styles.pinnedNoteDate}>
-                            {formatDate(note.createdon)}
+            <TabList
+              className={styles.sidebarTabList}
+              size="small"
+              selectedValue={sidebarTab}
+              onTabSelect={(_, d: SelectTabData) => setSidebarTab(d.value as string)}
+            >
+              <Tab value="ideas" icon={<LightbulbFilament20Regular />}>ideas</Tab>
+              <Tab value="notes" icon={<Pin24Regular style={{ fontSize: 16 }} />}>pinned notes</Tab>
+            </TabList>
+
+            {sidebarTab === "ideas" && (
+              <>
+                {ideas.length > 0 ? (
+                  <div className={styles.pinnedList}>
+                    {ideas.map((idea) => (
+                      <div
+                        key={idea.tdvsp_ideaid}
+                        className={styles.sidebarIdeaItem}
+                        onClick={() => openViewIdea(idea)}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+                          <Text size={300} weight="semibold" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3", flexGrow: 1 }}>
+                            {idea.tdvsp_name}
+                          </Text>
+                          <div style={{ display: "flex", gap: 0, flexShrink: 0 }}>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={isItemParked(idea.tdvsp_ideaid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
+                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
+                              title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
+                            />
+                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
                           </div>
+                        </div>
+                        {idea.tdvsp_category != null && (
+                          <Caption1 style={{ color: "#a78bfa", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace }}>
+                            {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory]}
+                          </Caption1>
                         )}
-                        {note.isdocument && (
-                          <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
+                        {idea.tdvsp_Account?.name && (
+                          <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px", display: "block" }}>
+                            {idea.tdvsp_Account.name}
+                          </Caption1>
                         )}
                       </div>
-                      {note.subject && (
-                        <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
-                          {note.subject}
-                        </Text>
-                      )}
-                      <div className={styles.pinnedNotePreview}>
-                        <Text size={200}>{note.notetext}</Text>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ padding: "16px 8px", textAlign: "center" }}>
-                <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                  pin notes from accounts, tasks, ideas, or projects to see them here
-                </Text>
-              </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding: "16px 8px", textAlign: "center" }}>
+                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                      no ideas yet — create one from quick create
+                    </Text>
+                  </div>
+                )}
+              </>
+            )}
+
+            {sidebarTab === "notes" && (
+              <>
+                {pinnedAnnotations.length > 0 ? (
+                  <div className={styles.pinnedList}>
+                    {pinnedAnnotations.map((note) => {
+                      const entityInfo = getEntityInfo(note.annotationid!);
+                      return (
+                        <div
+                          key={note.annotationid}
+                          className={styles.pinnedNoteItem}
+                          onClick={() => {
+                            setSelectedNote({
+                              annotation: note,
+                              entityName: entityInfo.entityName,
+                              entityType: entityInfo.entityType,
+                            });
+                            setNoteDialogOpen(true);
+                          }}
+                        >
+                          <div className={styles.pinnedNoteAccount}>
+                            <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
+                              {entityTypeLabels[entityInfo.entityType]}:
+                            </span>{" "}
+                            {entityInfo.entityName}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            {note.createdon && (
+                              <div className={styles.pinnedNoteDate}>
+                                {formatDate(note.createdon)}
+                              </div>
+                            )}
+                            {note.isdocument && (
+                              <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
+                            )}
+                          </div>
+                          {note.subject && (
+                            <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
+                              {note.subject}
+                            </Text>
+                          )}
+                          <div className={styles.pinnedNotePreview}>
+                            <Text size={200}>{note.notetext}</Text>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={{ padding: "16px 8px", textAlign: "center" }}>
+                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                      pin notes from accounts, tasks, ideas, or projects to see them here
+                    </Text>
+                  </div>
+                )}
+              </>
             )}
           </Card>
         </div>
@@ -1686,7 +1802,7 @@ export const Dashboard: React.FC = () => {
               action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setExpandedCard(null)} />}
             >
               {expandedCard === "work" && <><Briefcase24Filled style={{ color: "#d13438", marginRight: 8, verticalAlign: "middle" }} />work</>}
-              {expandedCard === "ideas" && <><LightbulbFilament24Filled style={{ color: "#a78bfa", marginRight: 8, verticalAlign: "middle" }} />ideas</>}
+              {expandedCard === "projects" && <><Briefcase24Regular style={{ color: "#4a9eff", marginRight: 8, verticalAlign: "middle" }} />projects</>}
             </DialogTitle>
             <DialogContent style={{ flexGrow: 1, overflowY: "auto" }}>
               {expandedCard === "work" && (
@@ -1745,31 +1861,26 @@ export const Dashboard: React.FC = () => {
                   </div>
                 )
               )}
-              {expandedCard === "ideas" && (
+              {expandedCard === "projects" && (
                 <>
-                  {ideas.length === 0 ? (
-                    <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No ideas yet</Body1>
+                  {projects.length === 0 ? (
+                    <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No projects yet</Body1>
                   ) : (
-                    ideas.map((idea, i) => (
-                      <React.Fragment key={idea.tdvsp_ideaid}>
+                    projects.map((project, i) => (
+                      <React.Fragment key={project.tdvsp_projectid}>
                         {i > 0 && <Divider />}
-                        <div className={styles.listItem} onClick={() => { setExpandedCard(null); openViewIdea(idea); }} style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                        <div className={styles.listItem} onClick={() => { setExpandedCard(null); openViewProject(project); }} style={{ flexDirection: "column", alignItems: "flex-start" }}>
                           <Text weight="semibold" className={styles.nameLink}>
-                            {idea.tdvsp_name}
-                            {idea.tdvsp_category != null && (
+                            {project.tdvsp_name}
+                            {project.tdvsp_Account?.name && (
                               <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
-                                {" "}&ndash; {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] ?? ""}
-                              </span>
-                            )}
-                            {idea.tdvsp_Account?.name && (
-                              <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
-                                {" "}&ndash; {idea.tdvsp_Account.name}
+                                {" "}&ndash; {project.tdvsp_Account.name}
                               </span>
                             )}
                           </Text>
-                          {idea.tdvsp_description && (
+                          {project.tdvsp_description && (
                             <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                              {idea.tdvsp_description}
+                              {project.tdvsp_description}
                             </Caption1>
                           )}
                         </div>
@@ -2024,6 +2135,81 @@ export const Dashboard: React.FC = () => {
                 </>
               ) : (
                 <Button appearance="primary" icon={<Edit24Regular />} onClick={() => viewingIdea && openEditIdea(viewingIdea)}>Edit</Button>
+              )}
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* View Project Dialog */}
+      <Dialog open={viewProjectOpen} onOpenChange={(_, d) => { setViewProjectOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
+        <DialogSurface style={{ maxWidth: "70vw", width: "70vw" }}>
+          <DialogBody>
+            <DialogTitle
+              action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setViewProjectOpen(false)} />}
+            >
+              Project Details
+            </DialogTitle>
+            <DialogContent>
+              {viewingProject && (
+                <div className={styles.viewLayout}>
+                  <div className={styles.viewDetails}>
+                    <div className={styles.viewField}>
+                      <Label>Name</Label>
+                      {isEditing ? (
+                        <Input value={editFormData.tdvsp_name} onChange={(_, d) => setEditFormData({ ...editFormData, tdvsp_name: d.value })} />
+                      ) : (
+                        <Text block size={400} weight="semibold">{viewingProject.tdvsp_name}</Text>
+                      )}
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Description</Label>
+                      {isEditing ? (
+                        <Textarea value={editFormData.tdvsp_description} onChange={(_, d) => setEditFormData({ ...editFormData, tdvsp_description: d.value })} rows={4} resize="vertical" />
+                      ) : (
+                        <Text block size={400} style={{ whiteSpace: "pre-wrap" }}>{viewingProject.tdvsp_description || "--"}</Text>
+                      )}
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Account</Label>
+                      {isEditing ? (
+                        <Dropdown
+                          placeholder="Select account"
+                          value={accounts.find((a) => a.accountid === editFormData.accountId)?.name ?? ""}
+                          onOptionSelect={(_, d) => setEditFormData({ ...editFormData, accountId: d.optionValue ?? "" })}
+                        >
+                          <Option value="" text="(None)">(None)</Option>
+                          {accounts.map((a) => (
+                            <Option key={a.accountid} value={a.accountid!}>{a.name}</Option>
+                          ))}
+                        </Dropdown>
+                      ) : (
+                        <Text block size={400}>{viewingProject.tdvsp_Account?.name || "--"}</Text>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.viewNotes}>
+                    <NotesTimeline
+                      entityId={viewingProject.tdvsp_projectid!}
+                      entityName={viewingProject.tdvsp_name}
+                      entityType="project"
+                      odataBindKey="objectid_tdvsp_project@odata.bind"
+                      entitySetPath="/tdvsp_projects"
+                    />
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              {isEditing ? (
+                <>
+                  <Button appearance="secondary" disabled={saving} onClick={() => { setIsEditing(false); setEditingId(null); }}>Cancel</Button>
+                  <Button appearance="primary" onClick={handleSaveEditProject} disabled={saving || !editFormData.tdvsp_name.trim()}>
+                    {saving ? <><Spinner size="tiny" /> Saving...</> : "Save"}
+                  </Button>
+                </>
+              ) : (
+                <Button appearance="primary" icon={<Edit24Regular />} onClick={() => viewingProject && openEditProject(viewingProject)}>Edit</Button>
               )}
             </DialogActions>
           </DialogBody>
