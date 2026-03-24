@@ -44,3 +44,11 @@ export function unparkItem(id: string): void {
 export function isItemParked(id: string): boolean {
   return getParkedItems().some((item) => item.id === id);
 }
+
+export function reorderParkedItems(fromIndex: number, toIndex: number): void {
+  const current = getParkedItems();
+  if (fromIndex < 0 || fromIndex >= current.length || toIndex < 0 || toIndex >= current.length) return;
+  const [moved] = current.splice(fromIndex, 1);
+  current.splice(toIndex, 0, moved);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+}

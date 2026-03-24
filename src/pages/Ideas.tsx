@@ -37,6 +37,8 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import { Idea, Account, Customer, IdeaCategory, ideaCategoryLabels } from "../types";
 import {
@@ -177,6 +179,49 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
   },
+  tileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("10px"),
+  },
+  tile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    ...shorthands.padding("12px"),
+    width: "220px",
+    minHeight: "120px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  tileName: {
+    fontWeight: 600,
+    fontSize: "13px",
+    lineHeight: "1.3",
+    wordBreak: "break-word" as const,
+    paddingRight: "4px",
+  },
+  tileMeta: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("4px"),
+    width: "100%",
+    marginTop: "8px",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
 
 interface FormData {
@@ -211,6 +256,13 @@ export const Ideas: React.FC = () => {
   const [viewingIdea, setViewingIdea] = useState<Idea | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-ideas-view-mode") as "list" | "tiles") || "list"
+  );
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-ideas-view-mode", mode);
+  };
 
   const loadIdeas = useCallback(async () => {
     setLoading(true);
@@ -324,6 +376,10 @@ export const Ideas: React.FC = () => {
       </div>
       <div className={styles.toolbar}>
         <Input className={styles.searchBox} contentBefore={<Search24Regular />} placeholder="Search ideas..." value={searchQuery} onChange={(_, d) => setSearchQuery(d.value)} />
+        <div className={styles.viewToggle}>
+          <Button appearance={viewMode === "list" ? "primary" : "subtle"} icon={<TextBulletListLtr20Regular />} size="small" onClick={() => toggleViewMode("list")} aria-label="List view" style={{ minWidth: "auto" }} />
+          <Button appearance={viewMode === "tiles" ? "primary" : "subtle"} icon={<Grid20Regular />} size="small" onClick={() => toggleViewMode("tiles")} aria-label="Tile view" style={{ minWidth: "auto" }} />
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>New Idea</Button>
           <DialogSurface>
@@ -347,22 +403,35 @@ export const Ideas: React.FC = () => {
         </Dialog>
       </div>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><Spinner label="Loading ideas..." /></div>
-        ) : filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <LightbulbFilament24Filled style={{ fontSize: 48, color: "#a78bfa", marginBottom: 16 }} />
-            <Subtitle1>No ideas found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>Create your first idea to start tracking.</Caption1>
-          </div>
-        ) : (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><Spinner label="Loading ideas..." /></div>
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <LightbulbFilament24Filled style={{ fontSize: 48, color: "#a78bfa", marginBottom: 16 }} />
+          <Subtitle1>No ideas found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>Create your first idea to start tracking.</Caption1>
+        </div>
+      ) : viewMode === "list" ? (
+        <Card className={styles.card}>
           <DataGrid items={filtered} columns={gridColumns} getRowId={(item) => item.tdvsp_ideaid ?? item.tdvsp_name} sortable>
             <DataGridHeader><DataGridRow>{({ renderHeaderCell, columnId }) => (<DataGridHeaderCell style={columnSizes[columnId as string]}>{renderHeaderCell()}</DataGridHeaderCell>)}</DataGridRow></DataGridHeader>
             <DataGridBody<Idea>>{({ item, rowId }) => (<DataGridRow<Idea> key={rowId}>{({ renderCell, columnId }) => (<DataGridCell style={columnSizes[columnId as string]}>{renderCell(item)}</DataGridCell>)}</DataGridRow>)}</DataGridBody>
           </DataGrid>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.tileGrid}>
+          {filtered.map((idea) => (
+            <div key={idea.tdvsp_ideaid} className={styles.tile} onClick={() => openView(idea)}>
+              <Text className={styles.tileName}>{idea.tdvsp_name}</Text>
+              <div className={styles.tileMeta}>
+                {idea.tdvsp_category != null && categoryColors[idea.tdvsp_category] && renderBadge(ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] ?? "", categoryColors[idea.tdvsp_category])}
+                {idea.tdvsp_Account?.name && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{idea.tdvsp_Account.name}</Caption1>}
+                {idea.tdvsp_Contact && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{idea.tdvsp_Contact.firstname} {idea.tdvsp_Contact.lastname}</Caption1>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>

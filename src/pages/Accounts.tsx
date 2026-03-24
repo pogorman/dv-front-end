@@ -43,6 +43,8 @@ import {
   Flash20Filled,
   PeopleTeam20Filled,
   Building24Filled,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import { Account, Customer, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -224,6 +226,49 @@ const useStyles = makeStyles({
   tabList: {
     marginBottom: "16px",
   },
+  tileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("10px"),
+  },
+  tile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    ...shorthands.padding("12px"),
+    width: "220px",
+    minHeight: "120px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  tileName: {
+    fontWeight: 600,
+    fontSize: "13px",
+    lineHeight: "1.3",
+    wordBreak: "break-word" as const,
+    paddingRight: "4px",
+  },
+  tileMeta: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("4px"),
+    width: "100%",
+    marginTop: "8px",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
 
 export const Accounts: React.FC = () => {
@@ -247,6 +292,13 @@ export const Accounts: React.FC = () => {
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-accounts-view-mode") as "list" | "tiles") || "list"
+  );
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-accounts-view-mode", mode);
+  };
 
   // Add new dialogs state
   const [addContactOpen, setAddContactOpen] = useState(false);
@@ -583,6 +635,10 @@ export const Accounts: React.FC = () => {
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
+        <div className={styles.viewToggle}>
+          <Button appearance={viewMode === "list" ? "primary" : "subtle"} icon={<TextBulletListLtr20Regular />} size="small" onClick={() => toggleViewMode("list")} aria-label="List view" style={{ minWidth: "auto" }} />
+          <Button appearance={viewMode === "tiles" ? "primary" : "subtle"} icon={<Grid20Regular />} size="small" onClick={() => toggleViewMode("tiles")} aria-label="Tile view" style={{ minWidth: "auto" }} />
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             Add Account
@@ -1069,21 +1125,21 @@ export const Accounts: React.FC = () => {
         </DialogSurface>
       </Dialog>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 32 }}>
-            <Spinner label="Loading accounts..." />
-          </div>
-        ) : filteredAccounts.length === 0 ? (
-          <div className={styles.emptyState}>
-            <Subtitle1>No accounts found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>
-              {accounts.length === 0
-                ? "Add your first account to get started."
-                : "Try a different search term."}
-            </Caption1>
-          </div>
-        ) : (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 32 }}>
+          <Spinner label="Loading accounts..." />
+        </div>
+      ) : filteredAccounts.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Subtitle1>No accounts found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>
+            {accounts.length === 0
+              ? "Add your first account to get started."
+              : "Try a different search term."}
+          </Caption1>
+        </div>
+      ) : viewMode === "list" ? (
+        <Card className={styles.card}>
           <DataGrid
             items={filteredAccounts}
             columns={columns}
@@ -1107,8 +1163,19 @@ export const Accounts: React.FC = () => {
               )}
             </DataGridBody>
           </DataGrid>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.tileGrid}>
+          {filteredAccounts.map((account) => (
+            <div key={account.accountid} className={styles.tile} onClick={() => openView(account)}>
+              <Text className={styles.tileName}>{account.name}</Text>
+              <div className={styles.tileMeta}>
+                {account.parentaccountid?.name && <Caption1 style={{ color: tokens.colorBrandForeground1 }}>Parent: {account.parentaccountid.name}</Caption1>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

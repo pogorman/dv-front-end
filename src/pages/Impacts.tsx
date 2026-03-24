@@ -37,6 +37,8 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import { Impact, Account } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -134,6 +136,49 @@ const useStyles = makeStyles({
     gridTemplateColumns: "1fr 1fr",
     ...shorthands.gap("16px"),
   },
+  tileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("10px"),
+  },
+  tile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    ...shorthands.padding("12px"),
+    width: "220px",
+    minHeight: "120px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  tileName: {
+    fontWeight: 600,
+    fontSize: "13px",
+    lineHeight: "1.3",
+    wordBreak: "break-word" as const,
+    paddingRight: "4px",
+  },
+  tileMeta: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("4px"),
+    width: "100%",
+    marginTop: "8px",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
 
 const columnSizes: Record<string, React.CSSProperties> = {
@@ -173,6 +218,13 @@ export const Impacts: React.FC = () => {
   const [viewingImpact, setViewingImpact] = useState<Impact | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-impacts-view-mode") as "list" | "tiles") || "list"
+  );
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-impacts-view-mode", mode);
+  };
 
   const loadImpacts = useCallback(async () => {
     setLoading(true);
@@ -404,6 +456,10 @@ export const Impacts: React.FC = () => {
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
+        <div className={styles.viewToggle}>
+          <Button appearance={viewMode === "list" ? "primary" : "subtle"} icon={<TextBulletListLtr20Regular />} size="small" onClick={() => toggleViewMode("list")} aria-label="List view" style={{ minWidth: "auto" }} />
+          <Button appearance={viewMode === "tiles" ? "primary" : "subtle"} icon={<Grid20Regular />} size="small" onClick={() => toggleViewMode("tiles")} aria-label="Tile view" style={{ minWidth: "auto" }} />
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             New Impact
@@ -482,20 +538,20 @@ export const Impacts: React.FC = () => {
         </Dialog>
       </div>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-            <Spinner label="Loading impacts..." />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <Flash24Filled style={{ fontSize: 48, color: "#f59e0b", marginBottom: 16 }} />
-            <Subtitle1>No impacts found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>
-              Create your first impact to start tracking.
-            </Caption1>
-          </div>
-        ) : (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+          <Spinner label="Loading impacts..." />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Flash24Filled style={{ fontSize: 48, color: "#f59e0b", marginBottom: 16 }} />
+          <Subtitle1>No impacts found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>
+            Create your first impact to start tracking.
+          </Caption1>
+        </div>
+      ) : viewMode === "list" ? (
+        <Card className={styles.card}>
           <DataGrid
             items={filtered}
             columns={gridColumns}
@@ -523,8 +579,21 @@ export const Impacts: React.FC = () => {
               )}
             </DataGridBody>
           </DataGrid>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.tileGrid}>
+          {filtered.map((impact) => (
+            <div key={impact.tdvsp_impactid} className={styles.tile} onClick={() => openView(impact)}>
+              <Text className={styles.tileName}>{impact.tdvsp_name}</Text>
+              <div className={styles.tileMeta}>
+                {impact.tdvsp_date && renderBadge(formatDate(impact.tdvsp_date), dateBadgeColors)}
+                {impact.tdvsp_Customer?.name && renderBadge(impact.tdvsp_Customer.name, accountBadgeColors)}
+                {impact.tdvsp_description && <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{impact.tdvsp_description}</Caption1>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>

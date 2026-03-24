@@ -37,6 +37,8 @@ import {
   Dismiss24Regular,
   LightbulbFilament20Filled,
   Person24Filled,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import { Customer, Account, Idea, ideaCategoryLabels } from "../types";
 import {
@@ -169,6 +171,49 @@ const useStyles = makeStyles({
     color: tokens.colorBrandForeground2,
     fontSize: "12px",
   },
+  tileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("10px"),
+  },
+  tile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    ...shorthands.padding("12px"),
+    width: "220px",
+    minHeight: "120px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  tileName: {
+    fontWeight: 600,
+    fontSize: "13px",
+    lineHeight: "1.3",
+    wordBreak: "break-word" as const,
+    paddingRight: "4px",
+  },
+  tileMeta: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("4px"),
+    width: "100%",
+    marginTop: "8px",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
 
 interface FormData {
@@ -206,6 +251,13 @@ export const Contacts: React.FC = () => {
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-contacts-view-mode") as "list" | "tiles") || "list"
+  );
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-contacts-view-mode", mode);
+  };
 
   const loadContacts = useCallback(async () => {
     setLoading(true);
@@ -446,6 +498,10 @@ export const Contacts: React.FC = () => {
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
+        <div className={styles.viewToggle}>
+          <Button appearance={viewMode === "list" ? "primary" : "subtle"} icon={<TextBulletListLtr20Regular />} size="small" onClick={() => toggleViewMode("list")} aria-label="List view" style={{ minWidth: "auto" }} />
+          <Button appearance={viewMode === "tiles" ? "primary" : "subtle"} icon={<Grid20Regular />} size="small" onClick={() => toggleViewMode("tiles")} aria-label="Tile view" style={{ minWidth: "auto" }} />
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             Add Contact
@@ -701,21 +757,21 @@ export const Contacts: React.FC = () => {
         </DialogSurface>
       </Dialog>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 32 }}>
-            <Spinner label="Loading contacts..." />
-          </div>
-        ) : filteredContacts.length === 0 ? (
-          <div className={styles.emptyState}>
-            <Subtitle1>No contacts found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>
-              {contacts.length === 0
-                ? "Add your first contact to get started."
-                : "Try a different search term."}
-            </Caption1>
-          </div>
-        ) : (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 32 }}>
+          <Spinner label="Loading contacts..." />
+        </div>
+      ) : filteredContacts.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Subtitle1>No contacts found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>
+            {contacts.length === 0
+              ? "Add your first contact to get started."
+              : "Try a different search term."}
+          </Caption1>
+        </div>
+      ) : viewMode === "list" ? (
+        <Card className={styles.card}>
           <DataGrid
             items={filteredContacts}
             columns={columns}
@@ -739,8 +795,22 @@ export const Contacts: React.FC = () => {
               )}
             </DataGridBody>
           </DataGrid>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.tileGrid}>
+          {filteredContacts.map((contact) => (
+            <div key={contact.contactid} className={styles.tile} onClick={() => openView(contact)}>
+              <Text className={styles.tileName}>{contact.firstname} {contact.lastname}</Text>
+              <div className={styles.tileMeta}>
+                {contact.jobtitle && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{contact.jobtitle}</Caption1>}
+                {contact.emailaddress1 && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{contact.emailaddress1}</Caption1>}
+                {contact.telephone1 && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{contact.telephone1}</Caption1>}
+                {contact.parentcustomerid_account?.name && <Caption1 style={{ color: tokens.colorBrandForeground1 }}>{contact.parentcustomerid_account.name}</Caption1>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

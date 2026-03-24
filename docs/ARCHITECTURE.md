@@ -352,19 +352,22 @@ Microsoft Copilot Studio Agent
 
 ### DataGrid List View Pattern
 
-All 7 entity pages use a consistent pattern:
+All 8 entity pages use a consistent pattern:
 - Fluent UI `DataGrid` inside a `Card` wrapper
 - Card: `padding: "0px"`, `overflow: "hidden"`, accent-colored 3px left border
 - Page header with filled icon + lowercase monospace title
 - Choice fields as colored badge pills
 - Clickable name links opening view dialogs
 - Edit/deactivate action buttons
-
-The **Tasks** and **Personal** pages also support a list/tile view toggle in the toolbar. Tasks switches between DataGrid (list) and 220px tile cards (persisted to localStorage, defaults to list). Personal switches between DataGrid and tile grid (persisted to localStorage, defaults to tiles).
+- **List/tile view toggle** in each page's toolbar switching between DataGrid (list) and 220px tile cards. View preference persisted to localStorage per page.
 
 ### Dashboard Layout
 
-The dashboard uses a two-column layout: main area (flex-grow) + right sidebar (260px, collapsible). The main area contains (top to bottom): Quick Create bar, Parking Lot strip, Projects strip (blue accent, 160px tiles), and Work tile grid (3 per row). Work tiles show indicator pill badges at bottom-left ("Top Priority" red, "Overdue" amber) and a status pill badge at bottom-right (Pondering, In Progress, Pending Comm., On Hold, Wrapping Up) -- all rendered as `<span>` pills with semi-transparent colored backgrounds matching the renderBadge style used on entity pages. The right sidebar has a Fluent UI `TabList` with two tabs: "ideas" (default, scrollable vertical list with category badges and actions) and "pinned notes" (pinned annotations from any entity). The right sidebar uses 11px font sizes consistently. Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
+The dashboard uses a four-column layout filling viewport height. Quick create buttons sit in a compact title bar row at the top. Columns left to right: Parking Lot | Work (flex: 2) | Projects | Ideas. Each column has an accent-colored 3px left border, header (icon + title + count), and scrollable content area with vertical card list.
+
+- **Work column** includes a **w/p toggle** in the header to switch between work and personal action items.
+- **Drag-and-drop**: Items can be dragged from Work, Projects, or Ideas columns into the Parking Lot. All column items can be reordered within their column via drag-and-drop. Custom ordering is persisted to localStorage.
+- Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
 
 ### Dashboard Tile Tooltips
 

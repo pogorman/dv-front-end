@@ -125,6 +125,18 @@ Improving page flexibility and chat UX:
   - Tasks defaults to list, Personal defaults to tiles — matching each page's primary use case
   - Chat reset fully tears down and rebuilds the Direct Line connection rather than just clearing messages, ensuring a clean state
 
+### Phase 10: Universal View Toggles, Dashboard Drag-and-Drop & Work/Personal Toggle
+
+Expanding interactivity across the app:
+
+- **Prompt pattern:** "Add list/tile view toggle to all entity pages, drag-and-drop on the dashboard, and a work/personal toggle on the work column"
+- **Result:** All 8 entity pages (Tasks, Personal, Ideas, Projects, Contacts, Impacts, Accounts, Meeting Summaries) now have a list/tile view toggle in the toolbar switching between DataGrid and 220px tile cards. Dashboard columns support drag-and-drop: items can be dragged from Work/Projects/Ideas into the Parking Lot, and items within any column can be reordered. A w/p toggle in the Work column header switches between work and personal action items.
+- **Key decisions:**
+  - View preference persisted to localStorage per page so each page remembers the user's choice independently
+  - Drag-and-drop uses HTML5 drag events for zero-dependency implementation
+  - Custom column ordering persisted to localStorage so reordering survives page refreshes
+  - Work/personal toggle is a small inline button in the column header rather than a dropdown, keeping the dashboard compact
+
 ---
 
 ## Design Principles

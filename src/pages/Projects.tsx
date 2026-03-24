@@ -37,6 +37,8 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import { Project, Account } from "../types";
 import {
@@ -153,6 +155,49 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
   },
+  tileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("10px"),
+  },
+  tile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    ...shorthands.padding("12px"),
+    width: "220px",
+    minHeight: "120px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  tileName: {
+    fontWeight: 600,
+    fontSize: "13px",
+    lineHeight: "1.3",
+    wordBreak: "break-word" as const,
+    paddingRight: "4px",
+  },
+  tileMeta: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("4px"),
+    width: "100%",
+    marginTop: "8px",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
 
 interface FormData {
@@ -182,6 +227,13 @@ export const Projects: React.FC = () => {
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-projects-view-mode") as "list" | "tiles") || "list"
+  );
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-projects-view-mode", mode);
+  };
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -406,6 +458,10 @@ export const Projects: React.FC = () => {
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
+        <div className={styles.viewToggle}>
+          <Button appearance={viewMode === "list" ? "primary" : "subtle"} icon={<TextBulletListLtr20Regular />} size="small" onClick={() => toggleViewMode("list")} aria-label="List view" style={{ minWidth: "auto" }} />
+          <Button appearance={viewMode === "tiles" ? "primary" : "subtle"} icon={<Grid20Regular />} size="small" onClick={() => toggleViewMode("tiles")} aria-label="Tile view" style={{ minWidth: "auto" }} />
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             New Project
@@ -481,22 +537,22 @@ export const Projects: React.FC = () => {
         </Dialog>
       </div>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-            <Spinner label="Loading projects..." />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <Briefcase24Filled
-              style={{ fontSize: 48, color: "#4a9eff", marginBottom: 16 }}
-            />
-            <Subtitle1>No projects found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>
-              Create your first project to get started.
-            </Caption1>
-          </div>
-        ) : (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+          <Spinner label="Loading projects..." />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Briefcase24Filled
+            style={{ fontSize: 48, color: "#4a9eff", marginBottom: 16 }}
+          />
+          <Subtitle1>No projects found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>
+            Create your first project to get started.
+          </Caption1>
+        </div>
+      ) : viewMode === "list" ? (
+        <Card className={styles.card}>
           <DataGrid
             items={filtered}
             columns={gridColumns}
@@ -524,8 +580,20 @@ export const Projects: React.FC = () => {
               )}
             </DataGridBody>
           </DataGrid>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.tileGrid}>
+          {filtered.map((project) => (
+            <div key={project.tdvsp_projectid} className={styles.tile} onClick={() => openView(project)}>
+              <Text className={styles.tileName}>{project.tdvsp_name}</Text>
+              <div className={styles.tileMeta}>
+                {project.tdvsp_Account?.name && renderBadge(project.tdvsp_Account.name, accountBadgeColors)}
+                {project.tdvsp_description && <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{project.tdvsp_description}</Caption1>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>

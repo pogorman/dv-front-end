@@ -39,26 +39,33 @@ The top bar has pill-style buttons for creating any record type: action item, id
 
 ### Parking Lot
 
-A full-width strip below the quick create bar with a lime green left border and car icon. Bookmark any item from the dashboard lists to "park" it here for quick access. Up to 5 items can be parked at a time. Click an action item or idea tile to open its view dialog inline; other entity types navigate to their list page. Click X to remove an item.
+The first column (lime green accent, car icon). Bookmark any item from the dashboard to "park" it here for quick access. Up to 5 items can be parked. Click an action item or idea tile to open its view dialog inline; other entity types navigate to their list page. Click X to remove an item. You can also **drag items** from the Work, Projects, or Ideas columns directly into the Parking Lot.
 
-### Projects Strip
+### Work Column
 
-A blue-accented horizontal strip showing all your projects as tiles (160px wide). Each tile shows the project name and account. Click to open the view/edit dialog inline on the dashboard (with notes timeline).
+The widest column (red accent, flex: 2) showing all non-complete action items. Each card shows name, date, account, and colored pill badges for priority and status. Click to open the view/edit dialog inline. A small **w/p toggle** in the column header lets you switch between work and personal action items.
 
-### Work Card
+### Projects Column
 
-A full-width tile grid showing all non-complete work action items. Tiles are arranged 3 per row. Top priority items appear first, then the rest -- all in a single unified grid. Each tile shows name, date, account, colored pill badges for "Top Priority" (red) or "Overdue" (amber) at bottom-left, and a status pill badge at bottom-right showing the current workflow status (Pondering, In Progress, Pending Comm., On Hold, or Wrapping Up). Click to open the view/edit dialog inline.
+Blue-accented column listing all projects with name and account. Click to open the view/edit dialog inline on the dashboard (with notes timeline).
+
+### Ideas Column
+
+Purple-accented column listing all ideas with name, category badge, and account. Click to open the view/edit dialog inline.
+
+### Drag-and-Drop
+
+Dashboard columns support drag-and-drop:
+- **Drag to park:** Drag any item from the Work, Projects, or Ideas columns into the Parking Lot to bookmark it.
+- **Reorder within a column:** Drag items up or down within any column to customize their order. Your custom order is saved to localStorage and persists across sessions.
 
 ### Tile Tooltips
 
 Hover over any dashboard tile (work, projects, or parking lot) for about half a second and a rich tooltip appears with an arrow showing the full details that get truncated on the small tiles. Work tile tooltips show the full name, description, date, account, status, and priority. Project tile tooltips show name, description, and account. Parking lot tile tooltips show the full name and entity type.
 
-### Right Sidebar (Ideas + Pinned Notes)
+### Tile Tooltips
 
-The right sidebar (260px, collapsible) has two tabs: **ideas** (default) and **pinned notes**. Toggle it with the button in the quick create bar.
-
-- **Ideas tab** -- A scrollable vertical list of all ideas with name, category badge, account, plus park/deactivate actions. Click an idea to open the view/edit dialog inline on the dashboard.
-- **Pinned notes tab** -- Notes pinned from any entity appear here with an entity type label, 3-line preview, and attachment indicator. Click to expand in a dialog.
+Hover over any dashboard tile for about half a second and a rich tooltip appears showing full details that get truncated on the small cards.
 
 ---
 
@@ -95,6 +102,8 @@ Click the **name** of any record (shown as a blue link) to open its view dialog.
 
 ## Entity Pages
 
+All 8 entity pages have a **list/tile view toggle** in the toolbar switching between a DataGrid (list) and 220px tile cards. Your preference is persisted to localStorage per page.
+
 ### Accounts
 
 Track customer accounts with optional parent account relationships. The view dialog shows a 3-column layout with all related records: contacts, action items, ideas, impacts, meeting summaries, and a notes timeline.
@@ -107,8 +116,6 @@ Manage contact records linked to accounts. The view dialog shows contact details
 
 Task management with status, priority, and type tracking. Supports work/personal categorization. The view dialog shows details plus a notes timeline.
 
-**View toggle:** A list/tile toggle in the toolbar switches between DataGrid (list) and 220px tile cards. The preference is persisted to localStorage and defaults to list view.
-
 **Filter:** A Work/Personal/All dropdown (defaults to Work) filters action items by task type.
 
 **Status workflow:** Recognized/Pondering -> In Progress -> Pending Communication -> On Hold -> Wrapping Up -> Complete
@@ -117,7 +124,7 @@ Task management with status, priority, and type tracking. Supports work/personal
 
 ### Personal
 
-Dedicated page for personal action items (task type = Personal) displayed as a tile grid or DataGrid list. Features a page header with Home icon, a search box for filtering by name, and a list/tile view toggle. The preference is persisted to localStorage and defaults to tile view. The view/edit dialog includes a notes timeline.
+Dedicated page for personal action items (task type = Personal). Features a page header with Home icon and a search box for filtering by name. The view/edit dialog includes a notes timeline.
 
 ### Ideas
 

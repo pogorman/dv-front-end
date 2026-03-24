@@ -1,16 +1,14 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
   makeStyles,
   tokens,
   shorthands,
-  Card,
   Text,
 
   Subtitle1,
   Body1,
   Caption1,
-  Divider,
   Button,
   Dialog,
   DialogSurface,
@@ -25,20 +23,11 @@ import {
   Textarea,
   Spinner,
   Tooltip,
-  TabList,
-  Tab,
-  SelectTabData,
 } from "@fluentui/react-components";
 import {
   Briefcase24Filled,
   Briefcase24Regular,
-  PanelRight20Regular,
-  PanelRight20Filled,
-  Pin24Regular,
-  PinOff16Regular,
   Dismiss24Regular,
-  Attach16Regular,
-  ArrowMaximize16Regular,
   VehicleCar16Regular,
   VehicleCar16Filled,
   VehicleCarParking24Filled,
@@ -47,13 +36,15 @@ import {
   Briefcase20Regular,
   PeopleTeam20Regular,
   LightbulbFilament20Regular,
+  LightbulbFilament24Filled,
   Flash20Regular,
   Building20Regular,
   Person20Regular,
   Edit24Regular,
+  Home24Filled,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
+import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
 import { NotesTimeline } from "../components/NotesTimeline";
 import {
   getActionItems,
@@ -63,7 +54,6 @@ import {
   getIdeas,
   getImpacts,
   getMeetingSummaries,
-  getAnnotationsByIds,
   createAccount,
   createCustomer,
   createProject,
@@ -78,8 +68,7 @@ import {
   deactivateIdea,
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
-import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
-import { getParkedItems, parkItem, unparkItem, isItemParked, ParkedItemRef } from "../utils/parkingLot";
+import { getParkedItems, parkItem, unparkItem, isItemParked, reorderParkedItems, ParkedItemRef } from "../utils/parkingLot";
 import { useNotification } from "../context/NotificationContext";
 
 const statusShortLabels: Record<number, string> = {
@@ -106,49 +95,97 @@ const useStyles = makeStyles({
     flexDirection: "column",
     ...shorthands.gap("4px"),
     marginTop: "-15px",
+    height: "calc(100vh - 68px)",
+    overflow: "hidden",
   },
-  quickCreateSection: {
+  quickCreateBar: {
     display: "flex",
     alignItems: "center",
-    ...shorthands.gap("10px"),
-    ...shorthands.padding("10px", "4px"),
-    backgroundColor: tokens.colorNeutralBackground1,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    ...shorthands.borderRadius("8px"),
-    flexWrap: "wrap",
-  },
-  quickActions: {
-    display: "flex",
-    flexWrap: "wrap",
     ...shorthands.gap("4px"),
-    flexGrow: 1,
+    ...shorthands.padding("6px", "4px"),
+    flexShrink: 0,
   },
   quickActionBtn: {
     ...shorthands.borderRadius("4px"),
     fontSize: "11px",
     fontWeight: "500",
     fontFamily: tokens.fontFamilyMonospace,
-    minHeight: "32px",
-    height: "32px",
-    ...shorthands.padding("0px", "10px"),
+    minHeight: "28px",
+    height: "28px",
+    ...shorthands.padding("0px", "8px"),
     border: "1px solid transparent",
-    flexGrow: 1,
-    flexBasis: 0,
     ":hover": {
       filter: "brightness(1.3)",
     },
   },
-  dashboardBody: {
+  dashboardColumns: {
     display: "flex",
     ...shorthands.gap("4px"),
-    alignItems: "flex-start",
-  },
-  dashboardMain: {
     flexGrow: 1,
-    minWidth: 0,
+    overflow: "hidden",
+    minHeight: 0,
+  },
+  column: {
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeftWidth: "3px",
+    borderLeftStyle: "solid",
+    boxShadow: "none",
+    overflow: "hidden",
+    minHeight: 0,
+  },
+  columnHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("6px"),
+    ...shorthands.padding("8px", "10px"),
+    flexShrink: 0,
+  },
+  columnCount: {
+    fontSize: "11px",
+    fontFamily: tokens.fontFamilyMonospace,
+    color: tokens.colorNeutralForeground3,
+    marginLeft: "auto",
+  },
+  columnContent: {
     display: "flex",
     flexDirection: "column",
     ...shorthands.gap("4px"),
+    ...shorthands.padding("6px"),
+    overflowY: "auto" as const,
+    flexGrow: 1,
+    minHeight: 0,
+  },
+  columnItem: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("2px"),
+    ...shorthands.padding("6px", "6px", "6px", "8px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("6px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    position: "relative" as const,
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
+  },
+  columnItemActions: {
+    position: "absolute" as const,
+    top: "2px",
+    right: "2px",
+    display: "flex",
+    ...shorthands.gap("0px"),
+  },
+  nameLink: {
+    color: tokens.colorBrandForeground1,
+    cursor: "pointer",
+    ":hover": {
+      textDecoration: "underline",
+    },
   },
   listItem: {
     display: "flex",
@@ -160,264 +197,6 @@ const useStyles = makeStyles({
     ":hover": {
       backgroundColor: tokens.colorNeutralBackground1Hover,
     },
-  },
-  nameLink: {
-    color: tokens.colorBrandForeground1,
-    cursor: "pointer",
-    ":hover": {
-      textDecoration: "underline",
-    },
-  },
-  rightSidebar: {
-    width: "260px",
-    minWidth: "260px",
-    display: "flex",
-    flexDirection: "column",
-    ...shorthands.gap("12px"),
-    alignSelf: "stretch",
-    transition: "width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease",
-    overflow: "hidden",
-  },
-  rightSidebarCollapsed: {
-    width: "0px",
-    minWidth: "0px",
-    opacity: 0,
-    ...shorthands.padding("0"),
-  },
-  parkingLotPanel: {
-    ...shorthands.padding("5px", "3px"),
-    ...shorthands.borderRadius("8px"),
-    display: "flex",
-    flexDirection: "row" as const,
-    alignItems: "center",
-    ...shorthands.gap("12px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderLeftWidth: "3px",
-    borderLeftStyle: "solid",
-    borderLeftColor: "#84cc16",
-    boxShadow: "none",
-    overflow: "hidden" as const,
-  },
-  parkingLotHeader: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("8px"),
-    flexShrink: 0,
-    minWidth: "170px",
-  },
-  parkingLotGrid: {
-    display: "flex",
-    ...shorthands.gap("6px"),
-    flexGrow: 1,
-    overflow: "hidden" as const,
-  },
-  parkingLotItem: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    ...shorthands.gap("2px"),
-    ...shorthands.padding("3px", "3px", "3px", "7px"),
-    width: "160px",
-    height: "62px",
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    cursor: "pointer",
-    transition: "background-color 0.15s ease",
-    position: "relative" as const,
-    textAlign: "center" as const,
-    flexShrink: 0,
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-    },
-  },
-  parkingLotItemDismiss: {
-    position: "absolute" as const,
-    top: "2px",
-    right: "2px",
-  },
-  pinnedPanel: {
-    ...shorthands.padding("12px"),
-    ...shorthands.borderRadius("8px"),
-    display: "flex",
-    flexDirection: "column",
-    flexGrow: 1,
-    minHeight: 0,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    boxShadow: "none",
-  },
-  pinnedHeader: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("8px"),
-    marginBottom: "8px",
-  },
-  pinnedList: {
-    display: "flex",
-    flexDirection: "column",
-    ...shorthands.gap("10px"),
-    overflowY: "auto",
-    flexGrow: 1,
-  },
-  pinnedNoteItem: {
-    ...shorthands.padding("12px"),
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
-    cursor: "pointer",
-    transition: "background-color 0.15s ease",
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-    },
-  },
-  pinnedNotePreview: {
-    display: "-webkit-box",
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-    lineHeight: "1.4",
-    fontSize: "11px",
-  },
-  pinnedNoteDate: {
-    fontSize: "10px",
-    fontFamily: tokens.fontFamilyMonospace,
-    color: tokens.colorNeutralForeground3,
-    marginBottom: "4px",
-  },
-  pinnedNoteAccount: {
-    fontSize: "10px",
-    fontFamily: tokens.fontFamilyMonospace,
-    color: tokens.colorBrandForeground1,
-    marginBottom: "2px",
-    fontWeight: "600",
-    letterSpacing: "0.5px",
-  },
-  topPriorityCard: {
-    ...shorthands.padding("10px"),
-    ...shorthands.borderRadius("8px"),
-    display: "flex",
-    flexDirection: "column",
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderLeftWidth: "3px",
-    borderLeftStyle: "solid",
-    borderLeftColor: "#f87171",
-    boxShadow: "none",
-  },
-  topPriorityHeader: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("6px"),
-    marginBottom: "4px",
-  },
-  topPriorityItem: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    ...shorthands.padding("2px", "0px"),
-    cursor: "pointer",
-    ...shorthands.borderRadius("4px"),
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground1Hover,
-    },
-  },
-  projectsPanel: {
-    ...shorthands.padding("5px", "3px"),
-    ...shorthands.borderRadius("8px"),
-    display: "flex",
-    flexDirection: "row" as const,
-    alignItems: "center",
-    ...shorthands.gap("12px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderLeftWidth: "3px",
-    borderLeftStyle: "solid",
-    borderLeftColor: "#4a9eff",
-    boxShadow: "none",
-    overflow: "hidden" as const,
-  },
-  projectsPanelHeader: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("8px"),
-    flexShrink: 0,
-    minWidth: "170px",
-  },
-  projectsPanelGrid: {
-    display: "flex",
-    ...shorthands.gap("6px"),
-    flexGrow: 1,
-    overflow: "hidden" as const,
-  },
-  projectsPanelItem: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    ...shorthands.gap("2px"),
-    ...shorthands.padding("3px", "3px", "3px", "7px"),
-    width: "160px",
-    height: "62px",
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    cursor: "pointer",
-    transition: "background-color 0.15s ease",
-    position: "relative" as const,
-    flexShrink: 0,
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-    },
-  },
-  sidebarIdeaItem: {
-    ...shorthands.padding("8px", "10px"),
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
-    cursor: "pointer",
-    transition: "background-color 0.15s ease",
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-    },
-  },
-  sidebarTabList: {
-    marginBottom: "8px",
-    fontSize: "11px",
-  },
-  cardScrollArea: {
-    maxHeight: "600px",
-    overflowY: "auto" as const,
-    flexGrow: 1,
-  },
-  workTileGrid: {
-    display: "flex",
-    flexWrap: "wrap" as const,
-    ...shorthands.gap("6px"),
-  },
-  workTile: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    ...shorthands.gap("2px"),
-    ...shorthands.padding("3px", "3px", "3px", "7px"),
-    width: "calc((100% - 12px) / 3)",
-    minWidth: 0,
-    height: "108px",
-    overflow: "hidden" as const,
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("8px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    cursor: "pointer",
-    transition: "background-color 0.15s ease",
-    position: "relative" as const,
-    boxSizing: "border-box" as const,
-    ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-    },
-  },
-  subSectionLabel: {
-    display: "flex",
-    alignItems: "center",
-    ...shorthands.gap("4px"),
-    ...shorthands.padding("2px", "0px"),
   },
   viewField: {
     marginBottom: "16px",
@@ -472,15 +251,26 @@ const parkedEntityLabels: Record<string, string> = {
   summary: "Summary",
 };
 
+function applyColumnOrder<T>(items: T[], getId: (t: T) => string, key: string): T[] {
+  try {
+    const stored = localStorage.getItem(key);
+    if (!stored) return items;
+    const order: string[] = JSON.parse(stored);
+    const orderMap = new Map(order.map((id, i) => [id, i]));
+    return [...items].sort((a, b) => {
+      const ai = orderMap.get(getId(a)) ?? Infinity;
+      const bi = orderMap.get(getId(b)) ?? Infinity;
+      if (ai === Infinity && bi === Infinity) return 0;
+      return ai - bi;
+    });
+  } catch { return items; }
+}
+
 export const Dashboard: React.FC = () => {
   const styles = useStyles();
   const navigate = useNavigate();
   const { notify } = useNotification();
   const [saving, setSaving] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(() => {
-    const stored = localStorage.getItem("og-right-panel-open");
-    return stored !== "false";
-  });
   const [parkedItems, setParkedItems] = useState<ParkedItemRef[]>(() => getParkedItems());
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Customer[]>([]);
@@ -490,12 +280,6 @@ export const Dashboard: React.FC = () => {
   const [, setImpacts] = useState<Impact[]>([]);
   const [, setMeetingSummaries] = useState<MeetingSummary[]>([]);
 
-  // Pinned notes state
-  const [pinnedRefs, setPinnedRefs] = useState<PinnedNoteRef[]>(() => getPinnedNoteRefs());
-  const [pinnedAnnotations, setPinnedAnnotations] = useState<Annotation[]>([]);
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState<{ annotation: Annotation; entityName: string; entityType: NoteEntityType } | null>(null);
-
   // Quick add dialog state
   const [addAccountOpen, setAddAccountOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
@@ -504,8 +288,6 @@ export const Dashboard: React.FC = () => {
   const [addIdeaOpen, setAddIdeaOpen] = useState(false);
   const [addImpactOpen, setAddImpactOpen] = useState(false);
   const [addSummaryOpen, setAddSummaryOpen] = useState(false);
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<string>("ideas");
 
   // View/edit dialog state
   const [viewTaskOpen, setViewTaskOpen] = useState(false);
@@ -548,24 +330,6 @@ export const Dashboard: React.FC = () => {
     getMeetingSummaries().then(setMeetingSummaries).catch(console.error);
   }, []);
 
-  const loadPinnedAnnotations = useCallback(async () => {
-    if (pinnedRefs.length === 0) {
-      setPinnedAnnotations([]);
-      return;
-    }
-    try {
-      const ids = pinnedRefs.map((r) => r.annotationid);
-      const data = await getAnnotationsByIds(ids);
-      setPinnedAnnotations(data);
-    } catch (err) {
-      console.error("Failed to load pinned notes:", err);
-    }
-  }, [pinnedRefs]);
-
-  useEffect(() => {
-    loadPinnedAnnotations();
-  }, [loadPinnedAnnotations]);
-
   // Parking lot handler
   const handleTogglePark = (ref: ParkedItemRef) => {
     if (isItemParked(ref.id)) {
@@ -578,6 +342,12 @@ export const Dashboard: React.FC = () => {
 
   // Dashboard deactivate handler
   const [deactivateConfirm, setDeactivateConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" } | null>(null);
+  const [isDragOverParking, setIsDragOverParking] = useState(false);
+  const [workFilter, setWorkFilter] = useState<"work" | "personal">("work");
+  const [reorderDrag, setReorderDrag] = useState<{ column: string; id: string; index: number } | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{ column: string; index: number; position: "before" | "after" } | null>(null);
+  const [orderVersion, setOrderVersion] = useState(0);
+  const dragCounter = useRef(0);
   const handleDashboardDeactivate = async () => {
     if (!deactivateConfirm) return;
     setSaving(true);
@@ -812,15 +582,6 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleUnpin = (annotationid: string) => {
-    unpinNote(annotationid);
-    setPinnedRefs((prev) => prev.filter((r) => r.annotationid !== annotationid));
-    if (selectedNote?.annotation.annotationid === annotationid) {
-      setNoteDialogOpen(false);
-      setSelectedNote(null);
-    }
-  };
-
   // Category options for Idea view dialog
   const categoryOptions: { value: IdeaCategory; label: string }[] = [
     { value: 468510000, label: "Copilot Studio" },
@@ -1037,19 +798,51 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const getEntityInfo = (annotationid: string): { entityName: string; entityType: NoteEntityType } => {
-    const ref = pinnedRefs.find((r) => r.annotationid === annotationid);
-    return {
-      entityName: ref?.entityName ?? "",
-      entityType: ref?.entityType ?? "account",
-    };
+  // Drag and drop to parking lot
+  const handleDragStart = (e: React.DragEvent, ref: ParkedItemRef, column?: string, index?: number) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(ref));
+    e.dataTransfer.effectAllowed = "copyMove";
+    if (column !== undefined && index !== undefined) {
+      setReorderDrag({ column, id: ref.id, index });
+    }
   };
 
-  const entityTypeLabels: Record<NoteEntityType, string> = {
-    account: "Account",
-    project: "Project",
-    actionitem: "Task",
-    idea: "Idea",
+  const handleParkingDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current++;
+    setIsDragOverParking(true);
+  };
+
+  const handleParkingDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragOverParking(false);
+    }
+  };
+
+  const handleParkingDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleParkingDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current = 0;
+    setIsDragOverParking(false);
+    try {
+      const ref: ParkedItemRef = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (isItemParked(ref.id)) return;
+      const before = getParkedItems().length;
+      parkItem(ref);
+      const after = getParkedItems();
+      setParkedItems(after);
+      if (after.length > before) {
+        notify(`Parked "${ref.name}"`);
+      }
+    } catch {
+      // Invalid drag data
+    }
   };
 
   // Work & Personal card computed lists
@@ -1059,49 +852,115 @@ export const Dashboard: React.FC = () => {
   const workItems = actionItems
     .filter((t) => t.tdvsp_tasktype !== (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
     .sort(dateAsc);
-  const topPriorityWork = workItems.filter((t) => t.tdvsp_priority === 468510002);
-  const otherWork = workItems.filter((t) => t.tdvsp_priority !== 468510002);
+  const personalItems = actionItems
+    .filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+    .sort(dateAsc);
+  const displayedItems = workFilter === "work" ? workItems : personalItems;
+  const topPriorityDisplay = displayedItems.filter((t) => t.tdvsp_priority === 468510002);
+  const otherDisplay = displayedItems.filter((t) => t.tdvsp_priority !== 468510002);
 
+  // Apply stored column orders (orderVersion triggers recalc after reorder)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _ov = orderVersion;
+  const activeWorkColumn = workFilter;
+  const orderedDisplayItems = applyColumnOrder(
+    [...topPriorityDisplay, ...otherDisplay],
+    (t) => t.tdvsp_actionitemid!,
+    `og-dash-${activeWorkColumn}-order`
+  );
+  const orderedProjects = applyColumnOrder(projects, (p) => p.tdvsp_projectid!, "og-dash-project-order");
+  const orderedIdeas = applyColumnOrder(ideas, (i) => i.tdvsp_ideaid!, "og-dash-idea-order");
+
+  // Reorder within columns
+  const handleItemDragOver = (e: React.DragEvent, column: string, index: number) => {
+    if (!reorderDrag || reorderDrag.column !== column) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    setDropIndicator({ column, index, position: e.clientY < midY ? "before" : "after" });
+  };
+
+  const handleItemDrop = (e: React.DragEvent, column: string, targetIndex: number) => {
+    if (!reorderDrag || reorderDrag.column !== column) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const fromIndex = reorderDrag.index;
+    let toIndex = dropIndicator?.position === "after" ? targetIndex + 1 : targetIndex;
+    if (fromIndex < toIndex) toIndex--;
+    if (fromIndex === toIndex) { setReorderDrag(null); setDropIndicator(null); return; }
+
+    if (column === "parking") {
+      reorderParkedItems(fromIndex, toIndex);
+      setParkedItems(getParkedItems());
+    } else {
+      const cfgMap: Record<string, { items: { id: string }[]; storageKey: string }> = {
+        work: { items: orderedDisplayItems.map((t) => ({ id: t.tdvsp_actionitemid! })), storageKey: "og-dash-work-order" },
+        personal: { items: orderedDisplayItems.map((t) => ({ id: t.tdvsp_actionitemid! })), storageKey: "og-dash-personal-order" },
+        projects: { items: orderedProjects.map((p) => ({ id: p.tdvsp_projectid! })), storageKey: "og-dash-project-order" },
+        ideas: { items: orderedIdeas.map((i) => ({ id: i.tdvsp_ideaid! })), storageKey: "og-dash-idea-order" },
+      };
+      const cfg = cfgMap[column];
+      if (cfg) {
+        const ids = cfg.items.map((x) => x.id);
+        const [moved] = ids.splice(fromIndex, 1);
+        ids.splice(toIndex, 0, moved);
+        localStorage.setItem(cfg.storageKey, JSON.stringify(ids));
+      }
+    }
+    setOrderVersion((v) => v + 1);
+    setReorderDrag(null);
+    setDropIndicator(null);
+  };
+
+  const handleDragEnd = () => { setReorderDrag(null); setDropIndicator(null); };
+
+  const getDropStyle = (column: string, index: number): React.CSSProperties => {
+    if (!dropIndicator || dropIndicator.column !== column || dropIndicator.index !== index) return {};
+    const colors: Record<string, string> = { parking: "#84cc16", work: "#f87171", personal: "#22d3ee", projects: "#4a9eff", ideas: "#a78bfa" };
+    const color = colors[column] || "#4a9eff";
+    return dropIndicator.position === "before" ? { boxShadow: `0 -2px 0 0 ${color}` } : { boxShadow: `0 2px 0 0 ${color}` };
+  };
 
   return (
     <div className={styles.container}>
-      <div className={styles.dashboardBody}>
-        <div className={styles.dashboardMain}>
-      {/* Quick Create Bar */}
-      <div className={styles.quickCreateSection}>
-        <Text size={300} weight="semibold" style={{ whiteSpace: "nowrap", fontFamily: tokens.fontFamilyMonospace, letterSpacing: "1.5px", fontSize: "10px" }}>quick create</Text>
-        <div className={styles.quickActions}>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)} style={{ backgroundColor: "rgba(248,113,113,0.12)", color: "#f87171", borderColor: "rgba(248,113,113,0.25)" }}>task</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>idea</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)} style={{ backgroundColor: "rgba(245,158,11,0.12)", color: "#f59e0b", borderColor: "rgba(245,158,11,0.25)" }}>impact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)} style={{ backgroundColor: "rgba(61,214,140,0.12)", color: "#3dd68c", borderColor: "rgba(61,214,140,0.25)" }}>account</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>contact</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)} style={{ backgroundColor: "rgba(232,121,249,0.12)", color: "#e879f9", borderColor: "rgba(232,121,249,0.25)" }}>project</Button>
-          <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>summary</Button>
-        </div>
-        <Button
-          appearance="subtle"
-          size="small"
-          icon={rightPanelOpen ? <PanelRight20Filled /> : <PanelRight20Regular />}
-          onClick={() => {
-            const next = !rightPanelOpen;
-            setRightPanelOpen(next);
-            localStorage.setItem("og-right-panel-open", String(next));
-          }}
-          title={rightPanelOpen ? "Hide sidebar" : "Show sidebar"}
-        />
+      {/* Quick Create Title Bar */}
+      <div className={styles.quickCreateBar}>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)} style={{ backgroundColor: "rgba(248,113,113,0.12)", color: "#f87171", borderColor: "rgba(248,113,113,0.25)" }}>task</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>idea</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)} style={{ backgroundColor: "rgba(245,158,11,0.12)", color: "#f59e0b", borderColor: "rgba(245,158,11,0.25)" }}>impact</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)} style={{ backgroundColor: "rgba(61,214,140,0.12)", color: "#3dd68c", borderColor: "rgba(61,214,140,0.25)" }}>account</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>contact</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)} style={{ backgroundColor: "rgba(232,121,249,0.12)", color: "#e879f9", borderColor: "rgba(232,121,249,0.25)" }}>project</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>summary</Button>
       </div>
 
 
-      {/* Parking Lot — full width above tiles */}
-        {parkedItems.length > 0 && (
-          <Card className={styles.parkingLotPanel}>
-            <div className={styles.parkingLotHeader}>
-              <VehicleCarParking24Filled style={{ color: "#84cc16" }} />
-              <Subtitle1 style={{ flexGrow: 1 }}>parking lot</Subtitle1>
-            </div>
-            <div className={styles.parkingLotGrid}>
-              {parkedItems.map((item) => (
+      {/* Four Column Layout */}
+      <div className={styles.dashboardColumns}>
+        {/* Column 1: Parking Lot */}
+        <div
+          className={styles.column}
+          style={{
+            flex: 1,
+            borderLeftColor: "#84cc16",
+            ...(isDragOverParking ? { backgroundColor: "rgba(132, 204, 22, 0.08)", borderColor: "rgba(132, 204, 22, 0.4)", transition: "background-color 0.15s, border-color 0.15s" } : { transition: "background-color 0.15s, border-color 0.15s" }),
+          }}
+          onDragEnter={handleParkingDragEnter}
+          onDragLeave={handleParkingDragLeave}
+          onDragOver={handleParkingDragOver}
+          onDrop={handleParkingDrop}
+        >
+          <div className={styles.columnHeader}>
+            <VehicleCarParking24Filled style={{ color: "#84cc16" }} />
+            <Subtitle1>parking lot</Subtitle1>
+            <span className={styles.columnCount}>{parkedItems.length}</span>
+          </div>
+          <div className={styles.columnContent}>
+            {parkedItems.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no parked items</Body1>
+            ) : (
+              parkedItems.map((item, pIdx) => (
                 <Tooltip
                   key={`${item.entityType}-${item.id}`}
                   content={
@@ -1111,339 +970,219 @@ export const Dashboard: React.FC = () => {
                     </div>
                   }
                   relationship="description"
-                  positioning="below"
+                  positioning="after"
                   withArrow
                   showDelay={400}
                 >
                   <div
-                    className={styles.parkingLotItem}
+                    className={styles.columnItem}
                     onClick={() => handleParkedItemClick(item)}
+                    draggable
+                    onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setReorderDrag({ column: "parking", id: item.id, index: pIdx }); }}
+                    onDragOver={(e) => handleItemDragOver(e, "parking", pIdx)}
+                    onDrop={(e) => handleItemDrop(e, "parking", pIdx)}
+                    onDragEnd={handleDragEnd}
+                    style={getDropStyle("parking", pIdx)}
                   >
-                    <div className={styles.parkingLotItemDismiss}>
+                    <div className={styles.columnItemActions}>
                       <Button
                         appearance="subtle"
                         size="small"
                         icon={<Dismiss24Regular />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          unparkItem(item.id);
-                          setParkedItems(getParkedItems());
-                        }}
+                        onClick={(e) => { e.stopPropagation(); unparkItem(item.id); setParkedItems(getParkedItems()); }}
                         title="Remove"
                       />
                     </div>
-                    <Text weight="semibold" style={{ width: "100%", paddingRight: "20px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{item.name}</Text>
+                    <Text weight="semibold" style={{ paddingRight: "24px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{item.name}</Text>
                     <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
                       {parkedEntityLabels[item.entityType]}
-                    </Caption1>
-                  </div>
-                </Tooltip>
-              ))}
-            </div>
-          </Card>
-        )}
-
-      {/* Projects Strip — always visible */}
-        <Card className={styles.projectsPanel}>
-          <div className={styles.projectsPanelHeader}>
-            <Briefcase24Regular style={{ color: "#4a9eff" }} />
-            <Subtitle1 style={{ flexGrow: 1 }}>projects</Subtitle1>
-            <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("projects"); }} title="Expand" />
-          </div>
-          <div className={styles.projectsPanelGrid}>
-            {projects.length === 0 ? (
-              <Body1 style={{ color: tokens.colorNeutralForeground3, padding: "4px 0" }}>No projects yet</Body1>
-            ) : (
-              projects.map((project) => (
-                <Tooltip
-                  key={project.tdvsp_projectid}
-                  content={
-                    <div className={styles.tooltipContent}>
-                      <Text weight="semibold" size={300}>{project.tdvsp_name}</Text>
-                      {project.tdvsp_description && <div className={styles.tooltipDesc}>{project.tdvsp_description}</div>}
-                      {project.tdvsp_Account?.name && (
-                        <div className={styles.tooltipMeta}>
-                          <div>{project.tdvsp_Account.name}</div>
-                        </div>
-                      )}
-                    </div>
-                  }
-                  relationship="description"
-                  positioning="below"
-                  withArrow
-                  showDelay={400}
-                >
-                  <div
-                    className={styles.projectsPanelItem}
-                    onClick={() => openViewProject(project)}
-                  >
-                    <Text weight="semibold" style={{ width: "100%", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{project.tdvsp_name}</Text>
-                    <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
-                      {project.tdvsp_Account?.name || "Project"}
                     </Caption1>
                   </div>
                 </Tooltip>
               ))
             )}
           </div>
-        </Card>
+        </div>
 
-      {/* Work Card — tile grid, 5 per row */}
-          <Card className={styles.topPriorityCard}>
-            <div className={styles.topPriorityHeader}>
-              <Briefcase24Filled style={{ color: "#f87171" }} />
-              <Subtitle1 style={{ flexGrow: 1 }}>work</Subtitle1>
-              <Button appearance="subtle" size="small" icon={<ArrowMaximize16Regular />} onClick={(e) => { e.stopPropagation(); setExpandedCard("work"); }} title="Expand" />
+        {/* Column 2: Work / Personal */}
+        <div className={styles.column} style={{ flex: 2, borderLeftColor: workFilter === "work" ? "#f87171" : "#22d3ee" }}>
+          <div className={styles.columnHeader}>
+            {workFilter === "work" ? <Briefcase24Filled style={{ color: "#f87171" }} /> : <Home24Filled style={{ color: "#22d3ee" }} />}
+            <Subtitle1>{workFilter === "work" ? "work" : "personal"}</Subtitle1>
+            <span className={styles.columnCount}>{orderedDisplayItems.length}</span>
+            <div style={{ display: "flex", gap: "1px", backgroundColor: tokens.colorNeutralBackground3, borderRadius: "4px", padding: "1px", marginLeft: "auto" }}>
+              <Button appearance={workFilter === "work" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("work")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>w</Button>
+              <Button appearance={workFilter === "personal" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("personal")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>p</Button>
             </div>
-            {workItems.length === 0 ? (
-              <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No work items</Body1>
+          </div>
+          <div className={styles.columnContent}>
+            {orderedDisplayItems.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no {workFilter} items</Body1>
             ) : (
-              <div className={styles.workTileGrid}>
-                {[...topPriorityWork, ...otherWork].map((t) => (
-                  <Tooltip
-                    key={t.tdvsp_actionitemid}
-                    content={
-                      <div className={styles.tooltipContent}>
-                        <Text weight="semibold" size={300}>{t.tdvsp_name}</Text>
-                        {t.tdvsp_description && <div className={styles.tooltipDesc}>{t.tdvsp_description}</div>}
-                        <div className={styles.tooltipMeta}>
-                          {t.tdvsp_date && <div>Date: {formatDate(t.tdvsp_date)}</div>}
-                          {t.tdvsp_Customer?.name && <div>Account: {t.tdvsp_Customer.name}</div>}
-                          {t.tdvsp_taskstatus != null && <div>Status: {taskStatusLabels[t.tdvsp_taskstatus as TaskStatus]}</div>}
-                          {t.tdvsp_priority != null && <div>Priority: {taskPriorityLabels[t.tdvsp_priority as TaskPriority]}</div>}
-                        </div>
-                      </div>
-                    }
-                    relationship="description"
-                    positioning="above"
-                    withArrow
-                    showDelay={400}
-                  >
-                    <div
-                      className={styles.workTile}
-                      onClick={() => openViewTask(t)}
-                    >
-                      <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
-                        <Button
-                          appearance="subtle"
-                          size="small"
-                          icon={isItemParked(t.tdvsp_actionitemid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
-                          onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                          title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                        />
-                        <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
-                      </div>
-                      <Text weight="semibold" style={{ width: "100%", paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{t.tdvsp_name}</Text>
-                      <Caption1 style={{ color: tokens.colorNeutralForeground2, width: "100%", fontSize: "10px" }}>
-                        {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                        {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                      </Caption1>
-                      <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                        <div style={{ display: "flex", gap: "4px" }}>
-                          {t.tdvsp_priority === 468510002 && (
-                            <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(248, 113, 113, 0.15)", color: "#f87171", whiteSpace: "nowrap" }}>Top Priority</span>
-                          )}
-                          {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
-                            <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", whiteSpace: "nowrap" }}>Overdue</span>
-                          )}
-                        </div>
-                        {t.tdvsp_taskstatus != null && statusColors[t.tdvsp_taskstatus] && (
-                          <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: statusColors[t.tdvsp_taskstatus].bg, color: statusColors[t.tdvsp_taskstatus].text, whiteSpace: "nowrap" }}>
-                            {statusShortLabels[t.tdvsp_taskstatus]}
-                          </span>
-                        )}
+              orderedDisplayItems.map((t, wIdx) => (
+                <Tooltip
+                  key={t.tdvsp_actionitemid}
+                  content={
+                    <div className={styles.tooltipContent}>
+                      <Text weight="semibold" size={300}>{t.tdvsp_name}</Text>
+                      {t.tdvsp_description && <div className={styles.tooltipDesc}>{t.tdvsp_description}</div>}
+                      <div className={styles.tooltipMeta}>
+                        {t.tdvsp_date && <div>Date: {formatDate(t.tdvsp_date)}</div>}
+                        {t.tdvsp_Customer?.name && <div>Account: {t.tdvsp_Customer.name}</div>}
+                        {t.tdvsp_taskstatus != null && <div>Status: {taskStatusLabels[t.tdvsp_taskstatus as TaskStatus]}</div>}
+                        {t.tdvsp_priority != null && <div>Priority: {taskPriorityLabels[t.tdvsp_priority as TaskPriority]}</div>}
                       </div>
                     </div>
-                  </Tooltip>
-                ))}
-              </div>
-            )}
-          </Card>
-        </div>
-
-        {/* Right Sidebar — Ideas + Pinned Notes tabs */}
-        <div className={`${styles.rightSidebar} ${!rightPanelOpen ? styles.rightSidebarCollapsed : ""}`}>
-          <Card className={styles.pinnedPanel}>
-            <TabList
-              className={styles.sidebarTabList}
-              size="small"
-              selectedValue={sidebarTab}
-              onTabSelect={(_, d: SelectTabData) => setSidebarTab(d.value as string)}
-            >
-              <Tab value="ideas" icon={<LightbulbFilament20Regular />}>ideas</Tab>
-              <Tab value="notes" icon={<Pin24Regular style={{ fontSize: 16 }} />}>pinned notes</Tab>
-            </TabList>
-
-            {sidebarTab === "ideas" && (
-              <>
-                {ideas.length > 0 ? (
-                  <div className={styles.pinnedList}>
-                    {ideas.map((idea) => (
-                      <div
-                        key={idea.tdvsp_ideaid}
-                        className={styles.sidebarIdeaItem}
-                        onClick={() => openViewIdea(idea)}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-                          <Text size={200} weight="semibold" style={{ fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3", flexGrow: 1 }}>
-                            {idea.tdvsp_name}
-                          </Text>
-                          <div style={{ display: "flex", gap: 0, flexShrink: 0 }}>
-                            <Button
-                              appearance="subtle"
-                              size="small"
-                              icon={isItemParked(idea.tdvsp_ideaid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
-                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
-                              title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
-                            />
-                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
-                          </div>
-                        </div>
-                        {idea.tdvsp_category != null && (
-                          <Caption1 style={{ color: "#a78bfa", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace }}>
-                            {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory]}
-                          </Caption1>
+                  }
+                  relationship="description"
+                  positioning="above"
+                  withArrow
+                  showDelay={400}
+                >
+                  <div
+                    className={styles.columnItem}
+                    onClick={() => openViewTask(t)}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, { id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }, activeWorkColumn, wIdx)}
+                    onDragOver={(e) => handleItemDragOver(e, activeWorkColumn, wIdx)}
+                    onDrop={(e) => handleItemDrop(e, activeWorkColumn, wIdx)}
+                    onDragEnd={handleDragEnd}
+                    style={getDropStyle(activeWorkColumn, wIdx)}
+                  >
+                    <div className={styles.columnItemActions}>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={isItemParked(t.tdvsp_actionitemid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
+                        onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
+                        title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
+                      />
+                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
+                    </div>
+                    <Text weight="semibold" style={{ paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{t.tdvsp_name}</Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground2, fontSize: "10px" }}>
+                      {t.tdvsp_date && formatDate(t.tdvsp_date)}
+                      {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
+                    </Caption1>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginTop: "2px" }}>
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        {t.tdvsp_priority === 468510002 && (
+                          <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(248, 113, 113, 0.15)", color: "#f87171", whiteSpace: "nowrap" }}>Top Priority</span>
                         )}
-                        {idea.tdvsp_Account?.name && (
-                          <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px", display: "block" }}>
-                            {idea.tdvsp_Account.name}
-                          </Caption1>
+                        {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                          <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", whiteSpace: "nowrap" }}>Overdue</span>
                         )}
                       </div>
-                    ))}
+                      {t.tdvsp_taskstatus != null && statusColors[t.tdvsp_taskstatus] && (
+                        <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: statusColors[t.tdvsp_taskstatus].bg, color: statusColors[t.tdvsp_taskstatus].text, whiteSpace: "nowrap" }}>
+                          {statusShortLabels[t.tdvsp_taskstatus]}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div style={{ padding: "16px 8px", textAlign: "center" }}>
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                      no ideas yet — create one from quick create
-                    </Text>
-                  </div>
-                )}
-              </>
+                </Tooltip>
+              ))
             )}
+          </div>
+        </div>
 
-            {sidebarTab === "notes" && (
-              <>
-                {pinnedAnnotations.length > 0 ? (
-                  <div className={styles.pinnedList}>
-                    {pinnedAnnotations.map((note) => {
-                      const entityInfo = getEntityInfo(note.annotationid!);
-                      return (
-                        <div
-                          key={note.annotationid}
-                          className={styles.pinnedNoteItem}
-                          onClick={() => {
-                            setSelectedNote({
-                              annotation: note,
-                              entityName: entityInfo.entityName,
-                              entityType: entityInfo.entityType,
-                            });
-                            setNoteDialogOpen(true);
-                          }}
-                        >
-                          <div className={styles.pinnedNoteAccount}>
-                            <span style={{ color: tokens.colorNeutralForeground3, fontWeight: "normal" }}>
-                              {entityTypeLabels[entityInfo.entityType]}:
-                            </span>{" "}
-                            {entityInfo.entityName}
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            {note.createdon && (
-                              <div className={styles.pinnedNoteDate}>
-                                {formatDate(note.createdon)}
-                              </div>
-                            )}
-                            {note.isdocument && (
-                              <Attach16Regular style={{ color: tokens.colorNeutralForeground3, fontSize: 12 }} />
-                            )}
-                          </div>
-                          {note.subject && (
-                            <Text size={200} weight="semibold" block style={{ fontSize: "11px", marginBottom: 4 }}>
-                              {note.subject}
-                            </Text>
-                          )}
-                          <div className={styles.pinnedNotePreview}>
-                            <Text size={200} style={{ fontSize: "11px" }}>{note.notetext}</Text>
-                          </div>
-                        </div>
-                      );
-                    })}
+        {/* Column 3: Projects */}
+        <div className={styles.column} style={{ flex: 1, borderLeftColor: "#4a9eff" }}>
+          <div className={styles.columnHeader}>
+            <Briefcase24Regular style={{ color: "#4a9eff" }} />
+            <Subtitle1>projects</Subtitle1>
+            <span className={styles.columnCount}>{orderedProjects.length}</span>
+          </div>
+          <div className={styles.columnContent}>
+            {orderedProjects.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no projects yet</Body1>
+            ) : (
+              orderedProjects.map((project, prIdx) => (
+                <Tooltip
+                  key={project.tdvsp_projectid}
+                  content={
+                    <div className={styles.tooltipContent}>
+                      <Text weight="semibold" size={300}>{project.tdvsp_name}</Text>
+                      {project.tdvsp_description && <div className={styles.tooltipDesc}>{project.tdvsp_description}</div>}
+                      {project.tdvsp_Account?.name && <span className={styles.tooltipMeta}>{project.tdvsp_Account.name}</span>}
+                    </div>
+                  }
+                  relationship="description"
+                  positioning="above"
+                  withArrow
+                  showDelay={400}
+                >
+                  <div
+                    className={styles.columnItem}
+                    onClick={() => openViewProject(project)}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, { id: project.tdvsp_projectid!, name: project.tdvsp_name, entityType: "project", route: `/projects?view=${project.tdvsp_projectid}` }, "projects", prIdx)}
+                    onDragOver={(e) => handleItemDragOver(e, "projects", prIdx)}
+                    onDrop={(e) => handleItemDrop(e, "projects", prIdx)}
+                    onDragEnd={handleDragEnd}
+                    style={getDropStyle("projects", prIdx)}
+                  >
+                    <Text weight="semibold" style={{ fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{project.tdvsp_name}</Text>
+                    <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
+                      {project.tdvsp_Account?.name || "—"}
+                    </Caption1>
                   </div>
-                ) : (
-                  <div style={{ padding: "16px 8px", textAlign: "center" }}>
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                      pin notes from accounts, tasks, ideas, or projects to see them here
-                    </Text>
-                  </div>
-                )}
-              </>
+                </Tooltip>
+              ))
             )}
-          </Card>
+          </div>
+        </div>
+
+        {/* Column 4: Ideas */}
+        <div className={styles.column} style={{ flex: 1, borderLeftColor: "#a78bfa" }}>
+          <div className={styles.columnHeader}>
+            <LightbulbFilament24Filled style={{ color: "#a78bfa" }} />
+            <Subtitle1>ideas</Subtitle1>
+            <span className={styles.columnCount}>{orderedIdeas.length}</span>
+          </div>
+          <div className={styles.columnContent}>
+            {orderedIdeas.length === 0 ? (
+              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no ideas yet</Body1>
+            ) : (
+              orderedIdeas.map((idea, iIdx) => (
+                <div
+                  key={idea.tdvsp_ideaid}
+                  className={styles.columnItem}
+                  onClick={() => openViewIdea(idea)}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, { id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }, "ideas", iIdx)}
+                  onDragOver={(e) => handleItemDragOver(e, "ideas", iIdx)}
+                  onDrop={(e) => handleItemDrop(e, "ideas", iIdx)}
+                  onDragEnd={handleDragEnd}
+                  style={getDropStyle("ideas", iIdx)}
+                >
+                  <div className={styles.columnItemActions}>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      icon={isItemParked(idea.tdvsp_ideaid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
+                      onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }); }}
+                      title={isItemParked(idea.tdvsp_ideaid!) ? "Unpark" : "Park"}
+                    />
+                    <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, type: "idea" }); }} title="Deactivate" />
+                  </div>
+                  <Text weight="semibold" style={{ paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{idea.tdvsp_name}</Text>
+                  {idea.tdvsp_category != null && (
+                    <Caption1 style={{ color: "#a78bfa", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace }}>
+                      {ideaCategoryLabels[idea.tdvsp_category as IdeaCategory]}
+                    </Caption1>
+                  )}
+                  {idea.tdvsp_Account?.name && (
+                    <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
+                      {idea.tdvsp_Account.name}
+                    </Caption1>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Note Detail Dialog */}
-      <Dialog open={noteDialogOpen} onOpenChange={(_, d) => setNoteDialogOpen(d.open)}>
-        <DialogSurface>
-          <DialogBody>
-            <DialogTitle
-              action={
-                <Button
-                  appearance="subtle"
-                  icon={<Dismiss24Regular />}
-                  onClick={() => setNoteDialogOpen(false)}
-                />
-              }
-            >
-              {selectedNote?.entityName && (
-                <Caption1
-                  style={{ color: tokens.colorBrandForeground1, display: "block", marginBottom: 4 }}
-                >
-                  <span style={{ color: tokens.colorNeutralForeground3 }}>
-                    {entityTypeLabels[selectedNote.entityType]}:
-                  </span>{" "}
-                  {selectedNote.entityName}
-                </Caption1>
-              )}
-              {selectedNote?.annotation.subject || "Note"}
-              {selectedNote?.annotation.createdon && (
-                <Caption1
-                  style={{ color: tokens.colorNeutralForeground3, display: "block", marginTop: 4 }}
-                >
-                  {formatDate(selectedNote.annotation.createdon)}
-                  {selectedNote.annotation.isdocument && (
-                    <span style={{ marginLeft: 8 }}>
-                      <Attach16Regular style={{ verticalAlign: "middle", marginRight: 4 }} />
-                      {selectedNote.annotation.filename}
-                    </span>
-                  )}
-                </Caption1>
-              )}
-            </DialogTitle>
-            <DialogContent>
-              <Text style={{ whiteSpace: "pre-wrap" }}>
-                {selectedNote?.annotation.notetext}
-              </Text>
-            </DialogContent>
-            <DialogActions>
-              <Button
-                appearance="secondary"
-                icon={<PinOff16Regular />}
-                onClick={() => {
-                  if (selectedNote) {
-                    handleUnpin(selectedNote.annotation.annotationid!);
-                  }
-                }}
-              >
-                Unpin
-              </Button>
-              <Button appearance="primary" onClick={() => setNoteDialogOpen(false)}>
-                Close
-              </Button>
-            </DialogActions>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
 
       {/* Add Account Dialog */}
       <Dialog open={addAccountOpen} onOpenChange={(_, d) => setAddAccountOpen(d.open)}>
@@ -1817,115 +1556,6 @@ export const Dashboard: React.FC = () => {
                 {saving ? <><Spinner size="tiny" /> Deactivating...</> : "Deactivate"}
               </Button>
             </DialogActions>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
-
-      {/* Expanded Card Dialog */}
-      <Dialog open={!!expandedCard} onOpenChange={(_, d) => !d.open && setExpandedCard(null)}>
-        <DialogSurface style={{ maxWidth: "70vw", width: "70vw", maxHeight: "80vh" }}>
-          <DialogBody style={{ maxHeight: "80vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-            <DialogTitle
-              action={<Button appearance="subtle" icon={<Dismiss24Regular />} onClick={() => setExpandedCard(null)} />}
-            >
-              {expandedCard === "work" && <><Briefcase24Filled style={{ color: "#d13438", marginRight: 8, verticalAlign: "middle" }} />work</>}
-              {expandedCard === "projects" && <><Briefcase24Regular style={{ color: "#4a9eff", marginRight: 8, verticalAlign: "middle" }} />projects</>}
-            </DialogTitle>
-            <DialogContent style={{ flexGrow: 1, overflowY: "auto" }}>
-              {expandedCard === "work" && (
-                workItems.length === 0 ? (
-                  <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No work items</Body1>
-                ) : (
-                  <div className={styles.workTileGrid}>
-                    {[...topPriorityWork, ...otherWork].map((t) => (
-                      <Tooltip
-                        key={t.tdvsp_actionitemid}
-                        content={
-                          <div className={styles.tooltipContent}>
-                            <Text weight="semibold" size={300}>{t.tdvsp_name}</Text>
-                            {t.tdvsp_description && <div className={styles.tooltipDesc}>{t.tdvsp_description}</div>}
-                            <div className={styles.tooltipMeta}>
-                              {t.tdvsp_date && <div>Date: {formatDate(t.tdvsp_date)}</div>}
-                              {t.tdvsp_Customer?.name && <div>Account: {t.tdvsp_Customer.name}</div>}
-                              {t.tdvsp_taskstatus != null && <div>Status: {taskStatusLabels[t.tdvsp_taskstatus as TaskStatus]}</div>}
-                              {t.tdvsp_priority != null && <div>Priority: {taskPriorityLabels[t.tdvsp_priority as TaskPriority]}</div>}
-                            </div>
-                          </div>
-                        }
-                        relationship="description"
-                        positioning="above"
-                        withArrow
-                        showDelay={400}
-                      >
-                        <div
-                          className={styles.workTile}
-                          onClick={() => { setExpandedCard(null); openViewTask(t); }}
-                        >
-                          <div style={{ position: "absolute", top: "2px", right: "2px", display: "flex", gap: 0 }}>
-                            <Button
-                              appearance="subtle"
-                              size="small"
-                              icon={isItemParked(t.tdvsp_actionitemid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
-                              onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }); }}
-                              title={isItemParked(t.tdvsp_actionitemid!) ? "Unpark" : "Park"}
-                            />
-                            <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: t.tdvsp_actionitemid!, name: t.tdvsp_name, type: "actionitem" }); }} title="Deactivate" />
-                          </div>
-                          <Text size={200} weight="semibold" truncate style={{ width: "100%", paddingRight: "40px" }}>{t.tdvsp_name}</Text>
-                          <Caption1 truncate style={{ color: tokens.colorNeutralForeground3, width: "100%" }}>
-                            {t.tdvsp_date && formatDate(t.tdvsp_date)}
-                            {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
-                          </Caption1>
-                          <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                            <div style={{ display: "flex", gap: "4px" }}>
-                              {t.tdvsp_priority === 468510002 && (
-                                <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(248, 113, 113, 0.15)", color: "#f87171", whiteSpace: "nowrap" }}>Top Priority</span>
-                              )}
-                              {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
-                                <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", whiteSpace: "nowrap" }}>Overdue</span>
-                              )}
-                            </div>
-                            {t.tdvsp_taskstatus != null && statusColors[t.tdvsp_taskstatus] && (
-                              <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: statusColors[t.tdvsp_taskstatus].bg, color: statusColors[t.tdvsp_taskstatus].text, whiteSpace: "nowrap" }}>
-                                {statusShortLabels[t.tdvsp_taskstatus]}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </Tooltip>
-                    ))}
-                  </div>
-                )
-              )}
-              {expandedCard === "projects" && (
-                <>
-                  {projects.length === 0 ? (
-                    <Body1 style={{ color: tokens.colorNeutralForeground3 }}>No projects yet</Body1>
-                  ) : (
-                    projects.map((project, i) => (
-                      <React.Fragment key={project.tdvsp_projectid}>
-                        {i > 0 && <Divider />}
-                        <div className={styles.listItem} onClick={() => { setExpandedCard(null); openViewProject(project); }} style={{ flexDirection: "column", alignItems: "flex-start" }}>
-                          <Text weight="semibold" className={styles.nameLink}>
-                            {project.tdvsp_name}
-                            {project.tdvsp_Account?.name && (
-                              <span style={{ fontWeight: 400, color: tokens.colorNeutralForeground3 }}>
-                                {" "}&ndash; {project.tdvsp_Account.name}
-                              </span>
-                            )}
-                          </Text>
-                          {project.tdvsp_description && (
-                            <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                              {project.tdvsp_description}
-                            </Caption1>
-                          )}
-                        </div>
-                      </React.Fragment>
-                    ))
-                  )}
-                </>
-              )}
-            </DialogContent>
           </DialogBody>
         </DialogSurface>
       </Dialog>

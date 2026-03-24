@@ -62,14 +62,6 @@ Files are stored as base64-encoded data in Dataverse's `annotations` table. This
 
 A bookmarking feature on the dashboard. Click the bookmark icon on any item to "park" it for quick access. Up to 5 items can be parked at a time. Parked items are stored in your browser's localStorage -- they're per-browser, not per-user in Dataverse.
 
-### What are pinned notes?
-
-Notes from accounts, action items, ideas, or projects that you've pinned to the dashboard sidebar. They show a preview with entity type label and attachment indicator. Like the parking lot, pins are stored in localStorage.
-
-### Why don't I see the right sidebar?
-
-The right sidebar is collapsible via the toggle button in the quick create bar. When open, it shows two tabs: "ideas" (a scrollable list of all ideas) and "pinned notes" (notes you've pinned from other entities). If you don't see it, click the toggle button to expand it.
-
 ### How do I see full details for a dashboard tile?
 
 Hover over any tile (work, projects, or parking lot) for about half a second. A tooltip with an arrow appears showing the full details that get truncated on the small tile -- name, description, date, account, status, priority (for work tiles) or description and account (for project tiles). You can also click the tile to open the full view/edit dialog.
@@ -82,9 +74,21 @@ Work tiles show up to two types of colored pill badges. At bottom-left: "Top Pri
 
 The dropdown is ordered by ascending severity so the most common choices (lower priority) appear first and the highest priority is a deliberate choice at the bottom. This order is consistent across all pages (Tasks, Dashboard, Accounts, Personal).
 
-### Can I switch between list and tile views on Tasks and Personal?
+### Can I switch between list and tile views?
 
-Yes. Both the Tasks and Personal pages have a list/tile toggle in the toolbar. Tasks defaults to list view (DataGrid) and Personal defaults to tile view. Your preference for each page is saved to localStorage and persists across sessions.
+Yes. All 8 entity pages (Tasks, Personal, Ideas, Projects, Contacts, Impacts, Accounts, Meeting Summaries) have a list/tile view toggle in the toolbar. List view shows a DataGrid; tile view shows 220px cards. Your preference for each page is saved to localStorage and persists across sessions.
+
+### How do I reorder items on the dashboard?
+
+Drag and drop. Grab any item within a column and drag it up or down to reorder. Your custom order is saved to localStorage and persists across sessions.
+
+### How do I drag items to the Parking Lot?
+
+Drag an item from the Work, Projects, or Ideas column and drop it onto the Parking Lot column. This parks the item for quick access (same as clicking the car icon). The max of 5 parked items still applies.
+
+### How do I see personal action items on the dashboard?
+
+Click the **w/p toggle** in the Work column header to switch between work (w) and personal (p) action items. The toggle is a small button next to the column title.
 
 ### How is the dashboard sorted?
 
@@ -181,4 +185,4 @@ That's the Dataverse publisher prefix for custom tables in this environment. All
 - **100-record cap** -- no pagination for large datasets
 - **Session storage tokens** -- cleared on tab close; re-auth required in new tabs
 - **Direct Line secret in bundle** -- compiled into JavaScript at build time; exchanged for a conversation token before use
-- **localStorage features** -- parking lot and pinned notes are per-browser, not synced across devices
+- **localStorage features** -- parking lot, view preferences, column ordering, and pinned notes are per-browser, not synced across devices

@@ -37,6 +37,8 @@ import {
   Delete24Regular,
   Dismiss24Regular,
   PeopleTeam24Filled,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import { MeetingSummary, Account } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -150,6 +152,49 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground2,
     ...shorthands.borderRadius("8px"),
   },
+  tileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("10px"),
+  },
+  tile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    ...shorthands.padding("12px"),
+    width: "220px",
+    minHeight: "120px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  tileName: {
+    fontWeight: 600,
+    fontSize: "13px",
+    lineHeight: "1.3",
+    wordBreak: "break-word" as const,
+    paddingRight: "4px",
+  },
+  tileMeta: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("4px"),
+    width: "100%",
+    marginTop: "8px",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
 
 interface FormData {
@@ -181,6 +226,13 @@ export const MeetingSummaries: React.FC = () => {
   const [viewingSummary, setViewingSummary] = useState<MeetingSummary | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-summaries-view-mode") as "list" | "tiles") || "list"
+  );
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-summaries-view-mode", mode);
+  };
 
   const loadSummaries = useCallback(async () => {
     setLoading(true);
@@ -412,6 +464,10 @@ export const MeetingSummaries: React.FC = () => {
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
+        <div className={styles.viewToggle}>
+          <Button appearance={viewMode === "list" ? "primary" : "subtle"} icon={<TextBulletListLtr20Regular />} size="small" onClick={() => toggleViewMode("list")} aria-label="List view" style={{ minWidth: "auto" }} />
+          <Button appearance={viewMode === "tiles" ? "primary" : "subtle"} icon={<Grid20Regular />} size="small" onClick={() => toggleViewMode("tiles")} aria-label="Tile view" style={{ minWidth: "auto" }} />
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             New Summary
@@ -493,20 +549,20 @@ export const MeetingSummaries: React.FC = () => {
         </Dialog>
       </div>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-            <Spinner label="Loading summaries..." />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <PeopleTeam24Filled style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }} />
-            <Subtitle1>No summaries found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>
-              Create your first summary to start tracking.
-            </Caption1>
-          </div>
-        ) : (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+          <Spinner label="Loading summaries..." />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <PeopleTeam24Filled style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }} />
+          <Subtitle1>No summaries found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>
+            Create your first summary to start tracking.
+          </Caption1>
+        </div>
+      ) : viewMode === "list" ? (
+        <Card className={styles.card}>
           <DataGrid
             items={filtered}
             columns={gridColumns}
@@ -534,8 +590,21 @@ export const MeetingSummaries: React.FC = () => {
               )}
             </DataGridBody>
           </DataGrid>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.tileGrid}>
+          {filtered.map((summary) => (
+            <div key={summary.tdvsp_meetingsummaryid} className={styles.tile} onClick={() => openView(summary)}>
+              <Text className={styles.tileName}>{summary.tdvsp_name}</Text>
+              <div className={styles.tileMeta}>
+                {summary.tdvsp_date && renderBadge(formatDate(summary.tdvsp_date), dateBadgeColors)}
+                {summary.tdvsp_Account?.name && renderBadge(summary.tdvsp_Account.name, accountBadgeColors)}
+                {summary.tdvsp_summary && <Caption1 style={{ color: tokens.colorNeutralForeground3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{summary.tdvsp_summary}</Caption1>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
