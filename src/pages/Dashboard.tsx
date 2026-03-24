@@ -276,6 +276,7 @@ const useStyles = makeStyles({
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
     lineHeight: "1.4",
+    fontSize: "11px",
   },
   pinnedNoteDate: {
     fontSize: "10px",
@@ -378,6 +379,7 @@ const useStyles = makeStyles({
   },
   sidebarTabList: {
     marginBottom: "8px",
+    fontSize: "11px",
   },
   cardScrollArea: {
     maxHeight: "600px",
@@ -1283,7 +1285,7 @@ export const Dashboard: React.FC = () => {
                         onClick={() => openViewIdea(idea)}
                       >
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-                          <Text size={300} weight="semibold" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3", flexGrow: 1 }}>
+                          <Text size={200} weight="semibold" style={{ fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3", flexGrow: 1 }}>
                             {idea.tdvsp_name}
                           </Text>
                           <div style={{ display: "flex", gap: 0, flexShrink: 0 }}>
@@ -1356,12 +1358,12 @@ export const Dashboard: React.FC = () => {
                             )}
                           </div>
                           {note.subject && (
-                            <Text size={300} weight="semibold" block style={{ marginBottom: 4 }}>
+                            <Text size={200} weight="semibold" block style={{ fontSize: "11px", marginBottom: 4 }}>
                               {note.subject}
                             </Text>
                           )}
                           <div className={styles.pinnedNotePreview}>
-                            <Text size={200}>{note.notetext}</Text>
+                            <Text size={200} style={{ fontSize: "11px" }}>{note.notetext}</Text>
                           </div>
                         </div>
                       );

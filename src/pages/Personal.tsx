@@ -6,6 +6,7 @@ import {
   Text,
   Caption1,
   Body1,
+  Subtitle1,
   Badge,
   Button,
   Spinner,
@@ -14,16 +15,30 @@ import {
   Textarea,
   Dropdown,
   Option,
+  Card,
   Dialog,
   DialogSurface,
   DialogBody,
   DialogTitle,
   DialogContent,
   DialogActions,
+  DataGrid,
+  DataGridHeader,
+  DataGridHeaderCell,
+  DataGridBody,
+  DataGridRow,
+  DataGridCell,
+  TableColumnDefinition,
+  createTableColumn,
 } from "@fluentui/react-components";
 import {
   Edit24Regular,
+  Delete24Regular,
   Dismiss24Regular,
+  Home24Filled,
+  Search24Regular,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import {
   ActionItem,
@@ -167,7 +182,53 @@ const useStyles = makeStyles({
       textDecoration: "underline",
     },
   },
+  toolbar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("12px"),
+  },
+  toolbarLeft: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("12px"),
+  },
+  searchBox: {
+    minWidth: "280px",
+  },
+  card: {
+    ...shorthands.padding("0px"),
+    ...shorthands.borderRadius("8px"),
+    overflow: "hidden" as const,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: "3px solid #22d3ee",
+    boxShadow: "none",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
+
+const columnSizes: Record<string, React.CSSProperties> = {
+  date: { flex: "0 0 95px", minWidth: 95 },
+  name: { flex: "3 1 200px", minWidth: 200 },
+  taskStatus: { flex: "0 0 150px", minWidth: 150 },
+  taskPriority: { flex: "0 0 115px", minWidth: 115 },
+  customer: { flex: "1.5 1 120px", minWidth: 120 },
+  actions: { flex: "0 0 72px", minWidth: 72 },
+};
+
+const isOverdueDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d < today;
+};
 
 const emptyForm = {
   tdvsp_name: "",
@@ -193,6 +254,15 @@ export const Personal: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState(emptyForm);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-personal-view-mode") as "list" | "tiles") || "tiles"
+  );
+
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-personal-view-mode", mode);
+  };
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -294,17 +364,153 @@ export const Personal: React.FC = () => {
     }
   };
 
+  const filtered = items.filter((t) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      t.tdvsp_name?.toLowerCase().includes(q) ||
+      t.tdvsp_Customer?.name?.toLowerCase().includes(q)
+    );
+  });
+
+  const gridColumns: TableColumnDefinition<ActionItem>[] = [
+    createTableColumn({
+      columnId: "date",
+      compare: (a, b) => (a.tdvsp_date ?? "").localeCompare(b.tdvsp_date ?? ""),
+      renderHeaderCell: () => "Date",
+      renderCell: (item) => {
+        const overdue = item.tdvsp_date ? isOverdueDate(item.tdvsp_date) : false;
+        return (
+          <Text style={overdue ? { color: "#f87171", fontWeight: 600 } : undefined}>
+            {item.tdvsp_date ? formatDate(item.tdvsp_date) : "--"}
+          </Text>
+        );
+      },
+    }),
+    createTableColumn({
+      columnId: "name",
+      compare: (a, b) => (a.tdvsp_name ?? "").localeCompare(b.tdvsp_name ?? ""),
+      renderHeaderCell: () => "Name",
+      renderCell: (item) => (
+        <Text
+          weight="semibold"
+          className={styles.nameLink}
+          onClick={() => openView(item)}
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_name}
+        >
+          {item.tdvsp_name}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "taskStatus",
+      compare: (a, b) => (a.tdvsp_taskstatus ?? 0) - (b.tdvsp_taskstatus ?? 0),
+      renderHeaderCell: () => "Status",
+      renderCell: (item) => {
+        if (item.tdvsp_taskstatus == null) return <Text>--</Text>;
+        const label = statusShortLabels[item.tdvsp_taskstatus] ?? "--";
+        const colors = statusColors[item.tdvsp_taskstatus];
+        return colors ? renderBadge(label, colors) : <Text>{label}</Text>;
+      },
+    }),
+    createTableColumn({
+      columnId: "taskPriority",
+      compare: (a, b) => (a.tdvsp_priority ?? 0) - (b.tdvsp_priority ?? 0),
+      renderHeaderCell: () => "Priority",
+      renderCell: (item) => {
+        if (item.tdvsp_priority == null) return <Text>--</Text>;
+        const label = priorityShortLabels[item.tdvsp_priority] ?? "--";
+        const colors = priorityColors[item.tdvsp_priority];
+        return colors ? renderBadge(label, colors) : <Text>{label}</Text>;
+      },
+    }),
+    createTableColumn({
+      columnId: "customer",
+      compare: (a, b) =>
+        (a.tdvsp_Customer?.name ?? "").localeCompare(b.tdvsp_Customer?.name ?? ""),
+      renderHeaderCell: () => "Account",
+      renderCell: (item) => (
+        <Text
+          style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          title={item.tdvsp_Customer?.name ?? ""}
+        >
+          {item.tdvsp_Customer?.name ?? "--"}
+        </Text>
+      ),
+    }),
+    createTableColumn({
+      columnId: "actions",
+      renderHeaderCell: () => "",
+      renderCell: (item) => (
+        <div style={{ display: "flex", gap: 4 }}>
+          <Button
+            appearance="subtle"
+            icon={<Edit24Regular />}
+            size="small"
+            title="Edit"
+            onClick={() => openEdit(item)}
+          />
+          <Button
+            appearance="subtle"
+            icon={<Delete24Regular />}
+            size="small"
+            title="Deactivate"
+            disabled={saving}
+            onClick={() =>
+              item.tdvsp_actionitemid &&
+              handleDeactivate(item.tdvsp_actionitemid)
+            }
+          />
+        </div>
+      ),
+    }),
+  ];
+
   if (loading) {
     return <Spinner label="Loading personal tasks..." />;
   }
 
   return (
     <div className={styles.container}>
-      <div className={styles.tileGrid}>
-        {items.length === 0 ? (
-          <Body1 className={styles.emptyState}>No personal tasks</Body1>
-        ) : (
-          items.map((t) => (
+      <div className={styles.pageHeader}>
+        <Home24Filled style={{ color: "#22d3ee", fontSize: 28 }} />
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>personal</Subtitle1>
+      </div>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarLeft}>
+          <Input
+            className={styles.searchBox}
+            contentBefore={<Search24Regular />}
+            placeholder="Search personal tasks..."
+            value={searchQuery}
+            onChange={(_, d) => setSearchQuery(d.value)}
+          />
+        </div>
+        <div className={styles.viewToggle}>
+          <Button
+            appearance={viewMode === "list" ? "primary" : "subtle"}
+            icon={<TextBulletListLtr20Regular />}
+            size="small"
+            onClick={() => toggleViewMode("list")}
+            aria-label="List view"
+            style={{ minWidth: "auto" }}
+          />
+          <Button
+            appearance={viewMode === "tiles" ? "primary" : "subtle"}
+            icon={<Grid20Regular />}
+            size="small"
+            onClick={() => toggleViewMode("tiles")}
+            aria-label="Tile view"
+            style={{ minWidth: "auto" }}
+          />
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <Body1 className={styles.emptyState}>No personal tasks</Body1>
+      ) : viewMode === "tiles" ? (
+        <div className={styles.tileGrid}>
+          {filtered.map((t) => (
             <div
               key={t.tdvsp_actionitemid}
               className={styles.tile}
@@ -330,9 +536,39 @@ export const Personal: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <Card className={styles.card}>
+          <DataGrid
+            items={filtered}
+            columns={gridColumns}
+            getRowId={(item) => item.tdvsp_actionitemid ?? item.tdvsp_name}
+            sortable
+          >
+            <DataGridHeader>
+              <DataGridRow>
+                {({ renderHeaderCell, columnId }) => (
+                  <DataGridHeaderCell style={columnSizes[columnId as string]}>
+                    {renderHeaderCell()}
+                  </DataGridHeaderCell>
+                )}
+              </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<ActionItem>>
+              {({ item, rowId }) => (
+                <DataGridRow<ActionItem> key={rowId}>
+                  {({ renderCell, columnId }) => (
+                    <DataGridCell style={columnSizes[columnId as string]}>
+                      {renderCell(item)}
+                    </DataGridCell>
+                  )}
+                </DataGridRow>
+              )}
+            </DataGridBody>
+          </DataGrid>
+        </Card>
+      )}
 
       {/* View/Edit Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>

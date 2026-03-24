@@ -82,6 +82,10 @@ Work tiles show up to two types of colored pill badges. At bottom-left: "Top Pri
 
 The dropdown is ordered by ascending severity so the most common choices (lower priority) appear first and the highest priority is a deliberate choice at the bottom. This order is consistent across all pages (Tasks, Dashboard, Accounts, Personal).
 
+### Can I switch between list and tile views on Tasks and Personal?
+
+Yes. Both the Tasks and Personal pages have a list/tile toggle in the toolbar. Tasks defaults to list view (DataGrid) and Personal defaults to tile view. Your preference for each page is saved to localStorage and persists across sessions.
+
 ### How is the dashboard sorted?
 
 - **Action items (work card):** By date ascending (past/overdue first, then nearest upcoming)
@@ -104,9 +108,13 @@ No. The chat uses SSO (Single Sign-On) -- it automatically exchanges your Azure 
 
 The SSO token given to the bot is scoped to the bot's custom API only. It cannot directly access Dataverse data. The bot has its own knowledge sources and capabilities configured in Copilot Studio.
 
+### How do I reset the chat conversation?
+
+Click the **reset button** (circular arrow icon) in the chat header, next to the close button. This tears down the current Direct Line connection and starts a fresh conversation with a new greeting from the bot.
+
 ### What if the chat isn't responding?
 
-The Direct Line connection may have timed out. Close the chat panel and reopen it to establish a new connection. If the issue persists, the Copilot Studio agent may be experiencing issues.
+The Direct Line connection may have timed out. Close the chat panel and reopen it, or click the reset button to establish a new connection. If the issue persists, the Copilot Studio agent may be experiencing issues.
 
 ---
 

@@ -107,9 +107,17 @@ Manage contact records linked to accounts. The view dialog shows contact details
 
 Task management with status, priority, and type tracking. Supports work/personal categorization. The view dialog shows details plus a notes timeline.
 
+**View toggle:** A list/tile toggle in the toolbar switches between DataGrid (list) and 220px tile cards. The preference is persisted to localStorage and defaults to list view.
+
+**Filter:** A Work/Personal/All dropdown (defaults to Work) filters action items by task type.
+
 **Status workflow:** Recognized/Pondering -> In Progress -> Pending Communication -> On Hold -> Wrapping Up -> Complete
 
 **Priority options (dropdown order):** Low... but on deck for sure | Eh... Get to it when you can | High... next in line after top priority... | Top priority... no kidding!
+
+### Personal
+
+Dedicated page for personal action items (task type = Personal) displayed as a tile grid or DataGrid list. Features a page header with Home icon, a search box for filtering by name, and a list/tile view toggle. The preference is persisted to localStorage and defaults to tile view. The view/edit dialog includes a notes timeline.
 
 ### Ideas
 
@@ -151,6 +159,8 @@ Use the **sun/moon toggle** in the top bar to switch between light and dark mode
 ## Copilot Assistant
 
 Click the **rocket icon button** (bottom-right corner) to open the AI chat panel. The assistant connects via SSO -- no additional sign-in needed. Close and reopen the panel to continue the same conversation. The chat adapts to your current theme.
+
+**Reset conversation:** Click the **reset button** (circular arrow icon) in the chat header to clear the current conversation and start fresh. This tears down the Direct Line connection and establishes a new one.
 
 ---
 

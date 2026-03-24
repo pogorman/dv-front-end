@@ -287,6 +287,7 @@ npx @azure/static-web-apps-cli deploy ./build \
 | Variable | Purpose | Set At |
 |----------|---------|--------|
 | `REACT_APP_COPILOT_DIRECT_LINE_SECRET` | Direct Line secret for Copilot chat | `.env` file (build-time) |
+| `PORT` | Dev server port (defaults to 3000) | `.env` file (dev-time) |
 
 Azure Static Web Apps handles: SPA fallback routing, HTTPS enforcement, global CDN, automatic SSL.
 
@@ -305,6 +306,7 @@ CopilotChat Component
   5. Create Web Chat store (SSO middleware)
   6. Send startConversation event
   7. Render Bot Framework Web Chat
+  8. Reset button tears down connection and starts fresh
          │
          ▼
 Bot Framework Direct Line
@@ -358,9 +360,11 @@ All 7 entity pages use a consistent pattern:
 - Clickable name links opening view dialogs
 - Edit/deactivate action buttons
 
+The **Tasks** and **Personal** pages also support a list/tile view toggle in the toolbar. Tasks switches between DataGrid (list) and 220px tile cards (persisted to localStorage, defaults to list). Personal switches between DataGrid and tile grid (persisted to localStorage, defaults to tiles).
+
 ### Dashboard Layout
 
-The dashboard uses a two-column layout: main area (flex-grow) + right sidebar (260px, collapsible). The main area contains (top to bottom): Quick Create bar, Parking Lot strip, Projects strip (blue accent, 160px tiles), and Work tile grid (3 per row). Work tiles show indicator pill badges at bottom-left ("Top Priority" red, "Overdue" amber) and a status pill badge at bottom-right (Pondering, In Progress, Pending Comm., On Hold, Wrapping Up) -- all rendered as `<span>` pills with semi-transparent colored backgrounds matching the renderBadge style used on entity pages. The right sidebar has a Fluent UI `TabList` with two tabs: "ideas" (default, scrollable vertical list with category badges and actions) and "pinned notes" (pinned annotations from any entity). Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
+The dashboard uses a two-column layout: main area (flex-grow) + right sidebar (260px, collapsible). The main area contains (top to bottom): Quick Create bar, Parking Lot strip, Projects strip (blue accent, 160px tiles), and Work tile grid (3 per row). Work tiles show indicator pill badges at bottom-left ("Top Priority" red, "Overdue" amber) and a status pill badge at bottom-right (Pondering, In Progress, Pending Comm., On Hold, Wrapping Up) -- all rendered as `<span>` pills with semi-transparent colored backgrounds matching the renderBadge style used on entity pages. The right sidebar has a Fluent UI `TabList` with two tabs: "ideas" (default, scrollable vertical list with category badges and actions) and "pinned notes" (pinned annotations from any entity). The right sidebar uses 11px font sizes consistently. Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
 
 ### Dashboard Tile Tooltips
 

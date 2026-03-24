@@ -114,6 +114,17 @@ Improving tile information density and dropdown UX:
   - Priority dropdown order changed to ascending severity: Low, Eh, High, Top Priority (top priority moved to last/bottom position instead of third)
   - `taskPriorityOrder` array is the single source of truth for dropdown order, used by Tasks, Dashboard, Accounts, and Personal pages
 
+### Phase 9: View Toggles & Chat Reset
+
+Improving page flexibility and chat UX:
+
+- **Prompt pattern:** "Add list/tile view toggle to Tasks and Personal pages, and a reset button to Copilot chat"
+- **Result:** Tasks page now has a toolbar toggle switching between DataGrid (list) and 220px tile cards. Personal page got a page header, search box, and its own list/tile toggle (DataGrid with cyan border vs. tile grid). CopilotChat gained a reset/clear button (ArrowReset24Regular icon) in the chat header that tears down the Direct Line connection and starts a fresh conversation. Dashboard right sidebar font sizes normalized to 11px.
+- **Key decisions:**
+  - View mode preferences persisted to localStorage (`og-tasks-view-mode`, `og-personal-view-mode`) so users keep their preferred layout across sessions
+  - Tasks defaults to list, Personal defaults to tiles — matching each page's primary use case
+  - Chat reset fully tears down and rebuilds the Direct Line connection rather than just clearing messages, ensuring a clean state
+
 ---
 
 ## Design Principles

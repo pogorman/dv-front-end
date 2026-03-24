@@ -408,8 +408,8 @@ The application shell provides the persistent layout for all authenticated pages
 
 **Navigation Sections & Icons:**
 1. **Dashboard** (top, standalone) — Home icon
-2. **Core:** Accounts (Building), Contacts (Person), Projects (Briefcase), Meeting Summaries (PeopleTeam)
-3. **Activity:** Action Items (CheckboxChecked), Ideas (LightbulbFilament), Impacts (Flash)
+2. **Activity:** Tasks (CheckboxChecked), Ideas (LightbulbFilament), Personal (Home), Impacts (Flash)
+3. **Core:** Accounts (Building), Contacts (Person), Projects (Briefcase), Meeting Summaries (PeopleTeam)
 4. **About this site** (bottom) — Info icon
 
 **Features:**
@@ -587,7 +587,7 @@ CRUD for contact records linked to accounts.
 
 Task management with status tracking.
 
-**Main View:** DataGrid with columns: Date, Name (clickable), Task Status, Priority, Type, Customer, Description, Created On, Actions
+**Main View:** Toolbar with Work/Personal/All filter (defaults to Work) and a list/tile view toggle (persisted to localStorage as `og-tasks-view-mode`, defaults to list). List view uses DataGrid with columns: Date, Name (clickable), Task Status, Priority, Type, Customer, Description, Created On, Actions. Tile view shows 220px cards with the same information.
 
 **View Dialog:** Two-column layout — Details (name, description, date, status, priority, type, customer, created on) on the left, Notes Timeline on the right
 
@@ -639,7 +639,15 @@ Meeting documentation with extended text support.
 
 **Dialog width:** 700px (wider than standard to accommodate summary text)
 
-### 8.9 About (`pages/About.tsx`)
+### 8.9 Personal (`pages/Personal.tsx`)
+
+Dedicated page for personal action items (task type = Personal).
+
+**Main View:** Page header with Home icon and "personal" title, search box for filtering by name, and a list/tile view toggle (persisted to localStorage as `og-personal-view-mode`, defaults to tiles). List view uses DataGrid with cyan (`#22d3ee`) left border. Tile view shows the existing tile grid of non-complete personal action items.
+
+**View Dialog:** Same inline edit pattern as Tasks — details on the left, Notes Timeline on the right.
+
+### 8.10 About (`pages/About.tsx`)
 
 Static informational page about the application.
 
@@ -650,7 +658,7 @@ Static informational page about the application.
 - UI Framework (Fluent UI v9)
 - Domain (ohgeesolutions.com)
 
-### 8.11 Login (`pages/Login.tsx`)
+### 8.12 Login (`pages/Login.tsx`)
 
 Displayed to unauthenticated users.
 
@@ -717,6 +725,7 @@ The app includes a floating AI chat widget (bottom-right corner) connected to a 
 - **User identity** is passed from the MSAL account (localAccountId + name) to the bot
 - **File uploads** are disabled in the Web Chat configuration
 - **Conversation persistence** — The Direct Line connection is maintained while the panel is open; closing and reopening preserves the conversation
+- **Conversation reset** — A reset button (ArrowReset24Regular icon) in the chat header tears down the Direct Line connection and starts a fresh conversation with a new greeting
 
 ### Theming
 
@@ -774,6 +783,7 @@ npx @azure/static-web-apps-cli deploy ./build --deployment-token "<token>" --env
 | Variable | Purpose | Set At |
 |----------|---------|--------|
 | `REACT_APP_COPILOT_DIRECT_LINE_SECRET` | Direct Line secret for Copilot chat | `.env` file (build-time) |
+| `PORT` | Dev server port (defaults to 3000) | `.env` file (dev-time) |
 
 ### Static Web App Configuration
 
@@ -840,8 +850,8 @@ The **sidebar** (left) organizes pages into sections:
 | Section | Pages |
 |---------|-------|
 | *(Top)* | Dashboard |
+| **Activity** | Tasks, Ideas, Personal, Impacts |
 | **Core** | Accounts, Contacts, Projects, Meeting Summaries |
-| **Activity** | Action Items, Ideas, Impacts |
 | *(Bottom)* | About this site |
 
 - Click the **chevron** at the top of the sidebar to collapse/expand it
@@ -897,6 +907,7 @@ Notes are available on **Accounts**, **Action Items**, **Ideas**, and **Projects
 - Click the **O'G logo button** (bottom-right corner) to open the AI chat
 - The assistant connects via SSO — no additional sign-in needed
 - Close the panel and reopen it to continue the same conversation
+- Click the **reset button** (circular arrow icon) in the chat header to clear the conversation and start fresh
 - The chat adapts to your current theme (dark/light)
 
 ---

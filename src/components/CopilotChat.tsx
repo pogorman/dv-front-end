@@ -7,7 +7,7 @@ import {
   Text,
   Spinner,
 } from "@fluentui/react-components";
-import { Dismiss24Regular } from "@fluentui/react-icons";
+import { Dismiss24Regular, ArrowReset24Regular } from "@fluentui/react-icons";
 import ReactWebChat, { createDirectLine, createStore } from "botframework-webchat";
 import { useTheme } from "../context/ThemeContext";
 import { useMsal } from "@azure/msal-react";
@@ -295,6 +295,13 @@ export const CopilotChat: React.FC = () => {
     initializeChat();
   };
 
+  const handleClear = () => {
+    setDirectLine(null);
+    setStore(null);
+    setError(null);
+    initializeChat();
+  };
+
   const styleOptions = {
     backgroundColor: isDark ? "#1f1f1f" : "#ffffff",
     primaryFont: "'Segoe UI', sans-serif",
@@ -342,13 +349,23 @@ export const CopilotChat: React.FC = () => {
             My Work
           </Text>
         </div>
-        <Button
-          appearance="subtle"
-          icon={<Dismiss24Regular />}
-          onClick={handleClose}
-          style={{ color: "white" }}
-          aria-label="Close chat"
-        />
+        <div style={{ display: "flex", gap: "4px" }}>
+          <Button
+            appearance="subtle"
+            icon={<ArrowReset24Regular />}
+            onClick={handleClear}
+            style={{ color: "white" }}
+            aria-label="Clear conversation"
+            title="Clear conversation"
+          />
+          <Button
+            appearance="subtle"
+            icon={<Dismiss24Regular />}
+            onClick={handleClose}
+            style={{ color: "white" }}
+            aria-label="Close chat"
+          />
+        </div>
       </div>
       <div className={styles.chatBody}>
         {isLoading ? (

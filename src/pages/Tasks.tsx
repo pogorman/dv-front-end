@@ -38,6 +38,8 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
+  TextBulletListLtr20Regular,
+  Grid20Regular,
 } from "@fluentui/react-icons";
 import { ActionItem, Account, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
@@ -156,6 +158,49 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
   },
+  tileGrid: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    ...shorthands.gap("10px"),
+  },
+  tile: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    ...shorthands.padding("12px"),
+    width: "220px",
+    minHeight: "120px",
+    backgroundColor: tokens.colorNeutralBackground1,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  tileName: {
+    fontWeight: 600,
+    fontSize: "13px",
+    lineHeight: "1.3",
+    wordBreak: "break-word" as const,
+    paddingRight: "4px",
+  },
+  tileMeta: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.gap("4px"),
+    width: "100%",
+    marginTop: "8px",
+  },
+  viewToggle: {
+    display: "flex",
+    ...shorthands.gap("2px"),
+    backgroundColor: tokens.colorNeutralBackground3,
+    ...shorthands.borderRadius("6px"),
+    ...shorthands.padding("2px"),
+  },
 });
 
 // Short labels for grid display
@@ -265,6 +310,14 @@ export const Tasks: React.FC = () => {
   const [viewingItem, setViewingItem] = useState<ActionItem | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
+    (localStorage.getItem("og-tasks-view-mode") as "list" | "tiles") || "list"
+  );
+
+  const toggleViewMode = (mode: "list" | "tiles") => {
+    setViewMode(mode);
+    localStorage.setItem("og-tasks-view-mode", mode);
+  };
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -550,6 +603,24 @@ export const Tasks: React.FC = () => {
           <Option value="personal">Personal</Option>
           <Option value="all">All</Option>
         </Dropdown>
+        <div className={styles.viewToggle}>
+          <Button
+            appearance={viewMode === "list" ? "primary" : "subtle"}
+            icon={<TextBulletListLtr20Regular />}
+            size="small"
+            onClick={() => toggleViewMode("list")}
+            aria-label="List view"
+            style={{ minWidth: "auto" }}
+          />
+          <Button
+            appearance={viewMode === "tiles" ? "primary" : "subtle"}
+            icon={<Grid20Regular />}
+            size="small"
+            onClick={() => toggleViewMode("tiles")}
+            aria-label="Tile view"
+            style={{ minWidth: "auto" }}
+          />
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
             New Task
@@ -704,22 +775,22 @@ export const Tasks: React.FC = () => {
         </Dialog>
       </div>
 
-      <Card className={styles.card}>
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-            <Spinner label="Loading tasks..." />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <TaskListSquareLtr24Filled
-              style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }}
-            />
-            <Subtitle1>No tasks found</Subtitle1>
-            <Caption1 style={{ marginTop: 8 }}>
-              Create your first task to start tracking.
-            </Caption1>
-          </div>
-        ) : (
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+          <Spinner label="Loading tasks..." />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <TaskListSquareLtr24Filled
+            style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }}
+          />
+          <Subtitle1>No tasks found</Subtitle1>
+          <Caption1 style={{ marginTop: 8 }}>
+            Create your first task to start tracking.
+          </Caption1>
+        </div>
+      ) : viewMode === "list" ? (
+        <Card className={styles.card}>
           <DataGrid
             items={filtered}
             columns={gridColumns}
@@ -747,8 +818,40 @@ export const Tasks: React.FC = () => {
               )}
             </DataGridBody>
           </DataGrid>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.tileGrid}>
+          {filtered.map((t) => (
+            <div
+              key={t.tdvsp_actionitemid}
+              className={styles.tile}
+              onClick={() => openView(t)}
+            >
+              <Text className={styles.tileName}>{t.tdvsp_name}</Text>
+              <div className={styles.tileMeta}>
+                <Caption1
+                  style={t.tdvsp_date && isOverdue(t.tdvsp_date) ? { color: "#f87171", fontWeight: 600 } : { color: tokens.colorNeutralForeground3 }}
+                >
+                  {t.tdvsp_date ? formatDate(t.tdvsp_date) : "No date"}
+                </Caption1>
+                {t.tdvsp_Customer?.name && (
+                  <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>
+                    {t.tdvsp_Customer.name}
+                  </Caption1>
+                )}
+                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                  {t.tdvsp_priority != null && priorityColors[t.tdvsp_priority] && (
+                    renderBadge(priorityShortLabels[t.tdvsp_priority] ?? "", priorityColors[t.tdvsp_priority])
+                  )}
+                  {t.tdvsp_taskstatus != null && statusColors[t.tdvsp_taskstatus] && (
+                    renderBadge(statusShortLabels[t.tdvsp_taskstatus] ?? "", statusColors[t.tdvsp_taskstatus])
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={(_, d) => { setViewDialogOpen(d.open); if (!d.open) { setIsEditing(false); setEditingId(null); } }}>
