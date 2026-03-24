@@ -31,6 +31,7 @@ import {
   TaskStatus,
   taskStatusLabels,
   taskPriorityLabels,
+  taskPriorityOrder,
   TaskType,
 } from "../types";
 import {
@@ -390,8 +391,8 @@ export const Personal: React.FC = () => {
                       <Label>Priority</Label>
                       {isEditing ? (
                         <Dropdown value={formData.tdvsp_priority ? (priorityShortLabels[Number(formData.tdvsp_priority)] ?? "") : ""} selectedOptions={formData.tdvsp_priority ? [formData.tdvsp_priority] : []} onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_priority: d.optionValue ?? "" })}>
-                          {Object.entries(taskPriorityLabels).map(([val, label]) => (
-                            <Option key={val} value={val}>{label}</Option>
+                          {taskPriorityOrder.map((val) => (
+                            <Option key={val} value={String(val)}>{taskPriorityLabels[val]}</Option>
                           ))}
                         </Dropdown>
                       ) : (

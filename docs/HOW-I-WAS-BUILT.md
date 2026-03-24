@@ -102,6 +102,18 @@ Adding discoverability to the compact dashboard tiles:
   - Positioning varies: `"above"` for work tiles, `"below"` for projects and parking lot to avoid overlapping content above/below
   - 400ms delay prevents tooltips from firing on casual mouse movement
 
+### Phase 8: Dashboard Status Badges & Priority Order
+
+Improving tile information density and dropdown UX:
+
+- **Prompt pattern:** "Add status pill badges to dashboard work tiles and reorder priority dropdowns"
+- **Result:** Work tiles now show a colored status pill badge at bottom-right (Pondering, In Progress, Pending Comm., On Hold, Wrapping Up) using the same `<span>` renderBadge-style pills as entity page DataGrids. Top Priority and Overdue indicators were also converted from Fluent UI `Badge` components to the same pill style for visual consistency. A `taskPriorityOrder` array was added to `types/index.ts` to control dropdown display order across the app.
+- **Key decisions:**
+  - Status badges use short labels (`statusShortLabels`) and matching colors (`statusColors`) defined in Dashboard.tsx
+  - All pill badges (status, Top Priority, Overdue) now use the same consistent `<span>` style: semi-transparent colored background, 9px font, 4px border-radius
+  - Priority dropdown order changed to ascending severity: Low, Eh, High, Top Priority (top priority moved to last/bottom position instead of third)
+  - `taskPriorityOrder` array is the single source of truth for dropdown order, used by Tasks, Dashboard, Accounts, and Personal pages
+
 ---
 
 ## Design Principles

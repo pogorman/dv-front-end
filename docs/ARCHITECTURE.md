@@ -360,7 +360,7 @@ All 7 entity pages use a consistent pattern:
 
 ### Dashboard Layout
 
-The dashboard uses a two-column layout: main area (flex-grow) + right sidebar (260px, collapsible). The main area contains (top to bottom): Quick Create bar, Parking Lot strip, Projects strip (blue accent, 160px tiles), and Work tile grid (3 per row). The right sidebar has a Fluent UI `TabList` with two tabs: "ideas" (default, scrollable vertical list with category badges and actions) and "pinned notes" (pinned annotations from any entity). Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
+The dashboard uses a two-column layout: main area (flex-grow) + right sidebar (260px, collapsible). The main area contains (top to bottom): Quick Create bar, Parking Lot strip, Projects strip (blue accent, 160px tiles), and Work tile grid (3 per row). Work tiles show indicator pill badges at bottom-left ("Top Priority" red, "Overdue" amber) and a status pill badge at bottom-right (Pondering, In Progress, Pending Comm., On Hold, Wrapping Up) -- all rendered as `<span>` pills with semi-transparent colored backgrounds matching the renderBadge style used on entity pages. The right sidebar has a Fluent UI `TabList` with two tabs: "ideas" (default, scrollable vertical list with category badges and actions) and "pinned notes" (pinned annotations from any entity). Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
 
 ### Dashboard Tile Tooltips
 

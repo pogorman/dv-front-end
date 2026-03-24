@@ -74,6 +74,14 @@ The right sidebar is collapsible via the toggle button in the quick create bar. 
 
 Hover over any tile (work, projects, or parking lot) for about half a second. A tooltip with an arrow appears showing the full details that get truncated on the small tile -- name, description, date, account, status, priority (for work tiles) or description and account (for project tiles). You can also click the tile to open the full view/edit dialog.
 
+### What do the colored badges on work tiles mean?
+
+Work tiles show up to two types of colored pill badges. At bottom-left: "Top Priority" (red) if the item is marked top priority, or "Overdue" (amber) if the date has passed. At bottom-right: the current workflow status (Pondering, In Progress, Pending Comm., On Hold, or Wrapping Up) in a matching color.
+
+### Why is the priority dropdown ordered Low, Eh, High, Top Priority?
+
+The dropdown is ordered by ascending severity so the most common choices (lower priority) appear first and the highest priority is a deliberate choice at the bottom. This order is consistent across all pages (Tasks, Dashboard, Accounts, Personal).
+
 ### How is the dashboard sorted?
 
 - **Action items (work card):** By date ascending (past/overdue first, then nearest upcoming)

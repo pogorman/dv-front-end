@@ -44,7 +44,7 @@ import {
   PeopleTeam20Filled,
   Building24Filled,
 } from "@fluentui/react-icons";
-import { Account, Customer, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
+import { Account, Customer, ActionItem, Impact, Idea, MeetingSummary, ideaCategoryLabels, IdeaCategory, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import { NotesTimeline } from "../components/NotesTimeline";
 import { useNotification } from "../context/NotificationContext";
@@ -936,8 +936,8 @@ export const Accounts: React.FC = () => {
                       value={newActionItem.tdvsp_priority ? taskPriorityLabels[Number(newActionItem.tdvsp_priority) as TaskPriority] ?? "" : ""}
                       onOptionSelect={(_, d) => setNewActionItem({ ...newActionItem, tdvsp_priority: d.optionValue ?? "" })}
                     >
-                      {Object.entries(taskPriorityLabels).map(([value, label]) => (
-                        <Option key={value} value={value} text={label}>{label}</Option>
+                      {taskPriorityOrder.map((value) => (
+                        <Option key={value} value={String(value)} text={taskPriorityLabels[value]}>{taskPriorityLabels[value]}</Option>
                       ))}
                     </Dropdown>
                   </div>

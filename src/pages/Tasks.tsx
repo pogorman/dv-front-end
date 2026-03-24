@@ -39,7 +39,7 @@ import {
   Delete24Regular,
   Dismiss24Regular,
 } from "@fluentui/react-icons";
-import { ActionItem, Account, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
+import { ActionItem, Account, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getActionItems,
@@ -655,10 +655,10 @@ export const Tasks: React.FC = () => {
                         })
                       }
                     >
-                      {(Object.entries(taskPriorityLabels) as [string, string][]).map(
-                        ([value, label]) => (
-                          <Option key={value} value={value}>
-                            {label}
+                      {taskPriorityOrder.map(
+                        (value) => (
+                          <Option key={value} value={String(value)}>
+                            {taskPriorityLabels[value]}
                           </Option>
                         )
                       )}
@@ -838,8 +838,8 @@ export const Tasks: React.FC = () => {
                             value={formData.tdvsp_priority ? taskPriorityLabels[Number(formData.tdvsp_priority) as TaskPriority] ?? "" : ""}
                             onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_priority: d.optionValue ?? "" })}
                           >
-                            {(Object.entries(taskPriorityLabels) as [string, string][]).map(([value, label]) => (
-                              <Option key={value} value={value}>{label}</Option>
+                            {taskPriorityOrder.map((value) => (
+                              <Option key={value} value={String(value)}>{taskPriorityLabels[value]}</Option>
                             ))}
                           </Dropdown>
                         ) : (

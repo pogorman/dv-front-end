@@ -47,7 +47,7 @@ A blue-accented horizontal strip showing all your projects as tiles (160px wide)
 
 ### Work Card
 
-A full-width tile grid showing all non-complete work action items. Tiles are arranged 3 per row. Top priority items appear first, then the rest -- all in a single unified grid. Each tile shows name, date, account, and badges for "Top Priority" or "Overdue". Click to open the view/edit dialog inline.
+A full-width tile grid showing all non-complete work action items. Tiles are arranged 3 per row. Top priority items appear first, then the rest -- all in a single unified grid. Each tile shows name, date, account, colored pill badges for "Top Priority" (red) or "Overdue" (amber) at bottom-left, and a status pill badge at bottom-right showing the current workflow status (Pondering, In Progress, Pending Comm., On Hold, or Wrapping Up). Click to open the view/edit dialog inline.
 
 ### Tile Tooltips
 
@@ -109,7 +109,7 @@ Task management with status, priority, and type tracking. Supports work/personal
 
 **Status workflow:** Recognized/Pondering -> In Progress -> Pending Communication -> On Hold -> Wrapping Up -> Complete
 
-**Priority options:** Low... but on deck for sure | Eh... Get to it when you can | Top priority... no kidding! | High... next in line after top priority...
+**Priority options (dropdown order):** Low... but on deck for sure | Eh... Get to it when you can | High... next in line after top priority... | Top priority... no kidding!
 
 ### Ideas
 

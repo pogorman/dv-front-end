@@ -6,7 +6,7 @@ import {
   shorthands,
   Card,
   Text,
-  Badge,
+
   Subtitle1,
   Body1,
   Caption1,
@@ -53,7 +53,7 @@ import {
   Edit24Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
-import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, TaskType, taskTypeLabels } from "../types";
+import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, Annotation, NoteEntityType, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
 import { NotesTimeline } from "../components/NotesTimeline";
 import {
   getActionItems,
@@ -81,6 +81,24 @@ import { formatDate } from "../utils/formatDate";
 import { getPinnedNoteRefs, unpinNote, PinnedNoteRef } from "../utils/pinnedNotes";
 import { getParkedItems, parkItem, unparkItem, isItemParked, ParkedItemRef } from "../utils/parkingLot";
 import { useNotification } from "../context/NotificationContext";
+
+const statusShortLabels: Record<number, string> = {
+  468510000: "Pondering",
+  468510001: "In Progress",
+  468510002: "Pending Comm.",
+  468510003: "On Hold",
+  468510004: "Wrapping Up",
+  468510005: "Complete",
+};
+
+const statusColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510001: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
+  468510002: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+  468510003: { bg: "rgba(234, 179, 8, 0.15)", text: "#eab308" },
+  468510004: { bg: "rgba(34, 211, 238, 0.15)", text: "#22d3ee" },
+  468510005: { bg: "rgba(61, 214, 140, 0.15)", text: "#3dd68c" },
+};
 
 const useStyles = makeStyles({
   container: {
@@ -1218,12 +1236,19 @@ export const Dashboard: React.FC = () => {
                         {t.tdvsp_date && formatDate(t.tdvsp_date)}
                         {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                       </Caption1>
-                      <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-start", gap: "4px" }}>
-                        {t.tdvsp_priority === 468510002 && (
-                          <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
-                        )}
-                        {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
-                          <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
+                      <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          {t.tdvsp_priority === 468510002 && (
+                            <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(248, 113, 113, 0.15)", color: "#f87171", whiteSpace: "nowrap" }}>Top Priority</span>
+                          )}
+                          {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                            <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", whiteSpace: "nowrap" }}>Overdue</span>
+                          )}
+                        </div>
+                        {t.tdvsp_taskstatus != null && statusColors[t.tdvsp_taskstatus] && (
+                          <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: statusColors[t.tdvsp_taskstatus].bg, color: statusColors[t.tdvsp_taskstatus].text, whiteSpace: "nowrap" }}>
+                            {statusShortLabels[t.tdvsp_taskstatus]}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -1594,8 +1619,8 @@ export const Dashboard: React.FC = () => {
                       value={newTask.tdvsp_priority ? taskPriorityLabels[Number(newTask.tdvsp_priority) as TaskPriority] ?? "" : ""}
                       onOptionSelect={(_, d) => setNewTask({ ...newTask, tdvsp_priority: d.optionValue ?? "" })}
                     >
-                      {Object.entries(taskPriorityLabels).map(([value, label]) => (
-                        <Option key={value} value={value} text={label}>{label}</Option>
+                      {taskPriorityOrder.map((value) => (
+                        <Option key={value} value={String(value)} text={taskPriorityLabels[value]}>{taskPriorityLabels[value]}</Option>
                       ))}
                     </Dropdown>
                   </div>
@@ -1849,12 +1874,21 @@ export const Dashboard: React.FC = () => {
                             {t.tdvsp_date && formatDate(t.tdvsp_date)}
                             {t.tdvsp_Customer?.name && ` · ${t.tdvsp_Customer.name}`}
                           </Caption1>
-                          {t.tdvsp_priority === 468510002 && (
-                            <Badge appearance="filled" size="small" color="danger">Top Priority</Badge>
-                          )}
-                          {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
-                            <Badge appearance="filled" size="small" color="warning">Overdue</Badge>
-                          )}
+                          <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                            <div style={{ display: "flex", gap: "4px" }}>
+                              {t.tdvsp_priority === 468510002 && (
+                                <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(248, 113, 113, 0.15)", color: "#f87171", whiteSpace: "nowrap" }}>Top Priority</span>
+                              )}
+                              {t.tdvsp_date && new Date(t.tdvsp_date) < new Date() && t.tdvsp_priority !== 468510002 && (
+                                <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", whiteSpace: "nowrap" }}>Overdue</span>
+                              )}
+                            </div>
+                            {t.tdvsp_taskstatus != null && statusColors[t.tdvsp_taskstatus] && (
+                              <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 500, backgroundColor: statusColors[t.tdvsp_taskstatus].bg, color: statusColors[t.tdvsp_taskstatus].text, whiteSpace: "nowrap" }}>
+                                {statusShortLabels[t.tdvsp_taskstatus]}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </Tooltip>
                     ))}
@@ -1956,8 +1990,8 @@ export const Dashboard: React.FC = () => {
                             value={editFormData.tdvsp_priority ? taskPriorityLabels[Number(editFormData.tdvsp_priority) as TaskPriority] ?? "" : ""}
                             onOptionSelect={(_, d) => setEditFormData({ ...editFormData, tdvsp_priority: d.optionValue ?? "" })}
                           >
-                            {(Object.entries(taskPriorityLabels) as [string, string][]).map(([value, label]) => (
-                              <Option key={value} value={value}>{label}</Option>
+                            {taskPriorityOrder.map((value) => (
+                              <Option key={value} value={String(value)}>{taskPriorityLabels[value]}</Option>
                             ))}
                           </Dropdown>
                         ) : (

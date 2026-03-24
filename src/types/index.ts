@@ -63,6 +63,14 @@ export const taskPriorityLabels: Record<TaskPriority, string> = {
   468510003: "High... next in line after top priority...",
 };
 
+// Display order for priority dropdown (top priority last)
+export const taskPriorityOrder: TaskPriority[] = [
+  468510000, // Low
+  468510001, // Eh
+  468510003, // High
+  468510002, // Top priority
+];
+
 // Task Type choice field (on Action Items)
 export type TaskType =
   | 468510000 // Personal
