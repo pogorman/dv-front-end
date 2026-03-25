@@ -150,6 +150,18 @@ Adding visual priority to tiles and expanding entity relationships:
   - Color-to-priority mapping in `tileColors.ts` is the single source of truth for both directions (color->priority and priority->color)
   - Pages without tile colors (Accounts, Contacts, Impacts, MeetingSummaries) were intentionally excluded -- they don't have a natural priority concept
 
+### Phase 12: Learning Task Type, Sidebar Reorg & Summaries → Meetings Rename
+
+Adding a third task type and reorganizing navigation:
+
+- **Prompt pattern:** "Add Learning as a third task type, reorganize the sidebar, rename summaries to meetings"
+- **Result:** New `Learning` task type (468510002) added to types, Tasks page filter (Work/Personal/Learning/All), and Dashboard work column (w/p/l toggle). Sidebar reorganized: personal moved before ideas in the activity section, summaries renamed to "meetings" and moved from core to activity section. All UI labels updated from "summaries" to "meetings" (MeetingSummaries page header, search placeholder, dialogs, Accounts view dialog, Dashboard quick create/dialogs). Dashboard quick create bar now has separate task/personal/learning buttons that pre-set the task type, plus a "meeting" button replacing "summary". Work filter changed from `!== personal` to `=== work` to correctly exclude learning items.
+- **Key decisions:**
+  - Three dedicated quick create buttons (task/personal/learning) pre-set the `tdvsp_tasktype` field instead of requiring users to pick from a dropdown in the form
+  - Dashboard work column accent color changes dynamically: red for work, cyan for personal, purple for learning
+  - HatGraduation icon chosen for learning to distinguish it visually from work (Briefcase) and personal (Home)
+  - "Meetings" label is more intuitive than "summaries" for the sidebar — the page component filename (`MeetingSummaries.tsx`) stays unchanged to avoid refactoring churn
+
 ---
 
 ## Design Principles

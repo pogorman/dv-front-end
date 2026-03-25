@@ -42,6 +42,9 @@ import {
   Person20Regular,
   Edit24Regular,
   Home24Filled,
+  Home20Regular,
+  HatGraduation24Filled,
+  HatGraduation20Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
@@ -345,7 +348,7 @@ export const Dashboard: React.FC = () => {
   // Dashboard deactivate handler
   const [deactivateConfirm, setDeactivateConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" } | null>(null);
   const [isDragOverParking, setIsDragOverParking] = useState(false);
-  const [workFilter, setWorkFilter] = useState<"work" | "personal">("work");
+  const [workFilter, setWorkFilter] = useState<"work" | "personal" | "learning">("work");
   const [reorderDrag, setReorderDrag] = useState<{ column: string; id: string; index: number } | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{ column: string; index: number; position: "before" | "after" } | null>(null);
   const [orderVersion, setOrderVersion] = useState(0);
@@ -865,12 +868,15 @@ export const Dashboard: React.FC = () => {
     new Date(a.tdvsp_date).getTime() - new Date(b.tdvsp_date).getTime();
 
   const workItems = actionItems
-    .filter((t) => t.tdvsp_tasktype !== (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+    .filter((t) => t.tdvsp_tasktype === (468510001 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
     .sort(dateAsc);
   const personalItems = actionItems
     .filter((t) => t.tdvsp_tasktype === (468510000 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
     .sort(dateAsc);
-  const displayedItems = workFilter === "work" ? workItems : personalItems;
+  const learningItems = actionItems
+    .filter((t) => t.tdvsp_tasktype === (468510002 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+    .sort(dateAsc);
+  const displayedItems = workFilter === "work" ? workItems : workFilter === "learning" ? learningItems : personalItems;
   const topPriorityDisplay = displayedItems.filter((t) => t.tdvsp_priority === 468510002);
   const otherDisplay = displayedItems.filter((t) => t.tdvsp_priority !== 468510002);
 
@@ -941,13 +947,15 @@ export const Dashboard: React.FC = () => {
     <div className={styles.container}>
       {/* Quick Create Title Bar */}
       <div className={styles.quickCreateBar}>
-        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => setAddTaskOpen(true)} style={{ backgroundColor: "rgba(248,113,113,0.12)", color: "#f87171", borderColor: "rgba(248,113,113,0.25)" }}>task</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => { setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "468510001" }); setAddTaskOpen(true); }} style={{ backgroundColor: "rgba(248,113,113,0.12)", color: "#f87171", borderColor: "rgba(248,113,113,0.25)" }}>task</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Home20Regular />} onClick={() => { setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "468510000" }); setAddTaskOpen(true); }} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>personal</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<HatGraduation20Regular />} onClick={() => { setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "468510002" }); setAddTaskOpen(true); }} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>learning</Button>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>idea</Button>
-        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)} style={{ backgroundColor: "rgba(245,158,11,0.12)", color: "#f59e0b", borderColor: "rgba(245,158,11,0.25)" }}>impact</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>meeting</Button>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Building20Regular />} onClick={() => setAddAccountOpen(true)} style={{ backgroundColor: "rgba(61,214,140,0.12)", color: "#3dd68c", borderColor: "rgba(61,214,140,0.25)" }}>account</Button>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Person20Regular />} onClick={() => setAddContactOpen(true)} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>contact</Button>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Briefcase20Regular />} onClick={() => setAddProjectOpen(true)} style={{ backgroundColor: "rgba(232,121,249,0.12)", color: "#e879f9", borderColor: "rgba(232,121,249,0.25)" }}>project</Button>
-        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>summary</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Flash20Regular />} onClick={() => setAddImpactOpen(true)} style={{ backgroundColor: "rgba(245,158,11,0.12)", color: "#f59e0b", borderColor: "rgba(245,158,11,0.25)" }}>impact</Button>
       </div>
 
 
@@ -1021,14 +1029,15 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Column 2: Work / Personal */}
-        <div className={styles.column} style={{ flex: 2, borderLeftColor: workFilter === "work" ? "#f87171" : "#22d3ee" }}>
+        <div className={styles.column} style={{ flex: 2, borderLeftColor: workFilter === "work" ? "#f87171" : workFilter === "learning" ? "#a78bfa" : "#22d3ee" }}>
           <div className={styles.columnHeader}>
-            {workFilter === "work" ? <Briefcase24Filled style={{ color: "#f87171" }} /> : <Home24Filled style={{ color: "#22d3ee" }} />}
-            <Subtitle1>{workFilter === "work" ? "work" : "personal"}</Subtitle1>
+            {workFilter === "work" ? <Briefcase24Filled style={{ color: "#f87171" }} /> : workFilter === "learning" ? <HatGraduation24Filled style={{ color: "#a78bfa" }} /> : <Home24Filled style={{ color: "#22d3ee" }} />}
+            <Subtitle1>{workFilter}</Subtitle1>
             <span className={styles.columnCount}>{orderedDisplayItems.length}</span>
             <div style={{ display: "flex", gap: "1px", backgroundColor: tokens.colorNeutralBackground3, borderRadius: "4px", padding: "1px", marginLeft: "auto" }}>
               <Button appearance={workFilter === "work" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("work")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>w</Button>
               <Button appearance={workFilter === "personal" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("personal")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>p</Button>
+              <Button appearance={workFilter === "learning" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("learning")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>l</Button>
             </div>
           </div>
           <div className={styles.columnContent}>
@@ -1536,7 +1545,7 @@ export const Dashboard: React.FC = () => {
       <Dialog open={addSummaryOpen} onOpenChange={(_, d) => setAddSummaryOpen(d.open)}>
         <DialogSurface style={{ maxWidth: "600px", width: "600px" }}>
           <DialogBody>
-            <DialogTitle>New Summary</DialogTitle>
+            <DialogTitle>New Meeting</DialogTitle>
             <DialogContent>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>

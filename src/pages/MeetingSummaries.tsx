@@ -471,13 +471,13 @@ export const MeetingSummaries: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.pageHeader}>
         <PeopleTeam24Filled style={{ color: "#3dd68c", fontSize: 28 }} />
-        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>summaries</Subtitle1>
+        <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>meetings</Subtitle1>
       </div>
       <div className={styles.toolbar}>
         <Input
           className={styles.searchBox}
           contentBefore={<Search24Regular />}
-          placeholder="Search summaries..."
+          placeholder="Search meetings..."
           value={searchQuery}
           onChange={(_, d) => setSearchQuery(d.value)}
         />
@@ -487,11 +487,11 @@ export const MeetingSummaries: React.FC = () => {
         </div>
         <Dialog open={dialogOpen} onOpenChange={(_, d) => setDialogOpen(d.open)}>
           <Button appearance="primary" icon={<Add24Regular />} onClick={openNew}>
-            New Summary
+            New Meeting
           </Button>
           <DialogSurface style={{ maxWidth: "700px", width: "700px" }}>
             <DialogBody>
-              <DialogTitle>New Summary</DialogTitle>
+              <DialogTitle>New Meeting</DialogTitle>
               <DialogContent>
                 <div className={styles.formGrid}>
                   <div className={styles.formFieldFull}>
@@ -581,12 +581,12 @@ export const MeetingSummaries: React.FC = () => {
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-          <Spinner label="Loading summaries..." />
+          <Spinner label="Loading meetings..." />
         </div>
       ) : filtered.length === 0 ? (
         <div className={styles.emptyState}>
           <PeopleTeam24Filled style={{ fontSize: 48, color: "#3dd68c", marginBottom: 16 }} />
-          <Subtitle1>No summaries found</Subtitle1>
+          <Subtitle1>No meetings found</Subtitle1>
           <Caption1 style={{ marginTop: 8 }}>
             Create your first summary to start tracking.
           </Caption1>

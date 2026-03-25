@@ -353,7 +353,7 @@ Microsoft Copilot Studio Agent
 | Accounts | Blue | `#4a9eff` |
 | Contacts | Cyan | `#22d3ee` |
 | Projects | Blue | `#4a9eff` |
-| Summaries | Green | `#3dd68c` |
+| Meetings | Green | `#3dd68c` |
 
 ### DataGrid List View Pattern
 
@@ -370,7 +370,7 @@ All 8 entity pages use a consistent pattern:
 
 The dashboard uses a four-column layout filling viewport height. Quick create buttons sit in a compact title bar row at the top. Columns left to right: Parking Lot | Work (flex: 2) | Projects | Ideas. Each column has an accent-colored 3px left border, header (icon + title + count), and scrollable content area with vertical card list.
 
-- **Work column** includes a **w/p toggle** in the header to switch between work and personal action items.
+- **Work column** includes a **w/p/l toggle** in the header to switch between work, personal, and learning action items.
 - **Drag-and-drop**: Items can be dragged from Work, Projects, or Ideas columns into the Parking Lot. All column items can be reordered within their column via drag-and-drop. Custom ordering is persisted to localStorage.
 - Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
 

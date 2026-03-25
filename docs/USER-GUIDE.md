@@ -21,8 +21,8 @@ The **sidebar** (left) organizes pages into sections. Click the chevron at the t
 | Section | Pages | Icon |
 |---------|-------|------|
 | *(Top)* | dashboard | Home |
-| **activity** | tasks, ideas, personal, impacts | CheckboxChecked, LightbulbFilament, Home, Flash |
-| **core** | accounts, contacts, projects, summaries | Building, Person, Briefcase, PeopleTeam |
+| **activity** | tasks, personal, ideas, meetings | CheckboxChecked, Home, LightbulbFilament, PeopleTeam |
+| **core** | accounts, contacts, projects, impacts | Building, Person, Briefcase, Flash |
 | *(Bottom)* | about this site | Info |
 
 At the bottom of the sidebar you'll find your avatar, name, and a **Sign out** button.
@@ -35,7 +35,7 @@ The dashboard is your home base. Everything is visible at a glance, and most act
 
 ### Quick Create Bar
 
-The top bar has pill-style buttons for creating any record type: action item, idea, impact, account, contact, project, or summary. Click a button, fill the inline form, and save -- you stay on the dashboard the whole time. Save buttons show a spinner and disable while saving to prevent duplicates.
+The top bar has pill-style buttons for creating any record type: task, personal, learning, idea, meeting, account, contact, project, or impact. The task/personal/learning buttons each pre-set the task type. Click a button, fill the inline form, and save -- you stay on the dashboard the whole time. Save buttons show a spinner and disable while saving to prevent duplicates.
 
 ### Parking Lot
 
@@ -43,7 +43,7 @@ The first column (lime green accent, car icon). Bookmark any item from the dashb
 
 ### Work Column
 
-The widest column (red accent, flex: 2) showing all non-complete action items. Each card shows name, date, account, and colored pill badges for priority and status. Click to open the view/edit dialog inline. A small **w/p toggle** in the column header lets you switch between work and personal action items.
+The widest column (flex: 2) showing action items filtered by type. Each card shows name, date, account, and colored pill badges for priority and status. Click to open the view/edit dialog inline. A small **w/p/l toggle** in the column header lets you switch between work (red accent), personal (cyan accent), and learning (purple accent) action items.
 
 ### Projects Column
 
@@ -122,9 +122,9 @@ Manage contact records linked to accounts. The view dialog shows contact details
 
 ### Tasks (Action Items)
 
-Task management with status, priority, and type tracking. Supports work/personal categorization. The view dialog shows details plus a notes timeline.
+Task management with status, priority, and type tracking. Supports work/personal/learning categorization. The view dialog shows details plus a notes timeline.
 
-**Filter:** A Work/Personal/All dropdown (defaults to Work) filters action items by task type.
+**Filter:** A Work/Personal/Learning/All dropdown (defaults to Work) filters action items by task type.
 
 **Status workflow:** Recognized/Pondering -> In Progress -> Pending Communication -> On Hold -> Wrapping Up -> Complete
 

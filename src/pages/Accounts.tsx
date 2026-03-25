@@ -837,7 +837,7 @@ export const Accounts: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Column 2: Impacts, Summaries */}
+                      {/* Column 2: Impacts, Meetings */}
                       <div className={styles.viewColumn}>
                         {/* Impacts */}
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
@@ -865,7 +865,7 @@ export const Accounts: React.FC = () => {
                         <div className={styles.relatedSection} style={{ marginTop: 0 }}>
                           <div className={styles.relatedHeader}>
                             <PeopleTeam20Filled style={{ color: "#3dd68c" }} />
-                            <Subtitle1>Summaries</Subtitle1>
+                            <Subtitle1>Meetings</Subtitle1>
                             <span className={styles.badge}>{relatedSummaries.length}</span>
                             <Button appearance="subtle" size="small" icon={<Add16Regular />} onClick={() => setAddSummaryOpen(true)}>Add</Button>
                           </div>
@@ -1091,7 +1091,7 @@ export const Accounts: React.FC = () => {
       <Dialog open={addSummaryOpen} onOpenChange={(_, d) => setAddSummaryOpen(d.open)}>
         <DialogSurface style={{ maxWidth: "600px", width: "600px" }}>
           <DialogBody>
-            <DialogTitle>Add Summary to {viewingAccount?.name}</DialogTitle>
+            <DialogTitle>Add Meeting to {viewingAccount?.name}</DialogTitle>
             <DialogContent>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div className={styles.formField}>

@@ -351,6 +351,7 @@ User opens app
 |-------|-------|
 | 468510000 | Personal |
 | 468510001 | Work |
+| 468510002 | Learning |
 
 ### OData API Patterns
 
@@ -408,8 +409,8 @@ The application shell provides the persistent layout for all authenticated pages
 
 **Navigation Sections & Icons:**
 1. **Dashboard** (top, standalone) — Home icon
-2. **Activity:** Tasks (CheckboxChecked), Ideas (LightbulbFilament), Personal (Home), Impacts (Flash)
-3. **Core:** Accounts (Building), Contacts (Person), Projects (Briefcase), Meeting Summaries (PeopleTeam)
+2. **Activity:** Tasks (CheckboxChecked), Personal (Home), Ideas (LightbulbFilament), Meetings (PeopleTeam)
+3. **Core:** Accounts (Building), Contacts (Person), Projects (Briefcase), Impacts (Flash)
 4. **About this site** (bottom) — Info icon
 
 **Features:**
@@ -587,11 +588,11 @@ CRUD for contact records linked to accounts.
 
 Task management with status tracking.
 
-**Main View:** Toolbar with Work/Personal/All filter (defaults to Work) and a list/tile view toggle (persisted to localStorage as `og-tasks-view-mode`, defaults to list). List view uses DataGrid with columns: Date, Name (clickable), Task Status, Priority, Type, Customer, Description, Created On, Actions. Tile view shows 220px cards with the same information.
+**Main View:** Toolbar with Work/Personal/Learning/All filter (defaults to Work) and a list/tile view toggle (persisted to localStorage as `og-tasks-view-mode`, defaults to list). List view uses DataGrid with columns: Date, Name (clickable), Task Status, Priority, Type, Customer, Description, Created On, Actions. Tile view shows 220px cards with the same information.
 
 **View Dialog:** Two-column layout — Details (name, description, date, status, priority, type, customer, created on) on the left, Notes Timeline on the right
 
-**Forms:** Name (required), Date, Account (dropdown), Task Status (6-option dropdown), Priority (4-option dropdown), Task Type (Personal/Work dropdown), Description (textarea)
+**Forms:** Name (required), Date, Account (dropdown), Task Status (6-option dropdown), Priority (4-option dropdown), Task Type (Personal/Work/Learning dropdown), Description (textarea)
 
 **Task Status Workflow:** Recognized/Pondering → In Progress → Pending Communication → On Hold → Wrapping Up → Complete
 
@@ -850,8 +851,8 @@ The **sidebar** (left) organizes pages into sections:
 | Section | Pages |
 |---------|-------|
 | *(Top)* | Dashboard |
-| **Activity** | Tasks, Ideas, Personal, Impacts |
-| **Core** | Accounts, Contacts, Projects, Meeting Summaries |
+| **Activity** | Tasks, Personal, Ideas, Meetings |
+| **Core** | Accounts, Contacts, Projects, Impacts |
 | *(Bottom)* | About this site |
 
 - Click the **chevron** at the top of the sidebar to collapse/expand it

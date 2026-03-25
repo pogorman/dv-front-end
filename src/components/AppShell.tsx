@@ -217,6 +217,14 @@ const navSections: NavSection[] = [
         color: "#f87171",
       },
       {
+        key: "personal",
+        label: "personal",
+        path: "/personal",
+        icon: <Home24Regular />,
+        iconActive: <Home24Filled />,
+        color: "#22d3ee",
+      },
+      {
         key: "ideas",
         label: "ideas",
         path: "/ideas",
@@ -225,12 +233,12 @@ const navSections: NavSection[] = [
         color: "#a78bfa",
       },
       {
-        key: "personal",
-        label: "personal",
-        path: "/personal",
-        icon: <Home24Regular />,
-        iconActive: <Home24Filled />,
-        color: "#22d3ee",
+        key: "summaries",
+        label: "meetings",
+        path: "/summaries",
+        icon: <PeopleTeam24Regular />,
+        iconActive: <PeopleTeam24Filled />,
+        color: "#fb923c",
       },
     ],
   },
@@ -274,14 +282,6 @@ const navSections: NavSection[] = [
         iconActive: <Flash24Filled />,
         color: "#f59e0b",
       },
-      {
-        key: "summaries",
-        label: "summaries",
-        path: "/summaries",
-        icon: <PeopleTeam24Regular />,
-        iconActive: <PeopleTeam24Filled />,
-        color: "#fb923c",
-      },
     ],
   },
   {
@@ -307,7 +307,7 @@ const pageTitles: Record<string, string> = {
   "/personal": "personal",
   "/projects": "projects",
   "/impacts": "impacts",
-  "/summaries": "summaries",
+  "/summaries": "meetings",
   "/about": "about this site",
 };
 

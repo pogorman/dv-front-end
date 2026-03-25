@@ -242,6 +242,7 @@ const priorityColors: Record<number, { bg: string; text: string }> = {
 const typeColors: Record<number, { bg: string; text: string }> = {
   468510000: { bg: "rgba(34, 211, 238, 0.15)", text: "#22d3ee" },
   468510001: { bg: "rgba(248, 113, 113, 0.15)", text: "#f87171" },
+  468510002: { bg: "rgba(167, 139, 250, 0.15)", text: "#a78bfa" },
 };
 
 const renderBadge = (label: string, colors: { bg: string; text: string }) => (
@@ -304,7 +305,7 @@ export const Tasks: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"all" | "work" | "personal">("work");
+  const [typeFilter, setTypeFilter] = useState<"all" | "work" | "personal" | "learning">("work");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
@@ -470,6 +471,7 @@ export const Tasks: React.FC = () => {
   const filtered = items.filter((t) => {
     if (typeFilter === "work" && t.tdvsp_tasktype !== (468510001 as TaskType)) return false;
     if (typeFilter === "personal" && t.tdvsp_tasktype !== (468510000 as TaskType)) return false;
+    if (typeFilter === "learning" && t.tdvsp_tasktype !== (468510002 as TaskType)) return false;
     const q = searchQuery.toLowerCase();
     return (
       t.tdvsp_name?.toLowerCase().includes(q) ||
@@ -597,13 +599,14 @@ export const Tasks: React.FC = () => {
           onChange={(_, d) => setSearchQuery(d.value)}
         />
         <Dropdown
-          value={typeFilter === "all" ? "All" : typeFilter === "work" ? "Work" : "Personal"}
+          value={typeFilter === "all" ? "All" : typeFilter === "work" ? "Work" : typeFilter === "learning" ? "Learning" : "Personal"}
           selectedOptions={[typeFilter]}
-          onOptionSelect={(_, d) => setTypeFilter((d.optionValue as "all" | "work" | "personal") ?? "work")}
+          onOptionSelect={(_, d) => setTypeFilter((d.optionValue as "all" | "work" | "personal" | "learning") ?? "work")}
           style={{ minWidth: "130px" }}
         >
           <Option value="work">Work</Option>
           <Option value="personal">Personal</Option>
+          <Option value="learning">Learning</Option>
           <Option value="all">All</Option>
         </Dropdown>
         <div className={styles.viewToggle}>

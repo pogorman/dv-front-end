@@ -76,7 +76,7 @@ The dropdown is ordered by ascending severity so the most common choices (lower 
 
 ### Can I switch between list and tile views?
 
-Yes. All 8 entity pages (Tasks, Personal, Ideas, Projects, Contacts, Impacts, Accounts, Meeting Summaries) have a list/tile view toggle in the toolbar. List view shows a DataGrid; tile view shows 220px cards. Your preference for each page is saved to localStorage and persists across sessions.
+Yes. All 8 entity pages (Tasks, Personal, Ideas, Projects, Contacts, Impacts, Accounts, Meetings) have a list/tile view toggle in the toolbar. List view shows a DataGrid; tile view shows 220px cards. Your preference for each page is saved to localStorage and persists across sessions.
 
 ### How do I reorder items on the dashboard?
 
@@ -88,7 +88,7 @@ Drag an item from the Work, Projects, or Ideas column and drop it onto the Parki
 
 ### How do I see personal action items on the dashboard?
 
-Click the **w/p toggle** in the Work column header to switch between work (w) and personal (p) action items. The toggle is a small button next to the column title.
+Click the **w/p/l toggle** in the Work column header to switch between work (w), personal (p), and learning (l) action items. The toggle is a small button group next to the column title.
 
 ### What are the colored dots on tiles?
 

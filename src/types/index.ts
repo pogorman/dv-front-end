@@ -74,11 +74,13 @@ export const taskPriorityOrder: TaskPriority[] = [
 // Task Type choice field (on Action Items)
 export type TaskType =
   | 468510000 // Personal
-  | 468510001; // Work
+  | 468510001 // Work
+  | 468510002; // Learning
 
 export const taskTypeLabels: Record<TaskType, string> = {
   468510000: "Personal",
   468510001: "Work",
+  468510002: "Learning",
 };
 
 // Action Item entity (tdvsp_actionitem table)
