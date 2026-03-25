@@ -152,6 +152,7 @@ export interface Idea {
   tdvsp_name: string;
   tdvsp_description?: string;
   tdvsp_category?: IdeaCategory;
+  tdvsp_priority?: TaskPriority;
   createdon?: string;
   // Lookup to account table
   _tdvsp_account_value?: string;
@@ -159,6 +160,9 @@ export interface Idea {
   // Lookup to contact table
   _tdvsp_contact_value?: string;
   tdvsp_Contact?: { contactid: string; firstname: string; lastname: string };
+  // Lookup to project table
+  _tdvsp_project_value?: string;
+  tdvsp_Project?: { tdvsp_projectid: string; tdvsp_name: string };
 }
 
 // Meeting Summary entity (tdvsp_meetingsummary table)
@@ -170,6 +174,9 @@ export interface MeetingSummary {
   // Lookup to account table
   _tdvsp_account_value?: string;
   tdvsp_Account?: { accountid: string; name: string };
+  // Lookup to project table
+  _tdvsp_project_value?: string;
+  tdvsp_Project?: { tdvsp_projectid: string; tdvsp_name: string };
 }
 
 // Project entity (tdvsp_project table)

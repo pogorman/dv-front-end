@@ -16,6 +16,11 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Tile color picker - show dots on hover */
+.tile-color-host:hover .tile-color-picker {
+  opacity: 1 !important;
+}
+
 /* Smooth scrolling */
 * {
   scrollbar-width: thin;

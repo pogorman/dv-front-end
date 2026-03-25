@@ -70,6 +70,8 @@ import {
 import { formatDate } from "../utils/formatDate";
 import { getParkedItems, parkItem, unparkItem, isItemParked, reorderParkedItems, ParkedItemRef } from "../utils/parkingLot";
 import { useNotification } from "../context/NotificationContext";
+import { getTileBackground, getTileColor, setTileColor, clearTileColor, priorityToColor, priorityToBackground, colorToPriority } from "../utils/tileColors";
+import TileColorPicker from "../components/TileColorPicker";
 
 const statusShortLabels: Record<number, string> = {
   468510000: "Pondering",
@@ -316,9 +318,9 @@ export const Dashboard: React.FC = () => {
   const [newContact, setNewContact] = useState({ firstname: "", lastname: "", emailaddress1: "", telephone1: "", jobtitle: "", accountId: "" });
   const [newProject, setNewProject] = useState({ tdvsp_name: "", tdvsp_description: "", accountId: "" });
   const [newTask, setNewTask] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
-  const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string, accountId: "" });
+  const [newIdea, setNewIdea] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "" as string, tdvsp_priority: "" as string, accountId: "", projectId: "" });
   const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
-  const [newSummary, setNewSummary] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "" });
+  const [newSummary, setNewSummary] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "", projectId: "" });
 
   useEffect(() => {
     getAccounts().then(setAccounts).catch(console.error);
@@ -347,6 +349,7 @@ export const Dashboard: React.FC = () => {
   const [reorderDrag, setReorderDrag] = useState<{ column: string; id: string; index: number } | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{ column: string; index: number; position: "before" | "after" } | null>(null);
   const [orderVersion, setOrderVersion] = useState(0);
+  const [, setColorVersion] = useState(0);
   const dragCounter = useRef(0);
   const handleDashboardDeactivate = async () => {
     if (!deactivateConfirm) return;
@@ -498,7 +501,9 @@ export const Dashboard: React.FC = () => {
         tdvsp_name: string;
         tdvsp_description?: string;
         tdvsp_category?: IdeaCategory;
+        tdvsp_priority?: TaskPriority;
         "tdvsp_Account@odata.bind"?: string;
+        "tdvsp_Project@odata.bind"?: string;
       } = {
         tdvsp_name: newIdea.tdvsp_name,
         tdvsp_description: newIdea.tdvsp_description || undefined,
@@ -506,12 +511,18 @@ export const Dashboard: React.FC = () => {
       if (newIdea.tdvsp_category) {
         payload.tdvsp_category = Number(newIdea.tdvsp_category) as IdeaCategory;
       }
+      if (newIdea.tdvsp_priority) {
+        payload.tdvsp_priority = Number(newIdea.tdvsp_priority) as TaskPriority;
+      }
       if (newIdea.accountId) {
         payload["tdvsp_Account@odata.bind"] = `/accounts(${newIdea.accountId})`;
       }
+      if (newIdea.projectId) {
+        payload["tdvsp_Project@odata.bind"] = `/tdvsp_Projects(${newIdea.projectId})`;
+      }
       await createIdea(payload);
       setAddIdeaOpen(false);
-      setNewIdea({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "", accountId: "" });
+      setNewIdea({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "", tdvsp_priority: "", accountId: "", projectId: "" });
       getIdeas().then(setIdeas).catch(console.error);
       notify("Idea created");
     } catch (err) {
@@ -561,6 +572,7 @@ export const Dashboard: React.FC = () => {
         tdvsp_date?: string;
         tdvsp_summary?: string;
         "tdvsp_Account@odata.bind"?: string;
+        "tdvsp_Project@odata.bind"?: string;
       } = {
         tdvsp_name: newSummary.tdvsp_name,
         tdvsp_date: newSummary.tdvsp_date || undefined,
@@ -569,9 +581,12 @@ export const Dashboard: React.FC = () => {
       if (newSummary.accountId) {
         payload["tdvsp_Account@odata.bind"] = `/accounts(${newSummary.accountId})`;
       }
+      if (newSummary.projectId) {
+        payload["tdvsp_Project@odata.bind"] = `/tdvsp_Projects(${newSummary.projectId})`;
+      }
       await createMeetingSummary(payload);
       setAddSummaryOpen(false);
-      setNewSummary({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "" });
+      setNewSummary({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "", projectId: "" });
       getMeetingSummaries().then(setMeetingSummaries).catch(console.error);
       notify("Meeting summary created");
     } catch (err) {
@@ -975,15 +990,16 @@ export const Dashboard: React.FC = () => {
                   showDelay={400}
                 >
                   <div
-                    className={styles.columnItem}
+                    className={`${styles.columnItem} tile-color-host`}
                     onClick={() => handleParkedItemClick(item)}
                     draggable
                     onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setReorderDrag({ column: "parking", id: item.id, index: pIdx }); }}
                     onDragOver={(e) => handleItemDragOver(e, "parking", pIdx)}
                     onDrop={(e) => handleItemDrop(e, "parking", pIdx)}
                     onDragEnd={handleDragEnd}
-                    style={getDropStyle("parking", pIdx)}
+                    style={{ ...getDropStyle("parking", pIdx), backgroundColor: getTileBackground(item.entityType, item.id) }}
                   >
+                    <TileColorPicker currentColor={getTileColor(item.entityType, item.id)} onColorChange={(color) => { if (color) { setTileColor(item.entityType, item.id, color); } else { clearTileColor(item.entityType, item.id); } setColorVersion((v) => v + 1); }} />
                     <div className={styles.columnItemActions}>
                       <Button
                         appearance="subtle"
@@ -1040,15 +1056,16 @@ export const Dashboard: React.FC = () => {
                   showDelay={400}
                 >
                   <div
-                    className={styles.columnItem}
+                    className={`${styles.columnItem} tile-color-host`}
                     onClick={() => openViewTask(t)}
                     draggable
                     onDragStart={(e) => handleDragStart(e, { id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }, activeWorkColumn, wIdx)}
                     onDragOver={(e) => handleItemDragOver(e, activeWorkColumn, wIdx)}
                     onDrop={(e) => handleItemDrop(e, activeWorkColumn, wIdx)}
                     onDragEnd={handleDragEnd}
-                    style={getDropStyle(activeWorkColumn, wIdx)}
+                    style={{ ...getDropStyle(activeWorkColumn, wIdx), backgroundColor: priorityToBackground(t.tdvsp_priority) }}
                   >
+                    <TileColorPicker currentColor={priorityToColor(t.tdvsp_priority)} onColorChange={async (color) => { try { await updateActionItem(t.tdvsp_actionitemid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); getActionItems().then(setActionItems).catch(console.error); } catch (err) { console.error(err); } }} />
                     <div className={styles.columnItemActions}>
                       <Button
                         appearance="subtle"
@@ -1113,15 +1130,16 @@ export const Dashboard: React.FC = () => {
                   showDelay={400}
                 >
                   <div
-                    className={styles.columnItem}
+                    className={`${styles.columnItem} tile-color-host`}
                     onClick={() => openViewProject(project)}
                     draggable
                     onDragStart={(e) => handleDragStart(e, { id: project.tdvsp_projectid!, name: project.tdvsp_name, entityType: "project", route: `/projects?view=${project.tdvsp_projectid}` }, "projects", prIdx)}
                     onDragOver={(e) => handleItemDragOver(e, "projects", prIdx)}
                     onDrop={(e) => handleItemDrop(e, "projects", prIdx)}
                     onDragEnd={handleDragEnd}
-                    style={getDropStyle("projects", prIdx)}
+                    style={{ ...getDropStyle("projects", prIdx), backgroundColor: getTileBackground("project", project.tdvsp_projectid!) }}
                   >
+                    <TileColorPicker currentColor={getTileColor("project", project.tdvsp_projectid!)} onColorChange={(color) => { if (color) { setTileColor("project", project.tdvsp_projectid!, color); } else { clearTileColor("project", project.tdvsp_projectid!); } setColorVersion((v) => v + 1); }} />
                     <Text weight="semibold" style={{ fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{project.tdvsp_name}</Text>
                     <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
                       {project.tdvsp_Account?.name || "—"}
@@ -1147,15 +1165,16 @@ export const Dashboard: React.FC = () => {
               orderedIdeas.map((idea, iIdx) => (
                 <div
                   key={idea.tdvsp_ideaid}
-                  className={styles.columnItem}
+                  className={`${styles.columnItem} tile-color-host`}
                   onClick={() => openViewIdea(idea)}
                   draggable
                   onDragStart={(e) => handleDragStart(e, { id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }, "ideas", iIdx)}
                   onDragOver={(e) => handleItemDragOver(e, "ideas", iIdx)}
                   onDrop={(e) => handleItemDrop(e, "ideas", iIdx)}
                   onDragEnd={handleDragEnd}
-                  style={getDropStyle("ideas", iIdx)}
+                  style={{ ...getDropStyle("ideas", iIdx), backgroundColor: priorityToBackground(idea.tdvsp_priority) }}
                 >
+                  <TileColorPicker currentColor={priorityToColor(idea.tdvsp_priority)} onColorChange={async (color) => { try { await updateIdea(idea.tdvsp_ideaid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); getIdeas().then(setIdeas).catch(console.error); } catch (err) { console.error(err); } }} />
                   <div className={styles.columnItemActions}>
                     <Button
                       appearance="subtle"
@@ -1417,6 +1436,18 @@ export const Dashboard: React.FC = () => {
                     </Dropdown>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Priority</Label>
+                    <Dropdown
+                      placeholder="Select priority"
+                      value={newIdea.tdvsp_priority ? taskPriorityLabels[Number(newIdea.tdvsp_priority) as TaskPriority] : ""}
+                      onOptionSelect={(_, d) => setNewIdea({ ...newIdea, tdvsp_priority: d.optionValue ?? "" })}
+                    >
+                      {taskPriorityOrder.map((p) => (
+                        <Option key={p} value={String(p)}>{taskPriorityLabels[p]}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                     <Label>Account</Label>
                     <Dropdown
                       placeholder="Select account"
@@ -1426,6 +1457,19 @@ export const Dashboard: React.FC = () => {
                       <Option value="" text="(None)">(None)</Option>
                       {accounts.map((a) => (
                         <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Project</Label>
+                    <Dropdown
+                      placeholder="Select project"
+                      value={newIdea.projectId ? projects.find((p) => p.tdvsp_projectid === newIdea.projectId)?.tdvsp_name ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewIdea({ ...newIdea, projectId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {projects.map((p) => (
+                        <Option key={p.tdvsp_projectid} value={p.tdvsp_projectid!}>{p.tdvsp_name}</Option>
                       ))}
                     </Dropdown>
                   </div>
@@ -1514,6 +1558,19 @@ export const Dashboard: React.FC = () => {
                       <Option value="" text="(None)">(None)</Option>
                       {accounts.map((a) => (
                         <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <Label>Project</Label>
+                    <Dropdown
+                      placeholder="Select project"
+                      value={newSummary.projectId ? projects.find((p) => p.tdvsp_projectid === newSummary.projectId)?.tdvsp_name ?? "" : ""}
+                      onOptionSelect={(_, d) => setNewSummary({ ...newSummary, projectId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {projects.map((p) => (
+                        <Option key={p.tdvsp_projectid} value={p.tdvsp_projectid!}>{p.tdvsp_name}</Option>
                       ))}
                     </Dropdown>
                   </div>
@@ -1859,8 +1916,8 @@ export const Dashboard: React.FC = () => {
                       entityId={viewingProject.tdvsp_projectid!}
                       entityName={viewingProject.tdvsp_name}
                       entityType="project"
-                      odataBindKey="objectid_tdvsp_project@odata.bind"
-                      entitySetPath="/tdvsp_projects"
+                      odataBindKey="objectid_tdvsp_Project@odata.bind"
+                      entitySetPath="/tdvsp_Projects"
                     />
                   </div>
                 </div>

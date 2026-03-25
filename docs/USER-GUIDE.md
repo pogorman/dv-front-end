@@ -63,9 +63,17 @@ Dashboard columns support drag-and-drop:
 
 Hover over any dashboard tile (work, projects, or parking lot) for about half a second and a rich tooltip appears with an arrow showing the full details that get truncated on the small tiles. Work tile tooltips show the full name, description, date, account, status, and priority. Project tile tooltips show name, description, and account. Parking lot tile tooltips show the full name and entity type.
 
-### Tile Tooltips
+### Priority Dots (Tile Color-Coding)
 
-Hover over any dashboard tile for about half a second and a rich tooltip appears showing full details that get truncated on the small cards.
+Hover over any tile on the dashboard (work, ideas, projects, parking lot) and colored dots appear in the top-right corner. Click a dot to set a visual priority color:
+
+- **Clear** (empty circle) -- remove the color
+- **Blue** -- Low priority
+- **Orange** -- Eh priority
+- **Red** -- High priority
+- **Dark Red** -- Top priority
+
+For work items and ideas, this actually updates the priority field in Dataverse. For projects and parking lot items, the color is visual-only and stored in your browser. Priority dots also appear on tile views of the Tasks, Ideas, Personal, and Projects entity pages.
 
 ---
 
@@ -128,7 +136,7 @@ Dedicated page for personal action items (task type = Personal). Features a page
 
 ### Ideas
 
-Idea pipeline with technology categorization (Copilot Studio, Canvas Apps, Model-Driven Apps, Power Automate, Power Pages, Azure, AI General, App General, Other). View dialog shows details plus a notes timeline.
+Idea pipeline with technology categorization (Copilot Studio, Canvas Apps, Model-Driven Apps, Power Automate, Power Pages, Azure, AI General, App General, Other), priority setting, and optional project association. View dialog shows details plus a notes timeline.
 
 ### Projects
 
@@ -140,7 +148,7 @@ Track business impacts with date and account association. Simple view dialog wit
 
 ### Meeting Summaries
 
-Meeting documentation with extended text support (5000 char max). Wider dialog to accommodate summary text.
+Meeting documentation with extended text support (5000 char max) and optional project association. Wider dialog to accommodate summary text.
 
 ---
 

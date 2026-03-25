@@ -58,6 +58,8 @@ import {
 import { NotesTimeline } from "../components/NotesTimeline";
 import { useNotification } from "../context/NotificationContext";
 import { formatDate } from "../utils/formatDate";
+import { priorityToColor, priorityToBackground, colorToPriority } from "../utils/tileColors";
+import TileColorPicker from "../components/TileColorPicker";
 
 const statusColors: Record<number, { bg: string; text: string }> = {
   468510000: { bg: "rgba(74, 158, 255, 0.15)", text: "#4a9eff" },
@@ -258,6 +260,8 @@ export const Personal: React.FC = () => {
   const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
     (localStorage.getItem("og-personal-view-mode") as "list" | "tiles") || "tiles"
   );
+
+
 
   const toggleViewMode = (mode: "list" | "tiles") => {
     setViewMode(mode);
@@ -513,9 +517,11 @@ export const Personal: React.FC = () => {
           {filtered.map((t) => (
             <div
               key={t.tdvsp_actionitemid}
-              className={styles.tile}
+              className={`${styles.tile} tile-color-host`}
               onClick={() => openView(t)}
+              style={{ position: "relative", backgroundColor: priorityToBackground(t.tdvsp_priority) }}
             >
+              <TileColorPicker currentColor={priorityToColor(t.tdvsp_priority)} onColorChange={async (color) => { try { await updateActionItem(t.tdvsp_actionitemid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); loadItems(); } catch (err) { console.error(err); } }} />
               <Text className={styles.tileName}>{t.tdvsp_name}</Text>
               <div className={styles.tileMeta}>
                 <Caption1

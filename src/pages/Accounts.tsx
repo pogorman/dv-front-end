@@ -295,6 +295,7 @@ export const Accounts: React.FC = () => {
   const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
     (localStorage.getItem("og-accounts-view-mode") as "list" | "tiles") || "list"
   );
+
   const toggleViewMode = (mode: "list" | "tiles") => {
     setViewMode(mode);
     localStorage.setItem("og-accounts-view-mode", mode);

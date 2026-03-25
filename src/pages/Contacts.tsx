@@ -254,6 +254,7 @@ export const Contacts: React.FC = () => {
   const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
     (localStorage.getItem("og-contacts-view-mode") as "list" | "tiles") || "list"
   );
+
   const toggleViewMode = (mode: "list" | "tiles") => {
     setViewMode(mode);
     localStorage.setItem("og-contacts-view-mode", mode);

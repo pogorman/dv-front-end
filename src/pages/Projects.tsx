@@ -50,6 +50,8 @@ import {
 } from "../services/dataverseService";
 import { NotesTimeline } from "../components/NotesTimeline";
 import { useNotification } from "../context/NotificationContext";
+import { getTileBackground, getTileColor, setTileColor, clearTileColor } from "../utils/tileColors";
+import TileColorPicker from "../components/TileColorPicker";
 
 const renderBadge = (label: string, colors: { bg: string; text: string }) => (
   <span style={{
@@ -230,6 +232,7 @@ export const Projects: React.FC = () => {
   const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
     (localStorage.getItem("og-projects-view-mode") as "list" | "tiles") || "list"
   );
+  const [, setColorVersion] = useState(0);
   const toggleViewMode = (mode: "list" | "tiles") => {
     setViewMode(mode);
     localStorage.setItem("og-projects-view-mode", mode);
@@ -584,7 +587,8 @@ export const Projects: React.FC = () => {
       ) : (
         <div className={styles.tileGrid}>
           {filtered.map((project) => (
-            <div key={project.tdvsp_projectid} className={styles.tile} onClick={() => openView(project)}>
+            <div key={project.tdvsp_projectid} className={`${styles.tile} tile-color-host`} onClick={() => openView(project)} style={{ position: "relative", backgroundColor: getTileBackground("project", project.tdvsp_projectid!) }}>
+              <TileColorPicker currentColor={getTileColor("project", project.tdvsp_projectid!)} onColorChange={(color) => { if (color) { setTileColor("project", project.tdvsp_projectid!, color); } else { clearTileColor("project", project.tdvsp_projectid!); } setColorVersion((v) => v + 1); }} />
               <Text className={styles.tileName}>{project.tdvsp_name}</Text>
               <div className={styles.tileMeta}>
                 {project.tdvsp_Account?.name && renderBadge(project.tdvsp_Account.name, accountBadgeColors)}

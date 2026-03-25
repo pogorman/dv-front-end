@@ -8,6 +8,7 @@
 | [USER-GUIDE.md](USER-GUIDE.md) | End-user guide -- navigation, dashboard, CRUD, notes, theme, Copilot |
 | [FAQ.md](FAQ.md) | Frequently asked questions -- auth, data, dashboard, chat, development |
 | [HOW-I-WAS-BUILT.md](HOW-I-WAS-BUILT.md) | ELI5 build narrative -- prompts, decisions, lessons learned |
+| [SESSION-PROMPTS.md](SESSION-PROMPTS.md) | Reusable prompts from build sessions |
 | [SOLUTION_DOCUMENT.md](SOLUTION_DOCUMENT.md) | Comprehensive technical reference (all sections) |
 
 ## PDFs

@@ -178,10 +178,14 @@ My Work is a React single-page application (SPA) hosted on Azure Static Web Apps
    │ name         │               │subject       │──► action items
    │ desc         │               │notetext      │──► ideas
    │ category     │               │filename      │──► projects
-   │              │               │documentbody  │
-   │ ◄── account  │               │isdocument    │
-   │ ◄── contact  │               └──────────────┘
+   │ priority     │               │documentbody  │
+   │              │               │isdocument    │
+   │ ◄── account  │               └──────────────┘
+   │ ◄── contact  │
+   │ ◄── project  │
    └──────────────┘
+
+Notes: Ideas and Meeting Summaries both have a `tdvsp_Project` lookup to the projects table.
 ```
 
 ### Table Reference
@@ -192,9 +196,9 @@ My Work is a React single-page application (SPA) hosted on Azure Static Web Apps
 | Contacts | `contacts` | `contactid` | `parentcustomerid` |
 | Action Items | `tdvsp_actionitems` | `tdvsp_actionitemid` | `tdvsp_Customer` |
 | Impacts | `tdvsp_impacts` | `tdvsp_impactid` | `tdvsp_Customer` |
-| Ideas | `tdvsp_ideas` | `tdvsp_ideaid` | `tdvsp_Account` + `tdvsp_Contact` |
+| Ideas | `tdvsp_ideas` | `tdvsp_ideaid` | `tdvsp_Account` + `tdvsp_Contact` + `tdvsp_Project` |
 | Projects | `tdvsp_projects` | `tdvsp_projectid` | `tdvsp_Account` |
-| Meeting Summaries | `tdvsp_meetingsummaries` | `tdvsp_meetingsummaryid` | `tdvsp_Account` |
+| Meeting Summaries | `tdvsp_meetingsummaries` | `tdvsp_meetingsummaryid` | `tdvsp_Account` + `tdvsp_Project` |
 | Notes / Attachments | `annotations` | `annotationid` | `objectid` (polymorphic) |
 
 ### OData API Patterns
@@ -247,6 +251,7 @@ MsalProvider                    <- Azure AD context
 | AppShell | `components/AppShell.tsx` | Sidebar nav + top bar + main content area |
 | CopilotChat | `components/CopilotChat.tsx` | Floating AI chat widget (Copilot Studio) |
 | NotesTimeline | `components/NotesTimeline.tsx` | Reusable notes with attachments + pinning |
+| TileColorPicker | `components/TileColorPicker.tsx` | Priority/color dot overlay for tiles |
 | ThemeContext | `context/ThemeContext.tsx` | Dark/light mode state + localStorage persistence |
 | dataverseService | `services/dataverseService.ts` | Centralized API layer (37 exported functions) |
 
@@ -372,3 +377,16 @@ The dashboard uses a four-column layout filling viewport height. Quick create bu
 ### Dashboard Tile Tooltips
 
 All dashboard tiles use Fluent UI `Tooltip` with `withArrow` and `showDelay={400}` to reveal full record details on hover. Content varies by tile type (work tiles show description/status/priority; project tiles show description/account; parking lot tiles show entity type). Tooltip positioning is `"above"` for work tiles and `"below"` for projects and parking lot tiles.
+
+### Tile Color-Coding / Priority Dots
+
+Tiles across entity pages and the dashboard show colored dot pickers on hover (top-right corner). The system has two modes:
+
+| Mode | Entities | Storage | Behavior |
+|------|----------|---------|----------|
+| Priority-driven | Tasks, Ideas, Personal, Dashboard (work + ideas) | Dataverse `tdvsp_priority` | Selecting a dot updates the priority field via API; tile bg tints from priority value |
+| Visual-only | Projects, Dashboard (projects + parking lot) | localStorage (`og-tile-colors`) | Selecting a dot stores color locally; no Dataverse update |
+
+**Color mapping:** clear = no priority, blue = Low (`#4a9eff`), orange = Eh (`#f59e0b`), red = High (`#f87171`), dark red = Top Priority (`#b91c1c`).
+
+Key files: `src/utils/tileColors.ts` (color/priority mapping, localStorage persistence), `src/components/TileColorPicker.tsx` (dot picker UI), CSS rule in `index.css` (`.tile-color-picker` opacity on hover).

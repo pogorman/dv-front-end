@@ -40,7 +40,7 @@ import {
   TextBulletListLtr20Regular,
   Grid20Regular,
 } from "@fluentui/react-icons";
-import { Idea, Account, Customer, IdeaCategory, ideaCategoryLabels } from "../types";
+import { Idea, Account, Customer, Project, IdeaCategory, ideaCategoryLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder } from "../types";
 import {
   getIdeas,
   createIdea,
@@ -48,9 +48,12 @@ import {
   deactivateIdea,
   getAccounts,
   getCustomers,
+  getProjects,
 } from "../services/dataverseService";
 import { NotesTimeline } from "../components/NotesTimeline";
 import { useNotification } from "../context/NotificationContext";
+import { priorityToColor, priorityToBackground, colorToPriority } from "../utils/tileColors";
+import TileColorPicker from "../components/TileColorPicker";
 
 const categoryColors: Record<number, { bg: string; text: string }> = {
   468510000: { bg: "rgba(167, 139, 250, 0.15)", text: "#a78bfa" },
@@ -90,6 +93,20 @@ const categoryOptions: { value: IdeaCategory; label: string }[] = [
   { value: 468510007, label: "App General" },
   { value: 468510008, label: "Other" },
 ];
+
+const priorityColors: Record<number, { bg: string; text: string }> = {
+  468510000: { bg: "rgba(156, 163, 175, 0.15)", text: "#9ca3af" },
+  468510001: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b" },
+  468510002: { bg: "rgba(248, 113, 113, 0.15)", text: "#f87171" },
+  468510003: { bg: "rgba(251, 146, 60, 0.15)", text: "#fb923c" },
+};
+
+const priorityShortLabels: Record<number, string> = {
+  468510000: "Low",
+  468510001: "Eh",
+  468510002: "Top Priority",
+  468510003: "High",
+};
 
 const columnSizes: Record<string, React.CSSProperties> = {
   name: { flex: "3 1 200px", minWidth: 200 },
@@ -228,16 +245,20 @@ interface FormData {
   tdvsp_name: string;
   tdvsp_description: string;
   tdvsp_category: IdeaCategory | "";
+  tdvsp_priority: TaskPriority | "";
   accountId: string;
   contactId: string;
+  projectId: string;
 }
 
 const emptyForm: FormData = {
   tdvsp_name: "",
   tdvsp_description: "",
   tdvsp_category: "",
+  tdvsp_priority: "",
   accountId: "",
   contactId: "",
+  projectId: "",
 };
 
 export const Ideas: React.FC = () => {
@@ -247,6 +268,7 @@ export const Ideas: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Customer[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -259,6 +281,7 @@ export const Ideas: React.FC = () => {
   const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
     (localStorage.getItem("og-ideas-view-mode") as "list" | "tiles") || "list"
   );
+
   const toggleViewMode = (mode: "list" | "tiles") => {
     setViewMode(mode);
     localStorage.setItem("og-ideas-view-mode", mode);
@@ -294,11 +317,21 @@ export const Ideas: React.FC = () => {
     }
   }, []);
 
+  const loadProjects = useCallback(async () => {
+    try {
+      const data = await getProjects();
+      setProjects(data);
+    } catch (err) {
+      console.error("Failed to load projects:", err);
+    }
+  }, []);
+
   useEffect(() => {
     loadIdeas();
     loadAccounts();
     loadContacts();
-  }, [loadIdeas, loadAccounts, loadContacts]);
+    loadProjects();
+  }, [loadIdeas, loadAccounts, loadContacts, loadProjects]);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {
@@ -320,16 +353,20 @@ export const Ideas: React.FC = () => {
   const openView = (idea: Idea) => { setIsEditing(false); setEditingId(null); setViewingIdea(idea); setViewDialogOpen(true); };
   const openEdit = (idea: Idea) => {
     setViewingIdea(idea); setViewDialogOpen(true); setEditingId(idea.tdvsp_ideaid ?? null);
-    setFormData({ tdvsp_name: idea.tdvsp_name, tdvsp_description: idea.tdvsp_description ?? "", tdvsp_category: idea.tdvsp_category ?? "", accountId: idea.tdvsp_Account?.accountid ?? "", contactId: idea.tdvsp_Contact?.contactid ?? "" });
+    setFormData({ tdvsp_name: idea.tdvsp_name, tdvsp_description: idea.tdvsp_description ?? "", tdvsp_category: idea.tdvsp_category ?? "", tdvsp_priority: idea.tdvsp_priority ?? "", accountId: idea.tdvsp_Account?.accountid ?? "", contactId: idea.tdvsp_Contact?.contactid ?? "", projectId: idea._tdvsp_project_value ?? "" });
     setIsEditing(true);
   };
 
   const buildIdeaPayload = () => {
-    const payload: { tdvsp_name: string; tdvsp_description?: string; tdvsp_category?: IdeaCategory; "tdvsp_Account@odata.bind"?: string; "tdvsp_Contact@odata.bind"?: string } = {
-      tdvsp_name: formData.tdvsp_name, tdvsp_description: formData.tdvsp_description || undefined, tdvsp_category: formData.tdvsp_category || undefined,
+    const payload: {
+      tdvsp_name: string; tdvsp_description?: string; tdvsp_category?: IdeaCategory; tdvsp_priority?: TaskPriority;
+      "tdvsp_Account@odata.bind"?: string; "tdvsp_Contact@odata.bind"?: string; "tdvsp_Project@odata.bind"?: string;
+    } = {
+      tdvsp_name: formData.tdvsp_name, tdvsp_description: formData.tdvsp_description || undefined, tdvsp_category: formData.tdvsp_category || undefined, tdvsp_priority: formData.tdvsp_priority || undefined,
     };
     if (formData.accountId) payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
     if (formData.contactId) payload["tdvsp_Contact@odata.bind"] = `/contacts(${formData.contactId})`;
+    if (formData.projectId) payload["tdvsp_Project@odata.bind"] = `/tdvsp_Projects(${formData.projectId})`;
     return payload;
   };
 
@@ -390,7 +427,9 @@ export const Ideas: React.FC = () => {
                   <div className={styles.formFieldFull}><Label required>Name</Label><Input value={formData.tdvsp_name} onChange={(_, d) => setFormData({ ...formData, tdvsp_name: d.value })} placeholder="Brief title for this idea" /></div>
                   <div className={styles.formFieldFull}><Label>Description</Label><Textarea value={formData.tdvsp_description} onChange={(_, d) => setFormData({ ...formData, tdvsp_description: d.value })} placeholder="Describe the idea..." rows={4} /></div>
                   <div className={styles.formField}><Label>Category</Label><Dropdown placeholder="Select category" value={formData.tdvsp_category ? ideaCategoryLabels[formData.tdvsp_category] : ""} onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_category: d.optionValue ? (Number(d.optionValue) as IdeaCategory) : "" })}>{categoryOptions.map((cat) => (<Option key={cat.value} value={String(cat.value)}>{cat.label}</Option>))}</Dropdown></div>
+                  <div className={styles.formField}><Label>Priority</Label><Dropdown placeholder="Select priority" value={formData.tdvsp_priority ? taskPriorityLabels[formData.tdvsp_priority] : ""} onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_priority: d.optionValue ? (Number(d.optionValue) as TaskPriority) : "" })}>{taskPriorityOrder.map((p) => (<Option key={p} value={String(p)}>{taskPriorityLabels[p]}</Option>))}</Dropdown></div>
                   <div className={styles.formField}><Label>Account</Label><Dropdown placeholder="Select account" value={accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""} onOptionSelect={(_, d) => setFormData({ ...formData, accountId: d.optionValue ?? "" })}>{accounts.map((a) => (<Option key={a.accountid} value={a.accountid!}>{a.name}</Option>))}</Dropdown></div>
+                  <div className={styles.formField}><Label>Project</Label><Dropdown placeholder="Select project" value={projects.find((p) => p.tdvsp_projectid === formData.projectId)?.tdvsp_name ?? ""} onOptionSelect={(_, d) => setFormData({ ...formData, projectId: d.optionValue ?? "" })}><Option value="" text="(None)">(None)</Option>{projects.map((p) => (<Option key={p.tdvsp_projectid} value={p.tdvsp_projectid!}>{p.tdvsp_name}</Option>))}</Dropdown></div>
                   <div className={styles.formFieldFull}><Label>Contact</Label><Dropdown placeholder="Select contact" value={contacts.find((c) => c.contactid === formData.contactId) ? `${contacts.find((c) => c.contactid === formData.contactId)!.firstname} ${contacts.find((c) => c.contactid === formData.contactId)!.lastname}` : ""} onOptionSelect={(_, d) => setFormData({ ...formData, contactId: d.optionValue ?? "" })}>{contacts.map((c) => (<Option key={c.contactid} value={c.contactid!} text={`${c.firstname} ${c.lastname}`}>{c.firstname} {c.lastname}</Option>))}</Dropdown></div>
                 </div>
               </DialogContent>
@@ -421,7 +460,8 @@ export const Ideas: React.FC = () => {
       ) : (
         <div className={styles.tileGrid}>
           {filtered.map((idea) => (
-            <div key={idea.tdvsp_ideaid} className={styles.tile} onClick={() => openView(idea)}>
+            <div key={idea.tdvsp_ideaid} className={`${styles.tile} tile-color-host`} onClick={() => openView(idea)} style={{ position: "relative", backgroundColor: priorityToBackground(idea.tdvsp_priority) }}>
+              <TileColorPicker currentColor={priorityToColor(idea.tdvsp_priority)} onColorChange={async (color) => { try { await updateIdea(idea.tdvsp_ideaid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); loadIdeas(); } catch (err) { console.error(err); } }} />
               <Text className={styles.tileName}>{idea.tdvsp_name}</Text>
               <div className={styles.tileMeta}>
                 {idea.tdvsp_category != null && categoryColors[idea.tdvsp_category] && renderBadge(ideaCategoryLabels[idea.tdvsp_category as IdeaCategory] ?? "", categoryColors[idea.tdvsp_category])}
@@ -446,7 +486,9 @@ export const Ideas: React.FC = () => {
                     <div className={styles.viewField}><Label>Description</Label>{isEditing ? (<Textarea value={formData.tdvsp_description} onChange={(_, d) => setFormData({ ...formData, tdvsp_description: d.value })} rows={4} />) : (<Text block size={400} style={{ whiteSpace: "pre-wrap" }}>{viewingIdea.tdvsp_description || "--"}</Text>)}</div>
                     <div className={styles.viewGrid}>
                       <div className={styles.viewField}><Label>Category</Label>{isEditing ? (<Dropdown placeholder="Select category" value={formData.tdvsp_category ? ideaCategoryLabels[formData.tdvsp_category] : ""} onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_category: d.optionValue ? (Number(d.optionValue) as IdeaCategory) : "" })}>{categoryOptions.map((cat) => (<Option key={cat.value} value={String(cat.value)}>{cat.label}</Option>))}</Dropdown>) : (viewingIdea.tdvsp_category != null && categoryColors[viewingIdea.tdvsp_category] ? renderBadge(ideaCategoryLabels[viewingIdea.tdvsp_category] ?? "--", categoryColors[viewingIdea.tdvsp_category]) : <Text block size={400}>--</Text>)}</div>
+                      <div className={styles.viewField}><Label>Priority</Label>{isEditing ? (<Dropdown placeholder="Select priority" value={formData.tdvsp_priority ? taskPriorityLabels[formData.tdvsp_priority] : ""} onOptionSelect={(_, d) => setFormData({ ...formData, tdvsp_priority: d.optionValue ? (Number(d.optionValue) as TaskPriority) : "" })}><Option value="" text="(None)">(None)</Option>{taskPriorityOrder.map((p) => (<Option key={p} value={String(p)}>{taskPriorityLabels[p]}</Option>))}</Dropdown>) : (viewingIdea.tdvsp_priority != null && priorityColors[viewingIdea.tdvsp_priority] ? renderBadge(priorityShortLabels[viewingIdea.tdvsp_priority] ?? "--", priorityColors[viewingIdea.tdvsp_priority]) : <Text block size={400}>--</Text>)}</div>
                       <div className={styles.viewField}><Label>Account</Label>{isEditing ? (<Dropdown placeholder="Select account" value={accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""} onOptionSelect={(_, d) => setFormData({ ...formData, accountId: d.optionValue ?? "" })}><Option value="" text="(None)">(None)</Option>{accounts.map((a) => (<Option key={a.accountid} value={a.accountid!}>{a.name}</Option>))}</Dropdown>) : (<Text block size={400}>{viewingIdea.tdvsp_Account?.name || "--"}</Text>)}</div>
+                      <div className={styles.viewField}><Label>Project</Label>{isEditing ? (<Dropdown placeholder="Select project" value={projects.find((p) => p.tdvsp_projectid === formData.projectId)?.tdvsp_name ?? ""} onOptionSelect={(_, d) => setFormData({ ...formData, projectId: d.optionValue ?? "" })}><Option value="" text="(None)">(None)</Option>{projects.map((p) => (<Option key={p.tdvsp_projectid} value={p.tdvsp_projectid!}>{p.tdvsp_name}</Option>))}</Dropdown>) : (<Text block size={400}>{projects.find((p) => p.tdvsp_projectid === viewingIdea._tdvsp_project_value)?.tdvsp_name || "--"}</Text>)}</div>
                       <div className={styles.viewField}><Label>Contact</Label>{isEditing ? (<Dropdown placeholder="Select contact" value={contacts.find((c) => c.contactid === formData.contactId) ? `${contacts.find((c) => c.contactid === formData.contactId)!.firstname} ${contacts.find((c) => c.contactid === formData.contactId)!.lastname}` : ""} onOptionSelect={(_, d) => setFormData({ ...formData, contactId: d.optionValue ?? "" })}><Option value="" text="(None)">(None)</Option>{contacts.map((c) => (<Option key={c.contactid} value={c.contactid!} text={`${c.firstname} ${c.lastname}`}>{c.firstname} {c.lastname}</Option>))}</Dropdown>) : (<Text block size={400}>{viewingIdea.tdvsp_Contact ? `${viewingIdea.tdvsp_Contact.firstname} ${viewingIdea.tdvsp_Contact.lastname}` : "--"}</Text>)}</div>
                     </div>
                   </div>

@@ -90,6 +90,18 @@ Drag an item from the Work, Projects, or Ideas column and drop it onto the Parki
 
 Click the **w/p toggle** in the Work column header to switch between work (w) and personal (p) action items. The toggle is a small button next to the column title.
 
+### What are the colored dots on tiles?
+
+When you hover over a tile (on the dashboard or on entity page tile views), small colored dots appear in the top-right corner. These let you set a priority/color for the tile. For action items and ideas, selecting a dot updates the Dataverse priority field. For projects and parking lot items, the color is visual-only and stored in your browser's localStorage. Colors: blue = Low, orange = Eh, red = High, dark red = Top Priority. Click the empty circle to clear.
+
+### Do priority dots on projects save to Dataverse?
+
+No. Projects don't have a priority field in Dataverse. The color is stored in localStorage only (`og-tile-colors`) and is visual -- it's per-browser, not synced across devices.
+
+### Can I set priority on ideas now?
+
+Yes. Ideas now have a priority field (`tdvsp_priority`) in Dataverse, using the same values as task priority. You can set it via the priority dots on tiles, or via the priority dropdown in the idea's new/edit form.
+
 ### How is the dashboard sorted?
 
 - **Action items (work card):** By date ascending (past/overdue first, then nearest upcoming)

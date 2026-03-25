@@ -1,10 +1,20 @@
 import { dataverseConfig } from "../auth/msalConfig";
-import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation, Idea, IdeaCategory, MeetingSummary, Project } from "../types";
+import { Account, Customer, HighValueActivity, ActionItem, Impact, Annotation, Idea, IdeaCategory, TaskPriority, MeetingSummary, Project } from "../types";
 
 let getAccessToken: (() => Promise<string>) | null = null;
+let pendingToken: Promise<string> | null = null;
 
 export function setTokenProvider(provider: () => Promise<string>) {
   getAccessToken = provider;
+}
+
+async function getCachedToken(): Promise<string> {
+  if (!getAccessToken) {
+    throw new Error("Token provider not set. Call setTokenProvider first.");
+  }
+  if (pendingToken) return pendingToken;
+  pendingToken = getAccessToken().finally(() => { pendingToken = null; });
+  return pendingToken;
 }
 
 async function apiRequest(
@@ -12,11 +22,7 @@ async function apiRequest(
   method: string = "GET",
   body?: unknown
 ) {
-  if (!getAccessToken) {
-    throw new Error("Token provider not set. Call setTokenProvider first.");
-  }
-
-  const token = await getAccessToken();
+  const token = await getCachedToken();
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     "OData-MaxVersion": "4.0",
@@ -295,7 +301,7 @@ export async function getAnnotationsByIds(ids: string[]): Promise<Annotation[]> 
 
 export async function getIdeas(): Promise<Idea[]> {
   const result = await apiRequest(
-    "/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category,createdon,_tdvsp_account_value,_tdvsp_contact_value&$expand=tdvsp_Account($select=accountid,name),tdvsp_Contact($select=contactid,firstname,lastname)&$filter=statecode eq 0&$orderby=createdon desc&$top=100"
+    "/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category,tdvsp_priority,createdon,_tdvsp_account_value,_tdvsp_contact_value,_tdvsp_project_value&$expand=tdvsp_Account($select=accountid,name),tdvsp_Contact($select=contactid,firstname,lastname)&$filter=statecode eq 0&$orderby=createdon desc&$top=100"
   );
   return result?.value ?? [];
 }
@@ -305,8 +311,10 @@ export async function createIdea(
     tdvsp_name: string;
     tdvsp_description?: string;
     tdvsp_category?: IdeaCategory;
+    tdvsp_priority?: TaskPriority;
     "tdvsp_Account@odata.bind"?: string;
     "tdvsp_Contact@odata.bind"?: string;
+    "tdvsp_Project@odata.bind"?: string;
   }
 ): Promise<Idea> {
   return apiRequest("/tdvsp_ideas", "POST", idea);
@@ -318,8 +326,10 @@ export async function updateIdea(
     tdvsp_name?: string;
     tdvsp_description?: string;
     tdvsp_category?: IdeaCategory;
+    tdvsp_priority?: TaskPriority | null;
     "tdvsp_Account@odata.bind"?: string;
     "tdvsp_Contact@odata.bind"?: string;
+    "tdvsp_Project@odata.bind"?: string;
   }
 ): Promise<Idea> {
   return apiRequest(`/tdvsp_ideas(${id})`, "PATCH", idea);
@@ -407,7 +417,7 @@ export async function getIdeasByContact(contactId: string): Promise<Idea[]> {
 
 export async function getMeetingSummaries(): Promise<MeetingSummary[]> {
   const result = await apiRequest(
-    "/tdvsp_meetingsummaries?$select=tdvsp_meetingsummaryid,tdvsp_name,tdvsp_date,tdvsp_summary,_tdvsp_account_value&$expand=tdvsp_Account($select=accountid,name)&$filter=statecode eq 0&$orderby=tdvsp_date desc&$top=100"
+    "/tdvsp_meetingsummaries?$select=tdvsp_meetingsummaryid,tdvsp_name,tdvsp_date,tdvsp_summary,_tdvsp_account_value,_tdvsp_project_value&$expand=tdvsp_Account($select=accountid,name)&$filter=statecode eq 0&$orderby=tdvsp_date desc&$top=100"
   );
   return result?.value ?? [];
 }
@@ -418,6 +428,7 @@ export async function createMeetingSummary(
     tdvsp_date?: string;
     tdvsp_summary?: string;
     "tdvsp_Account@odata.bind"?: string;
+    "tdvsp_Project@odata.bind"?: string;
   }
 ): Promise<MeetingSummary> {
   return apiRequest("/tdvsp_meetingsummaries", "POST", summary);
@@ -430,6 +441,7 @@ export async function updateMeetingSummary(
     tdvsp_date?: string;
     tdvsp_summary?: string;
     "tdvsp_Account@odata.bind"?: string;
+    "tdvsp_Project@odata.bind"?: string;
   }
 ): Promise<MeetingSummary> {
   return apiRequest(`/tdvsp_meetingsummaries(${id})`, "PATCH", summary);

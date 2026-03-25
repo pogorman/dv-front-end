@@ -22,7 +22,8 @@ src/
 ├── components/     # Shared components
 │   ├── AppShell.tsx         # Sidebar nav (sectioned) + theme toggle
 │   ├── CopilotChat.tsx      # Floating Copilot Studio chat widget
-│   └── NotesTimeline.tsx    # Shared notes component with file attachments
+│   ├── NotesTimeline.tsx    # Shared notes component with file attachments
+│   └── TileColorPicker.tsx  # Priority/color dot picker overlay for tiles
 ├── public/images/  # Static images (banner-bg.png for dashboard, og_logo_white.png for chat header)
 ├── context/        # React context providers (ThemeContext for dark/light mode, NotificationContext for toast notifications)
 ├── pages/          # Route pages
@@ -31,16 +32,16 @@ src/
 │   ├── Contacts.tsx         # CRUD (DataGrid + tile view toggle) + page header + inline edit view dialog with related ideas
 │   ├── Tasks.tsx            # Action Items CRUD (DataGrid + tile view toggle) + task status/priority/type + inline edit view dialog with notes timeline
 │   ├── Impacts.tsx          # Impacts CRUD (DataGrid + tile view toggle) + page header + inline edit view dialog
-│   ├── Ideas.tsx            # Ideas CRUD (DataGrid + tile view toggle) + page header + category badges + inline edit view dialog with notes timeline
+│   ├── Ideas.tsx            # Ideas CRUD (DataGrid + tile view toggle) + page header + category/priority badges + project lookup + inline edit view dialog with notes timeline
 │   ├── Projects.tsx         # Projects CRUD (DataGrid + tile view toggle) + page header + inline edit view dialog with notes timeline
-│   ├── MeetingSummaries.tsx # Meeting Summaries CRUD (DataGrid + tile view toggle) + page header + inline edit view dialog
+│   ├── MeetingSummaries.tsx # Meeting Summaries CRUD (DataGrid + tile view toggle) + page header + project lookup + inline edit view dialog
 │   ├── Personal.tsx         # Personal action items (tile grid + list view toggle) + page header + search + view/edit dialog with notes timeline
 │   ├── Activities.tsx       # (ORPHANED — not routed) High-Value Activities CRUD, kept for potential future use
 │   ├── About.tsx            # About this site info page
 │   └── Login.tsx            # Unauthenticated login page
 ├── services/       # API layer (dataverseService.ts)
 ├── types/          # TypeScript interfaces (index.ts)
-└── utils/          # Helper functions (formatDate.ts, pinnedNotes.ts, parkingLot.ts)
+└── utils/          # Helper functions (formatDate.ts, pinnedNotes.ts, parkingLot.ts, tileColors.ts)
 docs/
 ├── README.md                # Documentation index
 ├── ARCHITECTURE.md          # System design, auth flow, data architecture, deployment
@@ -48,6 +49,7 @@ docs/
 ├── FAQ.md                   # Frequently asked questions
 ├── HOW-I-WAS-BUILT.md      # Build narrative with prompts, decisions, lessons
 ├── SOLUTION_DOCUMENT.md     # Comprehensive technical reference
+├── SESSION-PROMPTS.md       # Reusable prompts from build sessions
 └── pdf/                     # Generated PDFs (from scripts/)
 scripts/
 ├── generate-architecture-pdf.py     # -> docs/pdf/architecture.pdf
@@ -85,17 +87,25 @@ The app works with these Dataverse tables:
 | Contacts | `contacts` | contactid, firstname, lastname, emailaddress1, telephone1, jobtitle, parentcustomerid (account lookup) |
 | Action Items | `tdvsp_actionitems` | tdvsp_actionitemid, tdvsp_name, tdvsp_date, tdvsp_description (5000 chars), tdvsp_taskstatus (choice), tdvsp_priority (choice), tdvsp_tasktype (choice), tdvsp_Customer (account lookup), createdon |
 | Impacts | `tdvsp_impacts` | tdvsp_impactid, tdvsp_name, tdvsp_date, tdvsp_description, tdvsp_Customer (account lookup) |
-| Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup) |
+| Ideas | `tdvsp_ideas` | tdvsp_ideaid, tdvsp_name, tdvsp_description, tdvsp_category (choice), tdvsp_priority (choice), tdvsp_Account (account lookup), tdvsp_Contact (contact lookup), _tdvsp_project_value (project lookup GUID) |
 | Projects | `tdvsp_projects` | tdvsp_projectid, tdvsp_name, tdvsp_description, tdvsp_Account (account lookup) |
-| Meeting Summaries | `tdvsp_meetingsummaries` | tdvsp_meetingsummaryid, tdvsp_name, tdvsp_date, tdvsp_summary, tdvsp_Account (account lookup) |
+| Meeting Summaries | `tdvsp_meetingsummaries` | tdvsp_meetingsummaryid, tdvsp_name, tdvsp_date, tdvsp_summary, tdvsp_Account (account lookup), _tdvsp_project_value (project lookup GUID) |
 | High-Value Activities | `tdvsp_hvas` | tdvsp_hvaid, tdvsp_name, tdvsp_description, tdvsp_date, tdvsp_Customer (account lookup) — **orphaned**: API functions & type exist but page not routed |
 | Annotations (Notes) | `annotations` | annotationid, subject, notetext, createdon, objectid (polymorphic lookup), filename, mimetype, documentbody (base64 file), isdocument |
 
 Custom tables use the `tdvsp_` prefix (publisher prefix).
 
+### Project Lookup Pattern (Ideas & Meeting Summaries)
+
+The project lookup on Ideas and Meeting Summaries does **not** use `$expand`. Instead, queries fetch `_tdvsp_project_value` (the raw GUID) and the UI resolves the project name client-side from the already-loaded projects list. For create/update payloads, use `tdvsp_Project@odata.bind` (PascalCase P) with standard `@odata.bind` syntax: `"/tdvsp_projects(guid)"`.
+
 ### Idea Categories (Choice Field)
 
 Values: 468510000 (Copilot Studio), 468510001 (Canvas Apps), 468510002 (Model-Driven Apps), 468510003 (Power Automate), 468510004 (Power Pages), 468510005 (Azure), 468510006 (AI General), 468510007 (App General), 468510008 (Other)
+
+### Idea Priority (Choice Field)
+
+Same values as Task Priority (shared choice column): 468510000 (Low), 468510001 (Eh), 468510002 (Top priority), 468510003 (High). Uses the same `taskPriorityOrder` for dropdown display order.
 
 ### Task Status (Choice Field)
 
@@ -148,6 +158,7 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **Tasks Filter** - Tasks page includes a Work/Personal/All filter dropdown (defaults to Work) to filter action items by task type.
 - **List/Tile View Toggle** (all entity pages + Personal) - Every entity page has a list/tile view toggle in the toolbar (`TextBulletListLtr20Regular` / `Grid20Regular` icons). List view is the DataGrid. Tile view shows 220px cards with entity-specific details (name + relevant badges/fields). Tile styles: `tileGrid`, `tile`, `tileName`, `tileMeta`, `viewToggle`. View preference persisted to localStorage per page, all defaulting to `"list"`. Keys: `og-tasks-view-mode`, `og-ideas-view-mode`, `og-projects-view-mode`, `og-contacts-view-mode`, `og-impacts-view-mode`, `og-accounts-view-mode`, `og-summaries-view-mode`, `og-personal-view-mode` (Personal defaults to `"tiles"`).
 - **Tile Tooltips** - All dashboard tiles (work, projects, parking lot) show rich Fluent UI `Tooltip` on hover (`showDelay={400}`, `withArrow`). Tooltips reveal full details that get truncated on small tiles: work tiles show name/description/date/account/status/priority; project tiles show name/description/account; parking lot tiles show name/entity type. Positioning varies by section (`"above"` for work, `"below"` for projects and parking lot).
+- **Tile Color-Coding / Priority Dots** - Tiles on Tasks, Ideas, Personal, Projects pages and Dashboard show colored dot pickers on hover (top-right corner via `TileColorPicker` component). Colors: clear (no priority), blue (Low), orange (Eh), red (High), dark red (Top Priority). For entities with a Dataverse `tdvsp_priority` field (Tasks, Ideas, Personal), selecting a dot updates the priority in Dataverse and the tile background tints to the selected color. For entities without a priority field (Projects, Parking Lot), colors are visual-only and stored in localStorage (`og-tile-colors`). Pages without tile colors: Accounts, Contacts, Impacts, MeetingSummaries. Uses `src/utils/tileColors.ts` for color/priority mapping and localStorage persistence, and `src/components/TileColorPicker.tsx` for the dot UI. CSS rule `.tile-color-picker` in `index.css` shows dots on parent hover.
 
 ## Coding Conventions
 
@@ -157,12 +168,14 @@ Values: 468510000 (Personal), 468510001 (Work)
 - **DataGrid List View Convention** (all 7 entity pages): Each page uses a `Card` with `padding: "0px"`, `overflow: "hidden"`, accent-colored 3px `borderLeft`, wrapping a Fluent UI `DataGrid` with `columnSizes` flex layout. Pages include a `pageHeader` div (icon + lowercase monospace `Subtitle1`). Choice fields render as colored `renderBadge` pills (`<span>` with semi-transparent background). Name column is a clickable link (`nameLink` style). Actions column has edit/deactivate buttons.
 - TypeScript interfaces and shared constants in `src/types/index.ts` (includes `taskPriorityOrder` for dropdown display order)
 - API calls go through `dataverseService.ts` using a shared `apiRequest` helper
+- **Token deduplication** in `dataverseService.ts` — concurrent API calls share a single `acquireTokenSilent` promise to prevent MSAL `block_iframe_reload` errors. The in-flight promise is cached and cleared on resolve/reject.
 - Dataverse lookups use `@odata.bind` syntax for setting relationships (e.g., `"parentcustomerid_account@odata.bind": "/accounts(guid)"`)
-- Dataverse lookup values are read via `_fieldname_value` properties and `$expand` for navigation properties
+- Dataverse lookup values are read via `_fieldname_value` properties; project lookups on Ideas and Meeting Summaries use client-side resolution from the projects list (no `$expand`)
 - **Inline Edit Pattern** (all 7 entity pages + Dashboard): View dialogs open on name click; editing happens inline in the view dialog (`isEditing` state toggles fields between read-only `<Text>` and editable `<Input>`/`<Dropdown>`/`<Textarea>`). Separate "New" dialog is kept only for creating new records. Standard functions: `openEdit` sets `isEditing(true)` and populates `formData`; `buildPayload` extracts shared payload construction; `handleSaveEdit` updates record and refreshes viewed entity; `handleSaveNew` creates from the new dialog. DialogActions toggle between Edit button (view mode) and Save/Cancel (edit mode). `onOpenChange` resets `isEditing` and `editingId` when dialog closes. `openView` always resets `isEditing(false)` and `editingId(null)` to prevent edit state leaking between records. Dashboard uses `editFormData` (separate from quick-add form state) and entity-specific functions (`openViewTask`/`openEditTask`/`openViewIdea`/`openEditIdea`/`openViewProject`/`openEditProject`).
 - **Deactivate Pattern** (all entity pages + Dashboard): Records are deactivated (`statecode: 1`) instead of hard-deleted. All fetch queries include `statecode eq 0` to show only active records. Annotations (notes) still use actual deletion. Service functions are named `deactivateXxx` (e.g., `deactivateActionItem`, `deactivateAccount`). Page handlers are named `handleDeactivate`. Dashboard uses a confirmation dialog for deactivation.
 - **Save Progress Pattern** (all entity pages + Dashboard): Every save/update/deactivate handler uses `saving` state: `setSaving(true)` at start, `setSaving(false)` in `finally` block. Save/Deactivate buttons show `disabled={saving}` with `<Spinner size="tiny" /> Saving...` content while in progress. Prevents double-submissions and provides visual feedback. Combined with `notify()` toast calls for success/error.
 - **View Toggle Pattern** (all entity pages + Personal): Every entity page has a list/tile view toggle using `localStorage` to persist the user's preference. Keys: `og-tasks-view-mode`, `og-ideas-view-mode`, `og-projects-view-mode`, `og-contacts-view-mode`, `og-impacts-view-mode`, `og-accounts-view-mode`, `og-summaries-view-mode`, `og-personal-view-mode`. All default to `"list"` except Personal which defaults to `"tiles"`. Toggle icons: `TextBulletListLtr20Regular` for list, `Grid20Regular` for tiles. Tile styles: `tileGrid`, `tile`, `tileName`, `tileMeta`, `viewToggle`.
+- **Tile Color/Priority Dot Pattern** (Tasks, Ideas, Personal, Projects pages + Dashboard): Tiles show a `TileColorPicker` overlay on hover (positioned absolute top-right, opacity 0 -> 1 via CSS `.tile-color-picker`). Two modes: (1) **Priority-driven** (Tasks, Ideas, Personal, Dashboard work+ideas) — selecting a dot calls the Dataverse update function to set `tdvsp_priority`, then refreshes the list; tile background is derived from `priorityToBackground()`. (2) **localStorage-driven** (Projects, Dashboard parking lot+projects) — selecting a dot calls `setTileColor()` / `clearTileColor()` in `tileColors.ts`; tile background is derived from `getTileBackground()`. Color values: blue=#4a9eff (Low), orange=#f59e0b (Eh), red=#f87171 (High), darkred=#b91c1c (Top Priority). Tile containers must have `position: "relative"` for the absolute-positioned picker.
 
 ## Authentication Flow
 

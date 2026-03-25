@@ -137,6 +137,19 @@ Expanding interactivity across the app:
   - Custom column ordering persisted to localStorage so reordering survives page refreshes
   - Work/personal toggle is a small inline button in the column header rather than a dropdown, keeping the dashboard compact
 
+### Phase 11: Tile Color-Coding, Idea Priority & Project Lookups
+
+Adding visual priority to tiles and expanding entity relationships:
+
+- **Prompt pattern:** "Add colored priority dots to tiles that update Dataverse priority on click, plus new fields for ideas (priority, project) and meeting summaries (project)"
+- **Result:** New `TileColorPicker` component renders 4 colored dots + clear button on tile hover (top-right corner). Two operational modes: priority-driven (Tasks, Ideas, Personal -- writes `tdvsp_priority` to Dataverse) and localStorage-driven (Projects, Parking Lot -- visual-only via `og-tile-colors`). Ideas gained `tdvsp_priority` (choice) and `tdvsp_Project` (project lookup) fields. Meeting Summaries gained `tdvsp_Project` (project lookup). All new fields wired through types, service layer, OData queries, and new/edit/view forms. `docs/SESSION-PROMPTS.md` added as a reusable prompt collection.
+- **Key decisions:**
+  - Tile background tints use semi-transparent RGBA colors (`rgba(..., 0.12)`) so they work in both dark and light themes
+  - CSS `.tile-color-picker` rule handles hover visibility (opacity 0 -> 1) rather than React state, keeping the component simple
+  - Priority dots on entity pages (Tasks, Ideas, Personal, Projects) appear on tile views only, not DataGrid rows
+  - Color-to-priority mapping in `tileColors.ts` is the single source of truth for both directions (color->priority and priority->color)
+  - Pages without tile colors (Accounts, Contacts, Impacts, MeetingSummaries) were intentionally excluded -- they don't have a natural priority concept
+
 ---
 
 ## Design Principles

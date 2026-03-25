@@ -40,7 +40,7 @@ import {
   TextBulletListLtr20Regular,
   Grid20Regular,
 } from "@fluentui/react-icons";
-import { MeetingSummary, Account } from "../types";
+import { MeetingSummary, Account, Project } from "../types";
 import { formatDate } from "../utils/formatDate";
 import {
   getMeetingSummaries,
@@ -48,6 +48,7 @@ import {
   updateMeetingSummary,
   deactivateMeetingSummary,
   getAccounts,
+  getProjects,
 } from "../services/dataverseService";
 import { useNotification } from "../context/NotificationContext";
 
@@ -202,6 +203,7 @@ interface FormData {
   tdvsp_date: string;
   tdvsp_summary: string;
   accountId: string;
+  projectId: string;
 }
 
 const emptyForm: FormData = {
@@ -209,6 +211,7 @@ const emptyForm: FormData = {
   tdvsp_date: "",
   tdvsp_summary: "",
   accountId: "",
+  projectId: "",
 };
 
 export const MeetingSummaries: React.FC = () => {
@@ -217,6 +220,7 @@ export const MeetingSummaries: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [summaries, setSummaries] = useState<MeetingSummary[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -229,6 +233,7 @@ export const MeetingSummaries: React.FC = () => {
   const [viewMode, setViewMode] = useState<"list" | "tiles">(() =>
     (localStorage.getItem("og-summaries-view-mode") as "list" | "tiles") || "list"
   );
+
   const toggleViewMode = (mode: "list" | "tiles") => {
     setViewMode(mode);
     localStorage.setItem("og-summaries-view-mode", mode);
@@ -255,10 +260,20 @@ export const MeetingSummaries: React.FC = () => {
     }
   }, []);
 
+  const loadProjects = useCallback(async () => {
+    try {
+      const data = await getProjects();
+      setProjects(data);
+    } catch (err) {
+      console.error("Failed to load projects:", err);
+    }
+  }, []);
+
   useEffect(() => {
     loadSummaries();
     loadAccounts();
-  }, [loadSummaries, loadAccounts]);
+    loadProjects();
+  }, [loadSummaries, loadAccounts, loadProjects]);
 
   // Auto-open new dialog if ?new=true
   useEffect(() => {
@@ -290,16 +305,15 @@ export const MeetingSummaries: React.FC = () => {
       tdvsp_date: summary.tdvsp_date ? summary.tdvsp_date.split("T")[0] : "",
       tdvsp_summary: summary.tdvsp_summary ?? "",
       accountId: summary.tdvsp_Account?.accountid ?? "",
+      projectId: summary._tdvsp_project_value ?? "",
     });
     setIsEditing(true);
   };
 
   const buildSummaryPayload = () => {
     const payload: {
-      tdvsp_name: string;
-      tdvsp_date?: string;
-      tdvsp_summary?: string;
-      "tdvsp_Account@odata.bind"?: string;
+      tdvsp_name: string; tdvsp_date?: string; tdvsp_summary?: string;
+      "tdvsp_Account@odata.bind"?: string; "tdvsp_Project@odata.bind"?: string;
     } = {
       tdvsp_name: formData.tdvsp_name,
     };
@@ -311,6 +325,9 @@ export const MeetingSummaries: React.FC = () => {
     }
     if (formData.accountId) {
       payload["tdvsp_Account@odata.bind"] = `/accounts(${formData.accountId})`;
+    }
+    if (formData.projectId) {
+      payload["tdvsp_Project@odata.bind"] = `/tdvsp_Projects(${formData.projectId})`;
     }
     return payload;
   };
@@ -518,6 +535,19 @@ export const MeetingSummaries: React.FC = () => {
                       ))}
                     </Dropdown>
                   </div>
+                  <div className={styles.formField}>
+                    <Label>Project</Label>
+                    <Dropdown
+                      placeholder="Select project"
+                      value={projects.find((p) => p.tdvsp_projectid === formData.projectId)?.tdvsp_name ?? ""}
+                      onOptionSelect={(_, d) => setFormData({ ...formData, projectId: d.optionValue ?? "" })}
+                    >
+                      <Option value="" text="(None)">(None)</Option>
+                      {projects.map((p) => (
+                        <Option key={p.tdvsp_projectid} value={p.tdvsp_projectid!}>{p.tdvsp_name}</Option>
+                      ))}
+                    </Dropdown>
+                  </div>
                   <div className={styles.formFieldFull}>
                     <Label>Summary</Label>
                     <Textarea
@@ -660,6 +690,7 @@ export const MeetingSummaries: React.FC = () => {
                           value={accounts.find((a) => a.accountid === formData.accountId)?.name ?? ""}
                           onOptionSelect={(_, d) => setFormData({ ...formData, accountId: d.optionValue ?? "" })}
                         >
+                          <Option value="" text="(None)">(None)</Option>
                           {accounts.map((a) => (
                             <Option key={a.accountid} value={a.accountid!} text={a.name}>{a.name}</Option>
                           ))}
@@ -668,6 +699,23 @@ export const MeetingSummaries: React.FC = () => {
                         viewingSummary.tdvsp_Account?.name
                           ? renderBadge(viewingSummary.tdvsp_Account.name, accountBadgeColors)
                           : <Text block size={400}>--</Text>
+                      )}
+                    </div>
+                    <div className={styles.viewField}>
+                      <Label>Project</Label>
+                      {isEditing ? (
+                        <Dropdown
+                          placeholder="Select project"
+                          value={projects.find((p) => p.tdvsp_projectid === formData.projectId)?.tdvsp_name ?? ""}
+                          onOptionSelect={(_, d) => setFormData({ ...formData, projectId: d.optionValue ?? "" })}
+                        >
+                          <Option value="" text="(None)">(None)</Option>
+                          {projects.map((p) => (
+                            <Option key={p.tdvsp_projectid} value={p.tdvsp_projectid!}>{p.tdvsp_name}</Option>
+                          ))}
+                        </Dropdown>
+                      ) : (
+                        <Text block size={400}>{projects.find((p) => p.tdvsp_projectid === viewingSummary._tdvsp_project_value)?.tdvsp_name || "--"}</Text>
                       )}
                     </div>
                   </div>
