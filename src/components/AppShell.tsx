@@ -35,6 +35,8 @@ import {
   WeatherSunny24Regular,
   Info24Regular,
   Info24Filled,
+  Grid24Regular,
+  Grid24Filled,
 } from "@fluentui/react-icons";
 import { useMsal } from "@azure/msal-react";
 import { useTheme } from "../context/ThemeContext";
@@ -195,16 +197,28 @@ interface NavSection {
   items: NavItem[];
 }
 
-const dashboardItem: NavItem = {
-  key: "dashboard",
-  label: "dashboard",
-  path: "/",
-  icon: <Home24Regular />,
-  iconActive: <Home24Filled />,
-  color: "#4a9eff",
-};
-
 const navSections: NavSection[] = [
+  {
+    label: "insights",
+    items: [
+      {
+        key: "dashboard",
+        label: "dashboard",
+        path: "/",
+        icon: <Home24Regular />,
+        iconActive: <Home24Filled />,
+        color: "#4a9eff",
+      },
+      {
+        key: "board",
+        label: "my board",
+        path: "/board",
+        icon: <Grid24Regular />,
+        iconActive: <Grid24Filled />,
+        color: "#4a9eff",
+      },
+    ],
+  },
   {
     label: "activity",
     items: [
@@ -300,6 +314,7 @@ const navSections: NavSection[] = [
 
 const pageTitles: Record<string, string> = {
   "/": "dashboard",
+  "/board": "my board",
   "/accounts": "accounts",
   "/contacts": "contacts",
   "/tasks": "tasks",
@@ -313,6 +328,7 @@ const pageTitles: Record<string, string> = {
 
 const pageIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   "/": { icon: <Home24Filled />, color: "#4a9eff" },
+  "/board": { icon: <Grid24Filled />, color: "#4a9eff" },
   "/tasks": { icon: <CheckboxChecked24Filled />, color: "#f87171" },
   "/ideas": { icon: <LightbulbFilament24Filled />, color: "#a78bfa" },
   "/personal": { icon: <Home24Filled />, color: "#22d3ee" },
@@ -374,26 +390,7 @@ export const AppShell: React.FC = () => {
           />
         </div>
 
-        <Divider />
-
         <div className={styles.navSection}>
-          {/* Dashboard */}
-          <Tooltip
-            content={dashboardItem.label}
-            relationship="label"
-            positioning="after"
-          >
-            <button
-              className={`${styles.navItem} ${currentPath === dashboardItem.path ? styles.navItemActive : ""}`}
-              onClick={() => navigate(dashboardItem.path)}
-            >
-              <span className={styles.navIcon} style={{ color: dashboardItem.color }}>
-                {currentPath === dashboardItem.path ? dashboardItem.iconActive : dashboardItem.icon}
-              </span>
-              {expanded && <span>{dashboardItem.label}</span>}
-            </button>
-          </Tooltip>
-
           {/* Sections */}
           {navSections.map((section, idx) => (
             <React.Fragment key={section.label || `section-${idx}`}>

@@ -5,7 +5,7 @@
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design, tech stack, auth flow, data architecture, deployment |
-| [USER-GUIDE.md](USER-GUIDE.md) | End-user guide -- navigation, dashboard, CRUD, notes, theme, Copilot |
+| [USER-GUIDE.md](USER-GUIDE.md) | End-user guide -- navigation, dashboard, my board, CRUD, notes, theme, Copilot |
 | [FAQ.md](FAQ.md) | Frequently asked questions -- auth, data, dashboard, chat, development |
 | [HOW-I-WAS-BUILT.md](HOW-I-WAS-BUILT.md) | ELI5 build narrative -- prompts, decisions, lessons learned |
 | [SESSION-PROMPTS.md](SESSION-PROMPTS.md) | Reusable prompts from build sessions |

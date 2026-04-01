@@ -2,7 +2,7 @@
 
 **Application Name:** My Work
 **URL:** ohgeesolutions.com
-**Last Updated:** March 2026
+**Last Updated:** April 2026
 
 ---
 
@@ -20,7 +20,7 @@ The **sidebar** (left) organizes pages into sections. Click the chevron at the t
 
 | Section | Pages | Icon |
 |---------|-------|------|
-| *(Top)* | dashboard | Home |
+| **insights** | dashboard, my board | Home, Grid |
 | **activity** | tasks, personal, ideas, meetings | CheckboxChecked, Home, LightbulbFilament, PeopleTeam |
 | **core** | accounts, contacts, projects, impacts | Building, Person, Briefcase, Flash |
 | *(Bottom)* | about this site | Info |
@@ -29,17 +29,40 @@ At the bottom of the sidebar you'll find your avatar, name, and a **Sign out** b
 
 ---
 
-## Dashboard
+## Dashboard (Analytics)
 
-The dashboard is your home base. Everything is visible at a glance, and most actions can be performed without leaving the page.
+The dashboard (`/`) is your home page, showing insights and analytics computed from your action items.
 
 ### Quick Create Bar
 
-The top bar has pill-style buttons for creating any record type: task, personal, learning, idea, meeting, account, contact, project, or impact. The task/personal/learning buttons each pre-set the task type. Click a button, fill the inline form, and save -- you stay on the dashboard the whole time. Save buttons show a spinner and disable while saving to prevent duplicates.
+The top bar has pill-style buttons for creating any record type: work, personal, learning, idea, meeting, project, account, or contact. Clicking a button navigates to the corresponding entity page with the new record dialog pre-opened.
+
+### KPI Cards
+
+Four cards across the top summarize your data at a glance: **Total Items** (all action items), **Completion Rate** (percentage complete), **In Progress** (actively being worked), and **High/Top Priority** (items needing attention). Each card has an accent-colored icon badge.
+
+### Charts
+
+Below the KPIs, four chart panels visualize your data:
+
+- **Status Breakdown** -- SVG donut chart showing action items by workflow status (Recognized, In Progress, Pending Comm., On Hold, Wrapping Up, Complete) with a legend
+- **Priority Distribution** -- Horizontal bar chart by priority level (Low, Eh, Top Priority, High) with a summary line for High + Top Priority
+- **Task Types** -- Stacked proportional bar plus individual breakdown bars for Personal, Work, and Learning items with percentage labels
+- **Items by Account** -- Horizontal bar chart showing top 8 accounts by action item count
+
+---
+
+## My Board
+
+My Board (`/board`) is your kanban-style workspace. Everything is visible at a glance, and most actions can be performed without leaving the page.
+
+### Quick Create Bar
+
+The top bar has pill-style buttons for creating any record type: task, personal, learning, idea, meeting, account, contact, project, or impact. The task/personal/learning buttons each pre-set the task type. Click a button, fill the inline form, and save -- you stay on the board the whole time. Save buttons show a spinner and disable while saving to prevent duplicates.
 
 ### Parking Lot
 
-The first column (lime green accent, car icon). Bookmark any item from the dashboard to "park" it here for quick access. Up to 5 items can be parked. Click an action item or idea tile to open its view dialog inline; other entity types navigate to their list page. Click X to remove an item. You can also **drag items** from the Work, Projects, or Ideas columns directly into the Parking Lot.
+The first column (lime green accent, car icon). Bookmark any item from the board to "park" it here for quick access. Up to 5 items can be parked. Click an action item or idea tile to open its view dialog inline; other entity types navigate to their list page. Click X to remove an item. You can also **drag items** from the Work, Projects, or Ideas columns directly into the Parking Lot.
 
 ### Work Column
 
@@ -47,7 +70,7 @@ The widest column (flex: 2) showing action items filtered by type. Each card sho
 
 ### Projects Column
 
-Blue-accented column listing all projects with name and account. Click to open the view/edit dialog inline on the dashboard (with notes timeline).
+Blue-accented column listing all projects with name and account. Click to open the view/edit dialog inline on the board (with notes timeline).
 
 ### Ideas Column
 
@@ -55,17 +78,17 @@ Purple-accented column listing all ideas with name, category badge, and account.
 
 ### Drag-and-Drop
 
-Dashboard columns support drag-and-drop:
+Board columns support drag-and-drop:
 - **Drag to park:** Drag any item from the Work, Projects, or Ideas columns into the Parking Lot to bookmark it.
 - **Reorder within a column:** Drag items up or down within any column to customize their order. Your custom order is saved to localStorage and persists across sessions.
 
 ### Tile Tooltips
 
-Hover over any dashboard tile (work, projects, or parking lot) for about half a second and a rich tooltip appears with an arrow showing the full details that get truncated on the small tiles. Work tile tooltips show the full name, description, date, account, status, and priority. Project tile tooltips show name, description, and account. Parking lot tile tooltips show the full name and entity type.
+Hover over any board tile (work, projects, or parking lot) for about half a second and a rich tooltip appears with an arrow showing the full details that get truncated on the small tiles. Work tile tooltips show the full name, description, date, account, status, and priority. Project tile tooltips show name, description, and account. Parking lot tile tooltips show the full name and entity type.
 
 ### Priority Dots (Tile Color-Coding)
 
-Hover over any tile on the dashboard (work, ideas, projects, parking lot) and colored dots appear in the top-right corner. Click a dot to set a visual priority color:
+Hover over any tile on the board (work, ideas, projects, parking lot) and colored dots appear in the top-right corner. Click a dot to set a visual priority color:
 
 - **Clear** (empty circle) -- remove the color
 - **Blue** -- Low priority
@@ -86,8 +109,8 @@ For work items and ideas, this actually updates the priority field in Dataverse.
 2. Click the **"New"** button in the top-right
 3. Fill in the form fields and click **Save**
 
-**From the dashboard:**
-- Use the quick create bar at the top -- click the entity type button, fill the form, and save
+**From the dashboard or my board:**
+- Use the quick create bar at the top -- on the dashboard, buttons navigate to the entity page with the new dialog open; on my board, inline forms open directly
 
 ### Viewing a Record
 
@@ -184,5 +207,4 @@ Click the **rocket icon button** (bottom-right corner) to open the AI chat panel
 - **Quick navigation:** Use the sidebar to jump between pages. Collapsed mode shows icons with tooltips.
 - **Keyboard shortcut:** All entity pages support `?new=true` in the URL to auto-open the create dialog.
 - **Deep links:** Tasks, Ideas, and Projects support `?view=<id>` to link directly to a specific record's view dialog.
-- **Parking lot:** Bookmark frequently-referenced items from dashboard lists for quick access (max 5).
-- **Pin notes:** Pin important notes to the dashboard sidebar so they're always visible.
+- **Parking lot:** Bookmark frequently-referenced items from my board columns for quick access (max 5).

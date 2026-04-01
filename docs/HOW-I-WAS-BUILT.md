@@ -1,6 +1,6 @@
 # My Work — How I Was Built
 
-**Last Updated:** March 2026
+**Last Updated:** April 2026
 
 ---
 
@@ -46,18 +46,18 @@ Each entity page followed the same pattern, built one at a time:
 - **Result:** 7 entity pages (Accounts, Contacts, Tasks, Ideas, Projects, Impacts, Meeting Summaries) all following the same conventions
 - **Key decision:** Inline edit pattern -- view dialogs double as edit dialogs via an `isEditing` toggle. No separate edit page or modal. This kept the code simple and the UX fast.
 
-### Phase 3: Dashboard
+### Phase 3: Dashboard (now My Board)
 
-The dashboard went through the most iterations:
+The board page went through the most iterations:
 
 - **Started as:** Simple card grid with counts
-- **Evolved to:** Quick create bar + parking lot strip + projects strip + work tile grid + right sidebar with tabbed Ideas and Pinned Notes
+- **Evolved to:** Quick create bar + parking lot strip + projects strip + work tile grid + right sidebar with tabbed Ideas and Pinned Notes, then reorganized into a four-column kanban layout (Parking Lot | Work | Projects | Ideas). Later renamed from "Dashboard" to "My Board" (`/board`) when a new analytics dashboard was added as the home page.
 - **Key decisions:**
-  - Inline view/edit dialogs on the dashboard (clicking an action item, idea, or project opens its full dialog without navigating away)
+  - Inline view/edit dialogs on the board (clicking an action item, idea, or project opens its full dialog without navigating away)
   - Parking lot for bookmarking (localStorage, max 5 items)
   - Tile-based layout instead of lists (160px tiles for strips, 3-per-row grid for work)
-  - Ideas moved from a main-area strip to a tabbed right sidebar (alongside pinned notes) for better use of space
-  - Projects strip added to the main area, giving projects first-class dashboard visibility
+  - Ideas moved from a main-area strip to a tabbed right sidebar (alongside pinned notes) for better use of space, then later to its own dedicated column
+  - Projects strip added to the main area, giving projects first-class board visibility
 
 ### Phase 4: Design System
 
@@ -161,6 +161,19 @@ Adding a third task type and reorganizing navigation:
   - Dashboard work column accent color changes dynamically: red for work, cyan for personal, purple for learning
   - HatGraduation icon chosen for learning to distinguish it visually from work (Briefcase) and personal (Home)
   - "Meetings" label is more intuitive than "summaries" for the sidebar — the page component filename (`MeetingSummaries.tsx`) stays unchanged to avoid refactoring churn
+
+### Phase 13: Analytics Dashboard & My Board Split
+
+Splitting the home page into an analytics dashboard and a separate kanban board:
+
+- **Prompt pattern:** "Create an analytics/insights dashboard as the new home page, move the existing kanban-style dashboard to /board as My Board"
+- **Result:** New `Dashboard.tsx` at `/` renders KPI cards (Total Items, Completion Rate, In Progress, High/Top Priority), SVG donut chart for status breakdown, horizontal bar charts for priority distribution and items by account, and a stacked bar + individual bars for task types. All data computed client-side from `getActionItems()`. Quick create bar buttons now navigate to entity pages with `?new=true` instead of opening inline dialogs. Previous `Dashboard` component renamed to `MyBoard` (exported from `MyBoard.tsx`) at `/board`, retaining the 4-column layout, inline quick-create dialogs, drag-and-drop, parking lot, and inline view/edit dialogs. Sidebar reorganized with a new "insights" section containing "dashboard" (Home icon, `/`) and "my board" (Grid icon, `/board`). CSS additions: `@keyframes dashCardIn` for card entrance animations with staggered delays, and `dash-bg` class for a subtle dot-grid background pattern.
+- **Key decisions:**
+  - Pure SVG donut chart (no charting library) keeps the dependency footprint at zero -- the ring segments are `<circle>` elements with `strokeDasharray`/`strokeDashoffset` animations
+  - Dashboard quick create buttons navigate rather than open inline dialogs, keeping the analytics page read-only and simple
+  - My Board retains all the inline quick-create, drag-and-drop, and view/edit dialog functionality from the original dashboard
+  - Sidebar width increased from 168px to 188px to accommodate the new "insights" section label
+  - Card entrance animation is subtle (6px translateY fade-in, 0.3s) with staggered delays up to 0.16s to avoid feeling sluggish
 
 ---
 

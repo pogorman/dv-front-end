@@ -25,6 +25,7 @@ import { msalConfig, loginRequest } from "./auth/msalConfig";
 import { setTokenProvider } from "./services/dataverseService";
 import { AppShell } from "./components/AppShell";
 import { Dashboard } from "./pages/Dashboard";
+import { MyBoard } from "./pages/MyBoard";
 import { Accounts } from "./pages/Accounts";
 import { Contacts } from "./pages/Contacts";
 import { Tasks } from "./pages/Tasks";
@@ -179,6 +180,7 @@ const ThemedApp: React.FC = () => {
             <Routes>
               <Route element={<AppShell />}>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/board" element={<MyBoard />} />
                 <Route path="/accounts" element={<Accounts />} />
                 <Route path="/contacts" element={<Contacts />} />
                 <Route path="/tasks" element={<Tasks />} />

@@ -2,7 +2,7 @@
 
 **Application Name:** My Work
 **Version:** 0.1.0
-**Last Updated:** March 2026
+**Last Updated:** April 2026
 
 ---
 
@@ -366,17 +366,29 @@ All 8 entity pages use a consistent pattern:
 - Edit/deactivate action buttons
 - **List/tile view toggle** in each page's toolbar switching between DataGrid (list) and 220px tile cards. View preference persisted to localStorage per page.
 
-### Dashboard Layout
+### Dashboard (Analytics)
 
-The dashboard uses a four-column layout filling viewport height. Quick create buttons sit in a compact title bar row at the top. Columns left to right: Parking Lot | Work (flex: 2) | Projects | Ideas. Each column has an accent-colored 3px left border, header (icon + title + count), and scrollable content area with vertical card list.
+The home page (`/`) is an analytics/insights dashboard showing KPI cards and charts computed from action item data. It fetches all action items via `getActionItems()` and renders:
+
+- **KPI row**: 4 cards (Total Items, Completion Rate, In Progress, High/Top Priority) with accent-colored icon badges
+- **Status breakdown**: SVG donut chart with color-coded segments and legend
+- **Priority distribution**: Horizontal bar chart by priority level
+- **Task types**: Stacked bar + individual breakdown by type (Personal, Work, Learning)
+- **Items by account**: Horizontal bar chart showing top 8 accounts
+
+Quick create buttons in the top bar navigate to entity pages with `?new=true`. Card entrance animations use `@keyframes dashCardIn` with staggered delays, and the page has a subtle dot-grid background (`dash-bg` class).
+
+### My Board Layout
+
+The board page (`/board`) uses a four-column layout filling viewport height. Quick create buttons sit in a compact title bar row at the top and open inline dialogs. Columns left to right: Parking Lot | Work (flex: 2) | Projects | Ideas. Each column has an accent-colored 3px left border, header (icon + title + count), and scrollable content area with vertical card list.
 
 - **Work column** includes a **w/p/l toggle** in the header to switch between work, personal, and learning action items.
 - **Drag-and-drop**: Items can be dragged from Work, Projects, or Ideas columns into the Parking Lot. All column items can be reordered within their column via drag-and-drop. Custom ordering is persisted to localStorage.
-- Clicking action items, ideas, or projects opens inline view/edit dialogs on the dashboard without navigating away.
+- Clicking action items, ideas, or projects opens inline view/edit dialogs on the board without navigating away.
 
-### Dashboard Tile Tooltips
+### My Board Tile Tooltips
 
-All dashboard tiles use Fluent UI `Tooltip` with `withArrow` and `showDelay={400}` to reveal full record details on hover. Content varies by tile type (work tiles show description/status/priority; project tiles show description/account; parking lot tiles show entity type). Tooltip positioning is `"above"` for work tiles and `"below"` for projects and parking lot tiles.
+All board tiles use Fluent UI `Tooltip` with `withArrow` and `showDelay={400}` to reveal full record details on hover. Content varies by tile type (work tiles show description/status/priority; project tiles show description/account; parking lot tiles show entity type). Tooltip positioning is `"above"` for work tiles and `"below"` for projects and parking lot tiles.
 
 ### Tile Color-Coding / Priority Dots
 
@@ -384,8 +396,8 @@ Tiles across entity pages and the dashboard show colored dot pickers on hover (t
 
 | Mode | Entities | Storage | Behavior |
 |------|----------|---------|----------|
-| Priority-driven | Tasks, Ideas, Personal, Dashboard (work + ideas) | Dataverse `tdvsp_priority` | Selecting a dot updates the priority field via API; tile bg tints from priority value |
-| Visual-only | Projects, Dashboard (projects + parking lot) | localStorage (`og-tile-colors`) | Selecting a dot stores color locally; no Dataverse update |
+| Priority-driven | Tasks, Ideas, Personal, My Board (work + ideas) | Dataverse `tdvsp_priority` | Selecting a dot updates the priority field via API; tile bg tints from priority value |
+| Visual-only | Projects, My Board (projects + parking lot) | localStorage (`og-tile-colors`) | Selecting a dot stores color locally; no Dataverse update |
 
 **Color mapping:** clear = no priority, blue = Low (`#4a9eff`), orange = Eh (`#f59e0b`), red = High (`#f87171`), dark red = Top Priority (`#b91c1c`).
 

@@ -1,6 +1,6 @@
 # My Work — Frequently Asked Questions
 
-**Last Updated:** March 2026
+**Last Updated:** April 2026
 
 ---
 
@@ -56,15 +56,19 @@ Files are stored as base64-encoded data in Dataverse's `annotations` table. This
 
 ---
 
-## Dashboard
+## Dashboard & My Board
+
+### What is the difference between the dashboard and my board?
+
+The **dashboard** (`/`) is an analytics page showing KPI cards, charts, and data visualizations computed from your action items. The **my board** (`/board`) is the kanban-style workspace with four columns (Parking Lot, Work, Projects, Ideas) where you manage and interact with individual records. Both are accessible from the "insights" section of the sidebar.
 
 ### What is the parking lot?
 
-A bookmarking feature on the dashboard. Click the bookmark icon on any item to "park" it for quick access. Up to 5 items can be parked at a time. Parked items are stored in your browser's localStorage -- they're per-browser, not per-user in Dataverse.
+A bookmarking feature on my board. Click the car icon on any item to "park" it for quick access. Up to 5 items can be parked at a time. Parked items are stored in your browser's localStorage -- they're per-browser, not per-user in Dataverse.
 
-### How do I see full details for a dashboard tile?
+### How do I see full details for a board tile?
 
-Hover over any tile (work, projects, or parking lot) for about half a second. A tooltip with an arrow appears showing the full details that get truncated on the small tile -- name, description, date, account, status, priority (for work tiles) or description and account (for project tiles). You can also click the tile to open the full view/edit dialog.
+Hover over any tile (work, projects, or parking lot) on my board for about half a second. A tooltip with an arrow appears showing the full details that get truncated on the small tile -- name, description, date, account, status, priority (for work tiles) or description and account (for project tiles). You can also click the tile to open the full view/edit dialog.
 
 ### What do the colored badges on work tiles mean?
 
@@ -72,27 +76,27 @@ Work tiles show up to two types of colored pill badges. At bottom-left: "Top Pri
 
 ### Why is the priority dropdown ordered Low, Eh, High, Top Priority?
 
-The dropdown is ordered by ascending severity so the most common choices (lower priority) appear first and the highest priority is a deliberate choice at the bottom. This order is consistent across all pages (Tasks, Dashboard, Accounts, Personal).
+The dropdown is ordered by ascending severity so the most common choices (lower priority) appear first and the highest priority is a deliberate choice at the bottom. This order is consistent across all pages (Tasks, My Board, Accounts, Personal).
 
 ### Can I switch between list and tile views?
 
 Yes. All 8 entity pages (Tasks, Personal, Ideas, Projects, Contacts, Impacts, Accounts, Meetings) have a list/tile view toggle in the toolbar. List view shows a DataGrid; tile view shows 220px cards. Your preference for each page is saved to localStorage and persists across sessions.
 
-### How do I reorder items on the dashboard?
+### How do I reorder items on my board?
 
 Drag and drop. Grab any item within a column and drag it up or down to reorder. Your custom order is saved to localStorage and persists across sessions.
 
 ### How do I drag items to the Parking Lot?
 
-Drag an item from the Work, Projects, or Ideas column and drop it onto the Parking Lot column. This parks the item for quick access (same as clicking the car icon). The max of 5 parked items still applies.
+Drag an item from the Work, Projects, or Ideas column and drop it onto the Parking Lot column on my board. This parks the item for quick access (same as clicking the car icon). The max of 5 parked items still applies.
 
-### How do I see personal action items on the dashboard?
+### How do I see personal action items on my board?
 
 Click the **w/p/l toggle** in the Work column header to switch between work (w), personal (p), and learning (l) action items. The toggle is a small button group next to the column title.
 
 ### What are the colored dots on tiles?
 
-When you hover over a tile (on the dashboard or on entity page tile views), small colored dots appear in the top-right corner. These let you set a priority/color for the tile. For action items and ideas, selecting a dot updates the Dataverse priority field. For projects and parking lot items, the color is visual-only and stored in your browser's localStorage. Colors: blue = Low, orange = Eh, red = High, dark red = Top Priority. Click the empty circle to clear.
+When you hover over a tile (on my board or on entity page tile views), small colored dots appear in the top-right corner. These let you set a priority/color for the tile. For action items and ideas, selecting a dot updates the Dataverse priority field. For projects and parking lot items, the color is visual-only and stored in your browser's localStorage. Colors: blue = Low, orange = Eh, red = High, dark red = Top Priority. Click the empty circle to clear.
 
 ### Do priority dots on projects save to Dataverse?
 
@@ -102,11 +106,11 @@ No. Projects don't have a priority field in Dataverse. The color is stored in lo
 
 Yes. Ideas now have a priority field (`tdvsp_priority`) in Dataverse, using the same values as task priority. You can set it via the priority dots on tiles, or via the priority dropdown in the idea's new/edit form.
 
-### How is the dashboard sorted?
+### How is my board sorted?
 
-- **Action items (work card):** By date ascending (past/overdue first, then nearest upcoming)
-- **Projects strip:** By name
-- **Ideas (right sidebar):** By created date descending (newest first)
+- **Action items (work column):** By date ascending (past/overdue first, then nearest upcoming)
+- **Projects column:** By name
+- **Ideas column:** By created date descending (newest first)
 
 ---
 
