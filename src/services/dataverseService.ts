@@ -160,9 +160,9 @@ export async function deleteActivity(id: string): Promise<void> {
 
 // ─── Action Items (tdvsp_actionitem table) ──────────────────────────────────
 
-export async function getActionItems(): Promise<ActionItem[]> {
+export async function getActionItems(statecode: 0 | 1 = 0): Promise<ActionItem[]> {
   const result = await apiRequest(
-    "/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype,createdon,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$filter=statecode eq 0&$orderby=tdvsp_date desc&$top=100"
+    `/tdvsp_actionitems?$select=tdvsp_actionitemid,tdvsp_name,tdvsp_date,tdvsp_description,tdvsp_taskstatus,tdvsp_priority,tdvsp_tasktype,createdon,_tdvsp_customer_value&$expand=tdvsp_Customer($select=accountid,name)&$filter=statecode eq ${statecode}&$orderby=tdvsp_date desc&$top=100`
   );
   return result?.value ?? [];
 }
@@ -299,9 +299,9 @@ export async function getAnnotationsByIds(ids: string[]): Promise<Annotation[]> 
 
 // ─── Ideas (tdvsp_idea table) ─────────────────────────────────────────────────
 
-export async function getIdeas(): Promise<Idea[]> {
+export async function getIdeas(statecode: 0 | 1 = 0): Promise<Idea[]> {
   const result = await apiRequest(
-    "/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category,tdvsp_priority,createdon,_tdvsp_account_value,_tdvsp_contact_value,_tdvsp_project_value&$expand=tdvsp_Account($select=accountid,name),tdvsp_Contact($select=contactid,firstname,lastname)&$filter=statecode eq 0&$orderby=createdon desc&$top=100"
+    `/tdvsp_ideas?$select=tdvsp_ideaid,tdvsp_name,tdvsp_description,tdvsp_category,tdvsp_priority,createdon,_tdvsp_account_value,_tdvsp_contact_value,_tdvsp_project_value&$expand=tdvsp_Account($select=accountid,name),tdvsp_Contact($select=contactid,firstname,lastname)&$filter=statecode eq ${statecode}&$orderby=createdon desc&$top=100`
   );
   return result?.value ?? [];
 }
@@ -453,9 +453,9 @@ export async function deactivateMeetingSummary(id: string): Promise<void> {
 
 // ─── Projects (tdvsp_project table) ────────────────────────────────────────────
 
-export async function getProjects(): Promise<Project[]> {
+export async function getProjects(statecode: 0 | 1 = 0): Promise<Project[]> {
   const result = await apiRequest(
-    "/tdvsp_projects?$select=tdvsp_projectid,tdvsp_name,tdvsp_description,_tdvsp_account_value&$expand=tdvsp_Account($select=accountid,name)&$filter=statecode eq 0&$orderby=tdvsp_name asc&$top=100"
+    `/tdvsp_projects?$select=tdvsp_projectid,tdvsp_name,tdvsp_description,_tdvsp_account_value&$expand=tdvsp_Account($select=accountid,name)&$filter=statecode eq ${statecode}&$orderby=tdvsp_name asc&$top=100`
   );
   return result?.value ?? [];
 }

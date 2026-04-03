@@ -35,7 +35,7 @@ import {
   Edit24Regular,
   Delete24Regular,
   Dismiss24Regular,
-  Home24Filled,
+  Sparkle24Filled,
   Search24Regular,
   TextBulletListLtr20Regular,
   Grid20Regular,
@@ -477,7 +477,7 @@ export const Personal: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.pageHeader}>
-        <Home24Filled style={{ color: "#22d3ee", fontSize: 28 }} />
+        <Sparkle24Filled style={{ color: "#22d3ee", fontSize: 28 }} />
         <Subtitle1 style={{ fontFamily: "Inter, monospace", letterSpacing: "0.05em", textTransform: "lowercase" }}>personal</Subtitle1>
       </div>
       <div className={styles.toolbar}>

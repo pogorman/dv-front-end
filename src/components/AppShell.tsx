@@ -37,6 +37,8 @@ import {
   Info24Filled,
   Grid24Regular,
   Grid24Filled,
+  Sparkle24Regular,
+  Sparkle24Filled,
 } from "@fluentui/react-icons";
 import { useMsal } from "@azure/msal-react";
 import { useTheme } from "../context/ThemeContext";
@@ -234,8 +236,8 @@ const navSections: NavSection[] = [
         key: "personal",
         label: "personal",
         path: "/personal",
-        icon: <Home24Regular />,
-        iconActive: <Home24Filled />,
+        icon: <Sparkle24Regular />,
+        iconActive: <Sparkle24Filled />,
         color: "#22d3ee",
       },
       {
@@ -331,7 +333,7 @@ const pageIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   "/board": { icon: <Grid24Filled />, color: "#4a9eff" },
   "/tasks": { icon: <CheckboxChecked24Filled />, color: "#f87171" },
   "/ideas": { icon: <LightbulbFilament24Filled />, color: "#a78bfa" },
-  "/personal": { icon: <Home24Filled />, color: "#22d3ee" },
+  "/personal": { icon: <Sparkle24Filled />, color: "#22d3ee" },
   "/impacts": { icon: <Flash24Filled />, color: "#f59e0b" },
   "/accounts": { icon: <Building24Filled />, color: "#3dd68c" },
   "/contacts": { icon: <Person24Filled />, color: "#22d3ee" },

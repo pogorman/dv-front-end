@@ -33,6 +33,7 @@ import {
   VehicleCarParking24Filled,
   Delete16Regular,
   CheckboxChecked20Regular,
+  CheckboxChecked24Filled,
   Briefcase20Regular,
   PeopleTeam20Regular,
   LightbulbFilament20Regular,
@@ -41,10 +42,12 @@ import {
   Building20Regular,
   Person20Regular,
   Edit24Regular,
-  Home24Filled,
-  Home20Regular,
+  Sparkle24Filled,
+  Sparkle20Regular,
   HatGraduation24Filled,
   HatGraduation20Regular,
+  ChevronDown20Regular,
+  ChevronUp20Regular,
 } from "@fluentui/react-icons";
 import { useNavigate } from "react-router-dom";
 import { ActionItem, Account, Customer, Project, Idea, Impact, MeetingSummary, IdeaCategory, ideaCategoryLabels, TaskStatus, taskStatusLabels, TaskPriority, taskPriorityLabels, taskPriorityOrder, TaskType, taskTypeLabels } from "../types";
@@ -69,6 +72,7 @@ import {
   updateProject,
   deactivateActionItem,
   deactivateIdea,
+  deactivateProject,
 } from "../services/dataverseService";
 import { formatDate } from "../utils/formatDate";
 import { getParkedItems, parkItem, unparkItem, isItemParked, reorderParkedItems, ParkedItemRef } from "../utils/parkingLot";
@@ -121,6 +125,54 @@ const useStyles = makeStyles({
     border: "1px solid transparent",
     ":hover": {
       filter: "brightness(1.3)",
+    },
+  },
+  parkingBar: {
+    display: "flex",
+    flexDirection: "column" as const,
+    ...shorthands.borderRadius("8px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeftWidth: "3px",
+    borderLeftStyle: "solid" as const,
+    borderLeftColor: "#84cc16",
+    boxShadow: "none",
+    flexShrink: 0,
+  },
+  parkingBarHeader: {
+    display: "flex",
+    alignItems: "center",
+    ...shorthands.gap("6px"),
+    ...shorthands.padding("6px", "10px"),
+    cursor: "pointer",
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+    },
+  },
+  parkingBarContent: {
+    display: "flex",
+    ...shorthands.gap("4px"),
+    ...shorthands.padding("0px", "8px", "8px", "8px"),
+    overflowX: "auto" as const,
+    flexWrap: "nowrap" as const,
+  },
+  parkingBarItem: {
+    display: "flex",
+    flexDirection: "column" as const,
+    justifyContent: "center",
+    ...shorthands.gap("2px"),
+    ...shorthands.padding("6px", "8px"),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius("6px"),
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    position: "relative" as const,
+    width: "200px",
+    minWidth: "200px",
+    maxWidth: "200px",
+    flexShrink: 0,
+    ":hover": {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
     },
   },
   dashboardColumns: {
@@ -325,15 +377,19 @@ export const MyBoard: React.FC = () => {
   const [newImpact, setNewImpact] = useState({ tdvsp_name: "", tdvsp_description: "", tdvsp_date: "", accountId: "" });
   const [newSummary, setNewSummary] = useState({ tdvsp_name: "", tdvsp_date: "", tdvsp_summary: "", accountId: "", projectId: "" });
 
+  const [taskStateFilter, setTaskStateFilter] = useState<0 | 1>(0);
+  const [projectStateFilter, setProjectStateFilter] = useState<0 | 1>(0);
+  const [ideaStateFilter, setIdeaStateFilter] = useState<0 | 1>(0);
+
   useEffect(() => {
     getAccounts().then(setAccounts).catch(console.error);
     getCustomers().then(setContacts).catch(console.error);
-    getProjects().then(setProjects).catch(console.error);
-    getActionItems().then(setActionItems).catch(console.error);
-    getIdeas().then(setIdeas).catch(console.error);
     getImpacts().then(setImpacts).catch(console.error);
     getMeetingSummaries().then(setMeetingSummaries).catch(console.error);
   }, []);
+  useEffect(() => { getActionItems(taskStateFilter).then(setActionItems).catch(console.error); }, [taskStateFilter]);
+  useEffect(() => { getProjects(projectStateFilter).then(setProjects).catch(console.error); }, [projectStateFilter]);
+  useEffect(() => { getIdeas(ideaStateFilter).then(setIdeas).catch(console.error); }, [ideaStateFilter]);
 
   // Parking lot handler
   const handleTogglePark = (ref: ParkedItemRef) => {
@@ -346,9 +402,10 @@ export const MyBoard: React.FC = () => {
   };
 
   // Dashboard deactivate handler
-  const [deactivateConfirm, setDeactivateConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" } | null>(null);
+  const [deactivateConfirm, setDeactivateConfirm] = useState<{ id: string; name: string; type: "actionitem" | "idea" | "project" } | null>(null);
   const [isDragOverParking, setIsDragOverParking] = useState(false);
-  const [workFilter, setWorkFilter] = useState<"work" | "personal" | "learning">("work");
+  const [parkingCollapsed, setParkingCollapsed] = useState(() => localStorage.getItem("og-board-parking-collapsed") === "true");
+  const [workFilter, setWorkFilter] = useState<"work" | "personal" | "learning" | "all">("work");
   const [reorderDrag, setReorderDrag] = useState<{ column: string; id: string; index: number } | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{ column: string; index: number; position: "before" | "after" } | null>(null);
   const [orderVersion, setOrderVersion] = useState(0);
@@ -360,10 +417,13 @@ export const MyBoard: React.FC = () => {
     try {
       if (deactivateConfirm.type === "actionitem") {
         await deactivateActionItem(deactivateConfirm.id);
-        getActionItems().then(setActionItems);
-      } else {
+        getActionItems(taskStateFilter).then(setActionItems);
+      } else if (deactivateConfirm.type === "idea") {
         await deactivateIdea(deactivateConfirm.id);
-        getIdeas().then(setIdeas);
+        getIdeas(ideaStateFilter).then(setIdeas);
+      } else {
+        await deactivateProject(deactivateConfirm.id);
+        getProjects(projectStateFilter).then(setProjects);
       }
       unparkItem(deactivateConfirm.id);
       setParkedItems(getParkedItems());
@@ -450,7 +510,7 @@ export const MyBoard: React.FC = () => {
       await createProject(payload);
       setAddProjectOpen(false);
       setNewProject({ tdvsp_name: "", tdvsp_description: "", accountId: "" });
-      getProjects().then(setProjects).catch(console.error);
+      getProjects(projectStateFilter).then(setProjects).catch(console.error);
       notify("Project created");
     } catch (err) {
       console.error("Failed to add project:", err);
@@ -486,7 +546,7 @@ export const MyBoard: React.FC = () => {
       await createActionItem(payload);
       setAddTaskOpen(false);
       setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "" });
-      getActionItems().then(setActionItems).catch(console.error);
+      getActionItems(taskStateFilter).then(setActionItems).catch(console.error);
       notify("Task created");
     } catch (err) {
       console.error("Failed to add task:", err);
@@ -526,7 +586,7 @@ export const MyBoard: React.FC = () => {
       await createIdea(payload);
       setAddIdeaOpen(false);
       setNewIdea({ tdvsp_name: "", tdvsp_description: "", tdvsp_category: "", tdvsp_priority: "", accountId: "", projectId: "" });
-      getIdeas().then(setIdeas).catch(console.error);
+      getIdeas(ideaStateFilter).then(setIdeas).catch(console.error);
       notify("Idea created");
     } catch (err) {
       console.error("Failed to add idea:", err);
@@ -668,7 +728,7 @@ export const MyBoard: React.FC = () => {
       await updateActionItem(editingId, buildTaskEditPayload());
       setIsEditing(false);
       setEditingId(null);
-      const updatedItems = await getActionItems();
+      const updatedItems = await getActionItems(taskStateFilter);
       setActionItems(updatedItems);
       const updated = updatedItems.find((t) => t.tdvsp_actionitemid === viewingTask?.tdvsp_actionitemid);
       if (updated) setViewingTask(updated);
@@ -734,7 +794,7 @@ export const MyBoard: React.FC = () => {
       await updateIdea(editingId, buildIdeaEditPayload());
       setIsEditing(false);
       setEditingId(null);
-      const updatedIdeas = await getIdeas();
+      const updatedIdeas = await getIdeas(ideaStateFilter);
       setIdeas(updatedIdeas);
       const updated = updatedIdeas.find((i) => i.tdvsp_ideaid === viewingIdea?.tdvsp_ideaid);
       if (updated) setViewingIdea(updated);
@@ -790,7 +850,7 @@ export const MyBoard: React.FC = () => {
       await updateProject(editingId, buildProjectEditPayload());
       setIsEditing(false);
       setEditingId(null);
-      const updatedProjects = await getProjects();
+      const updatedProjects = await getProjects(projectStateFilter);
       setProjects(updatedProjects);
       const updated = updatedProjects.find((p) => p.tdvsp_projectid === viewingProject?.tdvsp_projectid);
       if (updated) setViewingProject(updated);
@@ -829,6 +889,7 @@ export const MyBoard: React.FC = () => {
     e.preventDefault();
     dragCounter.current++;
     setIsDragOverParking(true);
+    if (parkingCollapsed) { setParkingCollapsed(false); localStorage.setItem("og-board-parking-collapsed", "false"); }
   };
 
   const handleParkingDragLeave = (e: React.DragEvent) => {
@@ -876,7 +937,10 @@ export const MyBoard: React.FC = () => {
   const learningItems = actionItems
     .filter((t) => t.tdvsp_tasktype === (468510002 as TaskType) && t.tdvsp_taskstatus !== (468510005 as TaskStatus))
     .sort(dateAsc);
-  const displayedItems = workFilter === "work" ? workItems : workFilter === "learning" ? learningItems : personalItems;
+  const allItems = actionItems
+    .filter((t) => t.tdvsp_taskstatus !== (468510005 as TaskStatus))
+    .sort(dateAsc);
+  const displayedItems = workFilter === "work" ? workItems : workFilter === "learning" ? learningItems : workFilter === "personal" ? personalItems : allItems;
   const topPriorityDisplay = displayedItems.filter((t) => t.tdvsp_priority === 468510002);
   const otherDisplay = displayedItems.filter((t) => t.tdvsp_priority !== 468510002);
 
@@ -918,6 +982,8 @@ export const MyBoard: React.FC = () => {
       const cfgMap: Record<string, { items: { id: string }[]; storageKey: string }> = {
         work: { items: orderedDisplayItems.map((t) => ({ id: t.tdvsp_actionitemid! })), storageKey: "og-dash-work-order" },
         personal: { items: orderedDisplayItems.map((t) => ({ id: t.tdvsp_actionitemid! })), storageKey: "og-dash-personal-order" },
+        learning: { items: orderedDisplayItems.map((t) => ({ id: t.tdvsp_actionitemid! })), storageKey: "og-dash-learning-order" },
+        all: { items: orderedDisplayItems.map((t) => ({ id: t.tdvsp_actionitemid! })), storageKey: "og-dash-all-order" },
         projects: { items: orderedProjects.map((p) => ({ id: p.tdvsp_projectid! })), storageKey: "og-dash-project-order" },
         ideas: { items: orderedIdeas.map((i) => ({ id: i.tdvsp_ideaid! })), storageKey: "og-dash-idea-order" },
       };
@@ -938,7 +1004,7 @@ export const MyBoard: React.FC = () => {
 
   const getDropStyle = (column: string, index: number): React.CSSProperties => {
     if (!dropIndicator || dropIndicator.column !== column || dropIndicator.index !== index) return {};
-    const colors: Record<string, string> = { parking: "#84cc16", work: "#f87171", personal: "#22d3ee", projects: "#4a9eff", ideas: "#a78bfa" };
+    const colors: Record<string, string> = { parking: "#84cc16", work: "#f87171", personal: "#22d3ee", learning: "#a78bfa", all: "#4a9eff", projects: "#4a9eff", ideas: "#a78bfa" };
     const color = colors[column] || "#4a9eff";
     return dropIndicator.position === "before" ? { boxShadow: `0 -2px 0 0 ${color}` } : { boxShadow: `0 2px 0 0 ${color}` };
   };
@@ -948,7 +1014,7 @@ export const MyBoard: React.FC = () => {
       {/* Quick Create Title Bar */}
       <div className={styles.quickCreateBar}>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => { setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "468510001" }); setAddTaskOpen(true); }} style={{ backgroundColor: "rgba(248,113,113,0.12)", color: "#f87171", borderColor: "rgba(248,113,113,0.25)" }}>task</Button>
-        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Home20Regular />} onClick={() => { setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "468510000" }); setAddTaskOpen(true); }} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>personal</Button>
+        <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<Sparkle20Regular />} onClick={() => { setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "468510000" }); setAddTaskOpen(true); }} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>personal</Button>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<HatGraduation20Regular />} onClick={() => { setNewTask({ tdvsp_name: "", tdvsp_date: "", tdvsp_description: "", accountId: "", tdvsp_taskstatus: "", tdvsp_priority: "", tdvsp_tasktype: "468510002" }); setAddTaskOpen(true); }} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>learning</Button>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => setAddIdeaOpen(true)} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>idea</Button>
         <Button className={styles.quickActionBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => setAddSummaryOpen(true)} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>meeting</Button>
@@ -959,29 +1025,29 @@ export const MyBoard: React.FC = () => {
       </div>
 
 
-      {/* Four Column Layout */}
-      <div className={styles.dashboardColumns}>
-        {/* Column 1: Parking Lot */}
-        <div
-          className={styles.column}
-          style={{
-            flex: 1,
-            borderLeftColor: "#84cc16",
-            ...(isDragOverParking ? { backgroundColor: "rgba(132, 204, 22, 0.08)", borderColor: "rgba(132, 204, 22, 0.4)", transition: "background-color 0.15s, border-color 0.15s" } : { transition: "background-color 0.15s, border-color 0.15s" }),
-          }}
-          onDragEnter={handleParkingDragEnter}
-          onDragLeave={handleParkingDragLeave}
-          onDragOver={handleParkingDragOver}
-          onDrop={handleParkingDrop}
-        >
-          <div className={styles.columnHeader}>
-            <VehicleCarParking24Filled style={{ color: "#84cc16" }} />
-            <Subtitle1>parking lot</Subtitle1>
-            <span className={styles.columnCount}>{parkedItems.length}</span>
+      {/* Parking Lot Bar */}
+      <div
+        className={styles.parkingBar}
+        style={{
+          ...(isDragOverParking ? { backgroundColor: "rgba(132, 204, 22, 0.08)", borderColor: "rgba(132, 204, 22, 0.4)", transition: "background-color 0.15s, border-color 0.15s" } : { transition: "background-color 0.15s, border-color 0.15s" }),
+        }}
+        onDragEnter={handleParkingDragEnter}
+        onDragLeave={handleParkingDragLeave}
+        onDragOver={handleParkingDragOver}
+        onDrop={handleParkingDrop}
+      >
+        <div className={styles.parkingBarHeader} onClick={() => { const next = !parkingCollapsed; setParkingCollapsed(next); localStorage.setItem("og-board-parking-collapsed", String(next)); }}>
+          <VehicleCarParking24Filled style={{ color: "#84cc16" }} />
+          <Subtitle1 style={{ fontSize: "14px" }}>parking lot</Subtitle1>
+          <span className={styles.columnCount} style={{ marginLeft: "0" }}>{parkedItems.length}</span>
+          <div style={{ marginLeft: "auto" }}>
+            {parkingCollapsed ? <ChevronDown20Regular /> : <ChevronUp20Regular />}
           </div>
-          <div className={styles.columnContent}>
+        </div>
+        {!parkingCollapsed && (
+          <div className={styles.parkingBarContent}>
             {parkedItems.length === 0 ? (
-              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no parked items</Body1>
+              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "2px 4px" }}>no parked items</Body1>
             ) : (
               parkedItems.map((item, pIdx) => (
                 <Tooltip
@@ -993,12 +1059,12 @@ export const MyBoard: React.FC = () => {
                     </div>
                   }
                   relationship="description"
-                  positioning="after"
+                  positioning="below"
                   withArrow
                   showDelay={400}
                 >
                   <div
-                    className={`${styles.columnItem} tile-color-host`}
+                    className={`${styles.parkingBarItem} tile-color-host`}
                     onClick={() => handleParkedItemClick(item)}
                     draggable
                     onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setReorderDrag({ column: "parking", id: item.id, index: pIdx }); }}
@@ -1026,23 +1092,31 @@ export const MyBoard: React.FC = () => {
               ))
             )}
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Column 2: Work / Personal */}
-        <div className={styles.column} style={{ flex: 2, borderLeftColor: workFilter === "work" ? "#f87171" : workFilter === "learning" ? "#a78bfa" : "#22d3ee" }}>
+      {/* Three Column Layout */}
+      <div className={styles.dashboardColumns}>
+        {/* Column 1: Work / Personal */}
+        <div className={styles.column} style={{ flex: 2, borderLeftColor: workFilter === "work" ? "#f87171" : workFilter === "learning" ? "#a78bfa" : workFilter === "personal" ? "#22d3ee" : "#4a9eff" }}>
           <div className={styles.columnHeader}>
-            {workFilter === "work" ? <Briefcase24Filled style={{ color: "#f87171" }} /> : workFilter === "learning" ? <HatGraduation24Filled style={{ color: "#a78bfa" }} /> : <Home24Filled style={{ color: "#22d3ee" }} />}
-            <Subtitle1>{workFilter}</Subtitle1>
+            {workFilter === "work" ? <Briefcase24Filled style={{ color: "#f87171" }} /> : workFilter === "learning" ? <HatGraduation24Filled style={{ color: "#a78bfa" }} /> : workFilter === "personal" ? <Sparkle24Filled style={{ color: "#22d3ee" }} /> : <CheckboxChecked24Filled style={{ color: "#4a9eff" }} />}
+            <Subtitle1>{workFilter === "all" ? "all tasks" : workFilter}</Subtitle1>
             <span className={styles.columnCount}>{orderedDisplayItems.length}</span>
             <div style={{ display: "flex", gap: "1px", backgroundColor: tokens.colorNeutralBackground3, borderRadius: "4px", padding: "1px", marginLeft: "auto" }}>
               <Button appearance={workFilter === "work" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("work")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>w</Button>
               <Button appearance={workFilter === "personal" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("personal")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>p</Button>
               <Button appearance={workFilter === "learning" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("learning")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>l</Button>
+              <Button appearance={workFilter === "all" ? "primary" : "subtle"} size="small" onClick={() => setWorkFilter("all")} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>a</Button>
+            </div>
+            <div style={{ display: "flex", gap: "1px", backgroundColor: tokens.colorNeutralBackground3, borderRadius: "4px", padding: "1px" }}>
+              <Button appearance={taskStateFilter === 0 ? "primary" : "subtle"} size="small" onClick={() => setTaskStateFilter(0)} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>A</Button>
+              <Button appearance={taskStateFilter === 1 ? "primary" : "subtle"} size="small" onClick={() => setTaskStateFilter(1)} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>I</Button>
             </div>
           </div>
           <div className={styles.columnContent}>
             {orderedDisplayItems.length === 0 ? (
-              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no {workFilter} items</Body1>
+              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no {workFilter === "all" ? "task" : workFilter} items</Body1>
             ) : (
               orderedDisplayItems.map((t, wIdx) => (
                 <Tooltip
@@ -1074,7 +1148,7 @@ export const MyBoard: React.FC = () => {
                     onDragEnd={handleDragEnd}
                     style={{ ...getDropStyle(activeWorkColumn, wIdx), backgroundColor: priorityToBackground(t.tdvsp_priority) }}
                   >
-                    <TileColorPicker currentColor={priorityToColor(t.tdvsp_priority)} onColorChange={async (color) => { try { await updateActionItem(t.tdvsp_actionitemid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); getActionItems().then(setActionItems).catch(console.error); } catch (err) { console.error(err); } }} />
+                    <TileColorPicker currentColor={priorityToColor(t.tdvsp_priority)} onColorChange={async (color) => { try { await updateActionItem(t.tdvsp_actionitemid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); getActionItems(taskStateFilter).then(setActionItems).catch(console.error); } catch (err) { console.error(err); } }} />
                     <div className={styles.columnItemActions}>
                       <Button
                         appearance="subtle"
@@ -1118,6 +1192,10 @@ export const MyBoard: React.FC = () => {
             <Briefcase24Regular style={{ color: "#4a9eff" }} />
             <Subtitle1>projects</Subtitle1>
             <span className={styles.columnCount}>{orderedProjects.length}</span>
+            <div style={{ display: "flex", gap: "1px", backgroundColor: tokens.colorNeutralBackground3, borderRadius: "4px", padding: "1px" }}>
+              <Button appearance={projectStateFilter === 0 ? "primary" : "subtle"} size="small" onClick={() => setProjectStateFilter(0)} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>A</Button>
+              <Button appearance={projectStateFilter === 1 ? "primary" : "subtle"} size="small" onClick={() => setProjectStateFilter(1)} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>I</Button>
+            </div>
           </div>
           <div className={styles.columnContent}>
             {orderedProjects.length === 0 ? (
@@ -1149,7 +1227,17 @@ export const MyBoard: React.FC = () => {
                     style={{ ...getDropStyle("projects", prIdx), backgroundColor: getTileBackground("project", project.tdvsp_projectid!) }}
                   >
                     <TileColorPicker currentColor={getTileColor("project", project.tdvsp_projectid!)} onColorChange={(color) => { if (color) { setTileColor("project", project.tdvsp_projectid!, color); } else { clearTileColor("project", project.tdvsp_projectid!); } setColorVersion((v) => v + 1); }} />
-                    <Text weight="semibold" style={{ fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{project.tdvsp_name}</Text>
+                    <div className={styles.columnItemActions}>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={isItemParked(project.tdvsp_projectid!) ? <VehicleCar16Filled /> : <VehicleCar16Regular />}
+                        onClick={(e) => { e.stopPropagation(); handleTogglePark({ id: project.tdvsp_projectid!, name: project.tdvsp_name, entityType: "project", route: `/projects?view=${project.tdvsp_projectid}` }); }}
+                        title={isItemParked(project.tdvsp_projectid!) ? "Unpark" : "Park"}
+                      />
+                      <Button appearance="subtle" size="small" icon={<Delete16Regular />} onClick={(e) => { e.stopPropagation(); setDeactivateConfirm({ id: project.tdvsp_projectid!, name: project.tdvsp_name, type: "project" }); }} title="Deactivate" />
+                    </div>
+                    <Text weight="semibold" style={{ paddingRight: "40px", fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", lineHeight: "1.3" }}>{project.tdvsp_name}</Text>
                     <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
                       {project.tdvsp_Account?.name || "—"}
                     </Caption1>
@@ -1166,6 +1254,10 @@ export const MyBoard: React.FC = () => {
             <LightbulbFilament24Filled style={{ color: "#a78bfa" }} />
             <Subtitle1>ideas</Subtitle1>
             <span className={styles.columnCount}>{orderedIdeas.length}</span>
+            <div style={{ display: "flex", gap: "1px", backgroundColor: tokens.colorNeutralBackground3, borderRadius: "4px", padding: "1px" }}>
+              <Button appearance={ideaStateFilter === 0 ? "primary" : "subtle"} size="small" onClick={() => setIdeaStateFilter(0)} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>A</Button>
+              <Button appearance={ideaStateFilter === 1 ? "primary" : "subtle"} size="small" onClick={() => setIdeaStateFilter(1)} style={{ minHeight: "20px", height: "20px", minWidth: "auto", fontSize: "10px", fontFamily: tokens.fontFamilyMonospace, padding: "0 6px", borderRadius: "3px" }}>I</Button>
+            </div>
           </div>
           <div className={styles.columnContent}>
             {orderedIdeas.length === 0 ? (
@@ -1183,7 +1275,7 @@ export const MyBoard: React.FC = () => {
                   onDragEnd={handleDragEnd}
                   style={{ ...getDropStyle("ideas", iIdx), backgroundColor: priorityToBackground(idea.tdvsp_priority) }}
                 >
-                  <TileColorPicker currentColor={priorityToColor(idea.tdvsp_priority)} onColorChange={async (color) => { try { await updateIdea(idea.tdvsp_ideaid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); getIdeas().then(setIdeas).catch(console.error); } catch (err) { console.error(err); } }} />
+                  <TileColorPicker currentColor={priorityToColor(idea.tdvsp_priority)} onColorChange={async (color) => { try { await updateIdea(idea.tdvsp_ideaid!, { tdvsp_priority: colorToPriority(color) ?? undefined }); getIdeas(ideaStateFilter).then(setIdeas).catch(console.error); } catch (err) { console.error(err); } }} />
                   <div className={styles.columnItemActions}>
                     <Button
                       appearance="subtle"

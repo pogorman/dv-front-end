@@ -226,6 +226,12 @@ PATCH /tdvsp_actionitems(guid)
 }
 ```
 
+**Fetching inactive records (My Board A/I toggle):**
+```
+GET /tdvsp_actionitems?$filter=statecode eq 1&$select=...&$orderby=...
+```
+Service functions `getActionItems`, `getIdeas`, and `getProjects` accept an optional `statecode` parameter (0 for active, 1 for inactive; defaults to 0). Other pages calling these functions are unaffected due to the default.
+
 ---
 
 ## 6. Application Component Architecture
@@ -380,10 +386,12 @@ Quick create buttons in the top bar navigate to entity pages with `?new=true`. C
 
 ### My Board Layout
 
-The board page (`/board`) uses a four-column layout filling viewport height. Quick create buttons sit in a compact title bar row at the top and open inline dialogs. Columns left to right: Parking Lot | Work (flex: 2) | Projects | Ideas. Each column has an accent-colored 3px left border, header (icon + title + count), and scrollable content area with vertical card list.
+The board page (`/board`) uses a three-column layout filling viewport height, with a collapsible horizontal parking lot bar above the columns. Quick create buttons sit in a compact title bar row at the top and open inline dialogs. Columns left to right: Work (flex: 2) | Projects | Ideas. Each column has an accent-colored 3px left border, header (icon + title + count), and scrollable content area with vertical card list. The parking lot bar spans the full width above the columns, showing 200px-wide tiles flowing horizontally with scroll; it collapses/expands via a chevron (state persisted to localStorage).
 
-- **Work column** includes a **w/p/l toggle** in the header to switch between work, personal, and learning action items.
-- **Drag-and-drop**: Items can be dragged from Work, Projects, or Ideas columns into the Parking Lot. All column items can be reordered within their column via drag-and-drop. Custom ordering is persisted to localStorage.
+- **Work column** includes a **w/p/l/a toggle** in the header to switch between work, personal, learning, and all action items.
+- **Active/inactive toggle**: Each column header has a small A/I pill. Clicking "I" fetches inactive (deactivated) records. Service functions `getActionItems`, `getIdeas`, and `getProjects` accept an optional `statecode` parameter (0|1, defaults to 0).
+- **Projects and Ideas columns** have deactivate (trash) and park (car) action buttons on each tile, same pattern as work items.
+- **Drag-and-drop**: Items can be dragged from Work, Projects, or Ideas columns into the Parking Lot bar (auto-expands if collapsed). All column items can be reordered within their column via drag-and-drop. Custom ordering is persisted to localStorage.
 - Clicking action items, ideas, or projects opens inline view/edit dialogs on the board without navigating away.
 
 ### My Board Tile Tooltips

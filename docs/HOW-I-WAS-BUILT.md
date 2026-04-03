@@ -175,6 +175,19 @@ Splitting the home page into an analytics dashboard and a separate kanban board:
   - Sidebar width increased from 168px to 188px to accommodate the new "insights" section label
   - Card entrance animation is subtle (6px translateY fade-in, 0.3s) with staggered delays up to 0.16s to avoid feeling sluggish
 
+### Phase 14: Board UX Overhaul — Parking Lot Bar, All Filter, Active/Inactive Toggle & Project Actions
+
+Refining the My Board layout and adding data filtering capabilities:
+
+- **Prompt pattern:** "Add project deactivate/park buttons, all-tasks filter, change personal icon to Sparkle, convert parking lot from column to horizontal bar, add active/inactive toggle per board column"
+- **Result:** Five interconnected changes to the board experience. (1) Projects column tiles now have deactivate (trash) and park (car) action buttons, matching the pattern used by work items and ideas. `deactivateProject` imported and wired into the confirmation dialog handler. (2) The w/p/l toggle gained an "a" (all) option showing all task types combined, with blue `#4a9eff` accent, `CheckboxChecked24Filled` icon, and its own localStorage ordering key `og-dash-all-order`. (3) The Personal icon changed from `Home24Filled`/`Home20Regular` to `Sparkle24Filled`/`Sparkle20Regular` across all files: AppShell (sidebar + page icon), MyBoard (column header + quick create), Dashboard (task type icon + quick create), and Personal (page header). (4) The Parking Lot was converted from a vertical column (the leftmost of 4) to a horizontal collapsible bar spanning above the remaining 3 columns, with 200px-wide tiles flowing horizontally, a chevron toggle persisted to localStorage (`og-board-parking-collapsed`), and auto-expand on drag-over when collapsed. The board layout changed from 4 columns to 3. (5) Each board column header gained an A/I toggle pill for switching between active (`statecode eq 0`) and inactive (`statecode eq 1`) records. The service functions `getActionItems`, `getIdeas`, and `getProjects` now accept an optional `statecode` parameter defaulting to 0, so all other pages are unaffected.
+- **Key decisions:**
+  - Parking lot as a horizontal bar saves horizontal space and gives more room to the three content columns. The collapsible design lets users hide it when not needed.
+  - The "all" filter addresses the use case of wanting to see every task regardless of type, useful for a quick scan of everything outstanding.
+  - Sparkle icon for personal items provides better visual distinction from Dashboard's Home icon, which was previously used for both.
+  - The A/I inactive toggle is column-local state (not global), so you can view inactive projects while keeping work items on active, useful for reviewing what's been completed.
+  - Service function `statecode` parameter defaults to 0, meaning zero changes needed on entity pages that already call these functions.
+
 ---
 
 ## Design Principles

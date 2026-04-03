@@ -21,7 +21,7 @@ The **sidebar** (left) organizes pages into sections. Click the chevron at the t
 | Section | Pages | Icon |
 |---------|-------|------|
 | **insights** | dashboard, my board | Home, Grid |
-| **activity** | tasks, personal, ideas, meetings | CheckboxChecked, Home, LightbulbFilament, PeopleTeam |
+| **activity** | tasks, personal, ideas, meetings | CheckboxChecked, Sparkle, LightbulbFilament, PeopleTeam |
 | **core** | accounts, contacts, projects, impacts | Building, Person, Briefcase, Flash |
 | *(Bottom)* | about this site | Info |
 
@@ -62,24 +62,28 @@ The top bar has pill-style buttons for creating any record type: task, personal,
 
 ### Parking Lot
 
-The first column (lime green accent, car icon). Bookmark any item from the board to "park" it here for quick access. Up to 5 items can be parked. Click an action item or idea tile to open its view dialog inline; other entity types navigate to their list page. Click X to remove an item. You can also **drag items** from the Work, Projects, or Ideas columns directly into the Parking Lot.
+A horizontal collapsible bar (lime green accent, car icon) spanning above the three columns. Bookmark any item from the board to "park" it here for quick access. Up to 5 items can be parked and they display as 200px-wide tiles flowing horizontally. Click an action item or idea tile to open its view dialog inline; other entity types navigate to their list page. Click X to remove an item. You can also **drag items** from the Work, Projects, or Ideas columns directly into the Parking Lot. Click the **chevron** (up/down) on the left to collapse or expand the bar. When collapsed, it auto-expands if you drag an item over it. The collapsed/expanded state is remembered across sessions.
 
 ### Work Column
 
-The widest column (flex: 2) showing action items filtered by type. Each card shows name, date, account, and colored pill badges for priority and status. Click to open the view/edit dialog inline. A small **w/p/l toggle** in the column header lets you switch between work (red accent), personal (cyan accent), and learning (purple accent) action items.
+The widest column (flex: 2) showing action items filtered by type. Each card shows name, date, account, and colored pill badges for priority and status. Click to open the view/edit dialog inline. A small **w/p/l/a toggle** in the column header lets you switch between work (red accent), personal (cyan accent), learning (purple accent), and all (blue accent) action items.
 
 ### Projects Column
 
-Blue-accented column listing all projects with name and account. Click to open the view/edit dialog inline on the board (with notes timeline).
+Blue-accented column listing all projects with name and account. Click to open the view/edit dialog inline on the board (with notes timeline). Each project tile has **park (car)** and **deactivate (trash)** action buttons, same as work items and ideas.
 
 ### Ideas Column
 
 Purple-accented column listing all ideas with name, category badge, and account. Click to open the view/edit dialog inline.
 
+### Active / Inactive Toggle
+
+Each column header (work, projects, ideas) has a small **A/I toggle pill**. By default, "A" is selected showing active records. Click **"I"** to view inactive (deactivated) records instead. This lets you review items you've previously deactivated without leaving the board.
+
 ### Drag-and-Drop
 
 Board columns support drag-and-drop:
-- **Drag to park:** Drag any item from the Work, Projects, or Ideas columns into the Parking Lot to bookmark it.
+- **Drag to park:** Drag any item from the Work, Projects, or Ideas columns into the Parking Lot bar to bookmark it. The bar auto-expands if it's collapsed.
 - **Reorder within a column:** Drag items up or down within any column to customize their order. Your custom order is saved to localStorage and persists across sessions.
 
 ### Tile Tooltips
@@ -155,7 +159,7 @@ Task management with status, priority, and type tracking. Supports work/personal
 
 ### Personal
 
-Dedicated page for personal action items (task type = Personal). Features a page header with Home icon and a search box for filtering by name. The view/edit dialog includes a notes timeline.
+Dedicated page for personal action items (task type = Personal). Features a page header with Sparkle icon and a search box for filtering by name. The view/edit dialog includes a notes timeline.
 
 ### Ideas
 

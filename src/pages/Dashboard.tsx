@@ -13,7 +13,7 @@ import {
 import {
   CheckboxChecked24Filled,
   CheckboxChecked20Regular,
-  Home20Regular,
+  Sparkle20Regular,
   HatGraduation20Regular,
   LightbulbFilament20Regular,
   PeopleTeam20Regular,
@@ -48,7 +48,7 @@ const priorityConfig: Record<number, { label: string; color: string }> = {
 
 const typeOrder = [468510000, 468510001, 468510002];
 const typeConfig: Record<number, { label: string; color: string; icon: React.ReactNode }> = {
-  468510000: { label: "Personal", color: "#4a9eff", icon: <Home20Regular /> },
+  468510000: { label: "Personal", color: "#4a9eff", icon: <Sparkle20Regular /> },
   468510001: { label: "Work", color: "#f87171", icon: <Briefcase20Regular /> },
   468510002: { label: "Learning", color: "#a78bfa", icon: <HatGraduation20Regular /> },
 };
@@ -357,7 +357,7 @@ export const Dashboard: React.FC = () => {
       <div className={styles.quickBar}>
         <span className={styles.qcLabel}>QUICK CREATE</span>
         <Button className={styles.qcBtn} size="small" appearance="subtle" icon={<CheckboxChecked20Regular />} onClick={() => navigate("/tasks?new=true")} style={{ backgroundColor: "rgba(248,113,113,0.12)", color: "#f87171", borderColor: "rgba(248,113,113,0.25)" }}>work</Button>
-        <Button className={styles.qcBtn} size="small" appearance="subtle" icon={<Home20Regular />} onClick={() => navigate("/personal?new=true")} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>personal</Button>
+        <Button className={styles.qcBtn} size="small" appearance="subtle" icon={<Sparkle20Regular />} onClick={() => navigate("/personal?new=true")} style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", borderColor: "rgba(34,211,238,0.25)" }}>personal</Button>
         <Button className={styles.qcBtn} size="small" appearance="subtle" icon={<HatGraduation20Regular />} onClick={() => navigate("/tasks?new=true")} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>learning</Button>
         <Button className={styles.qcBtn} size="small" appearance="subtle" icon={<LightbulbFilament20Regular />} onClick={() => navigate("/ideas?new=true")} style={{ backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.25)" }}>idea</Button>
         <Button className={styles.qcBtn} size="small" appearance="subtle" icon={<PeopleTeam20Regular />} onClick={() => navigate("/summaries?new=true")} style={{ backgroundColor: "rgba(251,146,60,0.12)", color: "#fb923c", borderColor: "rgba(251,146,60,0.25)" }}>meeting</Button>
