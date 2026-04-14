@@ -79,6 +79,14 @@ import { getParkedItems, parkItem, unparkItem, isItemParked, reorderParkedItems,
 import { useNotification } from "../context/NotificationContext";
 import { getTileBackground, getTileColor, setTileColor, clearTileColor, priorityToColor, priorityToBackground, colorToPriority } from "../utils/tileColors";
 import TileColorPicker from "../components/TileColorPicker";
+import { motion } from "framer-motion";
+
+const tileInitial = { opacity: 0, y: 6 };
+const tileAnimate = { opacity: 1, y: 0 };
+const tileTransition = { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const };
+const columnInitial = { opacity: 0, y: 10 };
+const columnAnimate = { opacity: 1, y: 0 };
+const columnTransition = { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const };
 
 const statusShortLabels: Record<number, string> = {
   468510000: "Pondering",
@@ -130,12 +138,15 @@ const useStyles = makeStyles({
   parkingBar: {
     display: "flex",
     flexDirection: "column" as const,
-    ...shorthands.borderRadius("8px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    ...shorthands.borderRadius("10px"),
+    backgroundColor: "var(--glass-bg)",
+    backdropFilter: "blur(14px) saturate(140%)",
+    WebkitBackdropFilter: "blur(14px) saturate(140%)",
+    border: "1px solid var(--glass-border)",
     borderLeftWidth: "3px",
     borderLeftStyle: "solid" as const,
     borderLeftColor: "#84cc16",
-    boxShadow: "none",
+    boxShadow: "var(--glass-shadow)",
     flexShrink: 0,
   },
   parkingBarHeader: {
@@ -161,18 +172,21 @@ const useStyles = makeStyles({
     justifyContent: "center",
     ...shorthands.gap("2px"),
     ...shorthands.padding("6px", "8px"),
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("6px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: "var(--glass-bg-strong)",
+    backdropFilter: "blur(10px) saturate(140%)",
+    WebkitBackdropFilter: "blur(10px) saturate(140%)",
+    ...shorthands.borderRadius("8px"),
+    border: "1px solid var(--glass-border)",
     cursor: "pointer",
-    transition: "background-color 0.15s ease",
+    transition: "background-color 0.18s ease, transform 0.18s ease, border-color 0.18s ease",
     position: "relative" as const,
     width: "200px",
     minWidth: "200px",
     maxWidth: "200px",
     flexShrink: 0,
     ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
+      backgroundColor: "var(--glass-bg-strong)",
+      transform: "translateY(-1px)",
     },
   },
   dashboardColumns: {
@@ -185,11 +199,14 @@ const useStyles = makeStyles({
   column: {
     display: "flex",
     flexDirection: "column",
-    ...shorthands.borderRadius("8px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    ...shorthands.borderRadius("12px"),
+    backgroundColor: "var(--glass-bg)",
+    backdropFilter: "blur(14px) saturate(140%)",
+    WebkitBackdropFilter: "blur(14px) saturate(140%)",
+    border: "1px solid var(--glass-border)",
     borderLeftWidth: "3px",
     borderLeftStyle: "solid",
-    boxShadow: "none",
+    boxShadow: "var(--glass-shadow)",
     overflow: "hidden",
     minHeight: 0,
   },
@@ -220,14 +237,17 @@ const useStyles = makeStyles({
     flexDirection: "column" as const,
     ...shorthands.gap("2px"),
     ...shorthands.padding("6px", "6px", "6px", "8px"),
-    backgroundColor: tokens.colorNeutralBackground2,
-    ...shorthands.borderRadius("6px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: "var(--glass-bg-strong)",
+    backdropFilter: "blur(10px) saturate(140%)",
+    WebkitBackdropFilter: "blur(10px) saturate(140%)",
+    ...shorthands.borderRadius("8px"),
+    border: "1px solid var(--glass-border)",
     cursor: "pointer",
-    transition: "background-color 0.15s ease",
+    transition: "background-color 0.18s ease, transform 0.18s ease, border-color 0.18s ease",
     position: "relative" as const,
     ":hover": {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
+      backgroundColor: "var(--glass-bg-strong)",
+      transform: "translateY(-1px)",
     },
   },
   columnItemActions: {
@@ -1026,8 +1046,11 @@ export const MyBoard: React.FC = () => {
 
 
       {/* Parking Lot Bar */}
-      <div
+      <motion.div
         className={styles.parkingBar}
+        initial={columnInitial}
+        animate={columnAnimate}
+        transition={{ ...columnTransition, delay: 0.02 }}
         style={{
           ...(isDragOverParking ? { backgroundColor: "rgba(132, 204, 22, 0.08)", borderColor: "rgba(132, 204, 22, 0.4)", transition: "background-color 0.15s, border-color 0.15s" } : { transition: "background-color 0.15s, border-color 0.15s" }),
         }}
@@ -1063,11 +1086,14 @@ export const MyBoard: React.FC = () => {
                   withArrow
                   showDelay={400}
                 >
-                  <div
+                  <motion.div
                     className={`${styles.parkingBarItem} tile-color-host`}
+                    initial={tileInitial}
+                    animate={tileAnimate}
+                    transition={{ ...tileTransition, delay: Math.min(pIdx * 0.03, 0.3) }}
                     onClick={() => handleParkedItemClick(item)}
                     draggable
-                    onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setReorderDrag({ column: "parking", id: item.id, index: pIdx }); }}
+                    onDragStart={(e: any) => { e.dataTransfer.effectAllowed = "move"; setReorderDrag({ column: "parking", id: item.id, index: pIdx }); }}
                     onDragOver={(e) => handleItemDragOver(e, "parking", pIdx)}
                     onDrop={(e) => handleItemDrop(e, "parking", pIdx)}
                     onDragEnd={handleDragEnd}
@@ -1087,18 +1113,24 @@ export const MyBoard: React.FC = () => {
                     <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
                       {parkedEntityLabels[item.entityType]}
                     </Caption1>
-                  </div>
+                  </motion.div>
                 </Tooltip>
               ))
             )}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Three Column Layout */}
       <div className={styles.dashboardColumns}>
         {/* Column 1: Work / Personal */}
-        <div className={styles.column} style={{ flex: 2, borderLeftColor: workFilter === "work" ? "#f87171" : workFilter === "learning" ? "#a78bfa" : workFilter === "personal" ? "#22d3ee" : "#4a9eff" }}>
+        <motion.div
+          className={styles.column}
+          initial={columnInitial}
+          animate={columnAnimate}
+          transition={{ ...columnTransition, delay: 0.06 }}
+          style={{ flex: 2, borderLeftColor: workFilter === "work" ? "#f87171" : workFilter === "learning" ? "#a78bfa" : workFilter === "personal" ? "#22d3ee" : "#4a9eff" }}
+        >
           <div className={styles.columnHeader}>
             {workFilter === "work" ? <Briefcase24Filled style={{ color: "#f87171" }} /> : workFilter === "learning" ? <HatGraduation24Filled style={{ color: "#a78bfa" }} /> : workFilter === "personal" ? <Sparkle24Filled style={{ color: "#22d3ee" }} /> : <CheckboxChecked24Filled style={{ color: "#4a9eff" }} />}
             <Subtitle1>{workFilter === "all" ? "all tasks" : workFilter}</Subtitle1>
@@ -1138,11 +1170,14 @@ export const MyBoard: React.FC = () => {
                   withArrow
                   showDelay={400}
                 >
-                  <div
+                  <motion.div
                     className={`${styles.columnItem} tile-color-host`}
+                    initial={tileInitial}
+                    animate={tileAnimate}
+                    transition={{ ...tileTransition, delay: Math.min(wIdx * 0.025, 0.3) }}
                     onClick={() => openViewTask(t)}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, { id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }, activeWorkColumn, wIdx)}
+                    onDragStart={(e: any) => handleDragStart(e, { id: t.tdvsp_actionitemid!, name: t.tdvsp_name, entityType: "actionitem", route: `/tasks?view=${t.tdvsp_actionitemid}` }, activeWorkColumn, wIdx)}
                     onDragOver={(e) => handleItemDragOver(e, activeWorkColumn, wIdx)}
                     onDrop={(e) => handleItemDrop(e, activeWorkColumn, wIdx)}
                     onDragEnd={handleDragEnd}
@@ -1179,15 +1214,21 @@ export const MyBoard: React.FC = () => {
                         </span>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 </Tooltip>
               ))
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Column 3: Projects */}
-        <div className={styles.column} style={{ flex: 1, borderLeftColor: "#4a9eff" }}>
+        <motion.div
+          className={styles.column}
+          initial={columnInitial}
+          animate={columnAnimate}
+          transition={{ ...columnTransition, delay: 0.1 }}
+          style={{ flex: 1, borderLeftColor: "#4a9eff" }}
+        >
           <div className={styles.columnHeader}>
             <Briefcase24Regular style={{ color: "#4a9eff" }} />
             <Subtitle1>projects</Subtitle1>
@@ -1216,11 +1257,14 @@ export const MyBoard: React.FC = () => {
                   withArrow
                   showDelay={400}
                 >
-                  <div
+                  <motion.div
                     className={`${styles.columnItem} tile-color-host`}
+                    initial={tileInitial}
+                    animate={tileAnimate}
+                    transition={{ ...tileTransition, delay: Math.min(prIdx * 0.025, 0.3) }}
                     onClick={() => openViewProject(project)}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, { id: project.tdvsp_projectid!, name: project.tdvsp_name, entityType: "project", route: `/projects?view=${project.tdvsp_projectid}` }, "projects", prIdx)}
+                    onDragStart={(e: any) => handleDragStart(e, { id: project.tdvsp_projectid!, name: project.tdvsp_name, entityType: "project", route: `/projects?view=${project.tdvsp_projectid}` }, "projects", prIdx)}
                     onDragOver={(e) => handleItemDragOver(e, "projects", prIdx)}
                     onDrop={(e) => handleItemDrop(e, "projects", prIdx)}
                     onDragEnd={handleDragEnd}
@@ -1241,15 +1285,21 @@ export const MyBoard: React.FC = () => {
                     <Caption1 style={{ color: tokens.colorNeutralForeground3, fontSize: "10px" }}>
                       {project.tdvsp_Account?.name || "—"}
                     </Caption1>
-                  </div>
+                  </motion.div>
                 </Tooltip>
               ))
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Column 4: Ideas */}
-        <div className={styles.column} style={{ flex: 1, borderLeftColor: "#a78bfa" }}>
+        <motion.div
+          className={styles.column}
+          initial={columnInitial}
+          animate={columnAnimate}
+          transition={{ ...columnTransition, delay: 0.14 }}
+          style={{ flex: 1, borderLeftColor: "#a78bfa" }}
+        >
           <div className={styles.columnHeader}>
             <LightbulbFilament24Filled style={{ color: "#a78bfa" }} />
             <Subtitle1>ideas</Subtitle1>
@@ -1264,12 +1314,15 @@ export const MyBoard: React.FC = () => {
               <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "11px", padding: "8px 4px" }}>no ideas yet</Body1>
             ) : (
               orderedIdeas.map((idea, iIdx) => (
-                <div
+                <motion.div
                   key={idea.tdvsp_ideaid}
                   className={`${styles.columnItem} tile-color-host`}
+                  initial={tileInitial}
+                  animate={tileAnimate}
+                  transition={{ ...tileTransition, delay: Math.min(iIdx * 0.025, 0.3) }}
                   onClick={() => openViewIdea(idea)}
                   draggable
-                  onDragStart={(e) => handleDragStart(e, { id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }, "ideas", iIdx)}
+                  onDragStart={(e: any) => handleDragStart(e, { id: idea.tdvsp_ideaid!, name: idea.tdvsp_name, entityType: "idea", route: `/ideas?view=${idea.tdvsp_ideaid}` }, "ideas", iIdx)}
                   onDragOver={(e) => handleItemDragOver(e, "ideas", iIdx)}
                   onDrop={(e) => handleItemDrop(e, "ideas", iIdx)}
                   onDragEnd={handleDragEnd}
@@ -1297,11 +1350,11 @@ export const MyBoard: React.FC = () => {
                       {idea.tdvsp_Account.name}
                     </Caption1>
                   )}
-                </div>
+                </motion.div>
               ))
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Add Account Dialog */}

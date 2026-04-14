@@ -51,3 +51,34 @@ body,
   background-image: radial-gradient(circle, rgba(74, 158, 255, 0.03) 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
+/* Glassmorphism design tokens (switch with data-theme on <html>) */
+:root,
+[data-theme="dark"] {
+  --glass-bg: rgba(26, 30, 40, 0.55);
+  --glass-bg-strong: rgba(26, 30, 40, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-highlight: rgba(255, 255, 255, 0.04);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+[data-theme="light"] {
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(17, 24, 39, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+.glass {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.glass-strong {
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}

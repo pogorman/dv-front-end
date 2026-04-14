@@ -46,13 +46,15 @@ My Work is a React single-page application (SPA) hosted on Azure Static Web Apps
 |-------|-----------|---------|
 | UI Framework | React 19 + TypeScript | Component-based SPA |
 | Component Library | Fluent UI v9 | Microsoft design system |
+| Charts | Recharts 2.15 | Animated horizontal bars with tooltips on Dashboard |
+| Animations | Framer Motion 11.18 | Subtle entrance animations for dashboard cards and kanban tiles |
 | Authentication | MSAL.js (@azure/msal-react) | Azure AD OAuth 2.0 / OIDC |
 | Routing | React Router v7 | Client-side navigation |
 | Backend Data | Microsoft Dataverse Web API | OData v4 REST API |
 | AI Assistant | Copilot Studio + Bot Framework Web Chat | Conversational agent |
 | Hosting | Azure Static Web Apps | Global CDN, auto SSL |
 | Font | Inter (Google Fonts) | All UI text |
-| Styling | Griffel (makeStyles) | CSS-in-JS, component-scoped |
+| Styling | Griffel (makeStyles) + glassmorphism CSS vars | CSS-in-JS, component-scoped; `--glass-*` tokens switched via `[data-theme]` on `<html>` |
 
 ---
 

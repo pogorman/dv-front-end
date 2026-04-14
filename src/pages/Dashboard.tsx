@@ -26,8 +26,23 @@ import {
   Clock24Regular,
   Warning24Regular,
 } from "@fluentui/react-icons";
+import { motion } from "framer-motion";
+import {
+  BarChart,
+  Bar,
+  Cell,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
 import { ActionItem, TaskStatus, TaskPriority, TaskType } from "../types";
 import { getActionItems } from "../services/dataverseService";
+
+const cardTransition = { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const };
+const cardInitial = { opacity: 0, y: 10 };
+const cardAnimate = { opacity: 1, y: 0 };
 
 const statusConfig: Record<number, { label: string; color: string; order: number }> = {
   468510000: { label: "Recognized", color: "#9ca3af", order: 0 },
@@ -114,10 +129,14 @@ const useStyles = makeStyles({
     flexDirection: "column",
     ...shorthands.gap("4px"),
     ...shorthands.padding("16px", "18px"),
-    backgroundColor: tokens.colorNeutralBackground1,
-    ...shorthands.borderRadius("10px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: "var(--glass-bg)",
+    backdropFilter: "blur(14px) saturate(140%)",
+    WebkitBackdropFilter: "blur(14px) saturate(140%)",
+    ...shorthands.borderRadius("12px"),
+    border: "1px solid var(--glass-border)",
+    boxShadow: "var(--glass-shadow)",
     position: "relative" as const,
+    overflow: "hidden" as const,
   },
   kpiIcon: {
     position: "absolute" as const,
@@ -158,9 +177,13 @@ const useStyles = makeStyles({
     flexDirection: "column",
     ...shorthands.gap("16px"),
     ...shorthands.padding("20px"),
-    backgroundColor: tokens.colorNeutralBackground1,
-    ...shorthands.borderRadius("10px"),
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: "var(--glass-bg)",
+    backdropFilter: "blur(14px) saturate(140%)",
+    WebkitBackdropFilter: "blur(14px) saturate(140%)",
+    ...shorthands.borderRadius("12px"),
+    border: "1px solid var(--glass-border)",
+    boxShadow: "var(--glass-shadow)",
+    overflow: "hidden" as const,
   },
   chartTitle: {
     paddingLeft: "10px",
@@ -340,8 +363,49 @@ export const Dashboard: React.FC = () => {
   const donutTotal = donutSegments.reduce((sum, s) => sum + s.count, 0);
   const circumference = 2 * Math.PI * 40;
 
-  const maxPriority = Math.max(...priorityOrder.map((p) => stats.priorityMap.get(p) || 0), 1);
-  const maxAccount = Math.max(...stats.accountCounts.map((a) => a.count), 1);
+  const priorityData = priorityOrder
+    .filter((p) => priorityConfig[p])
+    .map((p) => ({
+      label: priorityConfig[p].label,
+      count: stats.priorityMap.get(p) || 0,
+      color: priorityConfig[p].color,
+    }));
+  const typeData = typeOrder
+    .filter((t) => typeConfig[t])
+    .map((t) => {
+      const count = stats.typeMap.get(t) || 0;
+      const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+      return { label: typeConfig[t].label, count, pct, color: typeConfig[t].color };
+    });
+  const accountData = stats.accountCounts.map((a, i) => ({
+    label: a.name,
+    count: a.count,
+    color: accountColors[i % accountColors.length],
+  }));
+
+  const tooltipStyle: React.CSSProperties = {
+    backgroundColor: "var(--glass-bg-strong)",
+    backdropFilter: "blur(12px) saturate(150%)",
+    WebkitBackdropFilter: "blur(12px) saturate(150%)",
+    border: "1px solid var(--glass-border)",
+    borderRadius: "8px",
+    boxShadow: "var(--glass-shadow)",
+    fontSize: "12px",
+    fontFamily: tokens.fontFamilyBase,
+    padding: "8px 12px",
+  };
+  const tooltipItemStyle: React.CSSProperties = {
+    color: tokens.colorNeutralForeground1,
+  };
+  const tooltipLabelStyle: React.CSSProperties = {
+    color: tokens.colorNeutralForeground3,
+    fontFamily: tokens.fontFamilyMonospace,
+    fontSize: "10px",
+    fontWeight: 600,
+    letterSpacing: "0.5px",
+    textTransform: "uppercase" as const,
+    marginBottom: "4px",
+  };
 
   if (loading) {
     return (
@@ -379,44 +443,44 @@ export const Dashboard: React.FC = () => {
 
       {/* KPI Cards */}
       <div className={styles.kpiRow}>
-        <div className={styles.kpiCard}>
+        <motion.div className={styles.kpiCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.02 }}>
           <div className={styles.kpiIcon} style={{ backgroundColor: "rgba(74,158,255,0.12)" }}>
             <Calendar24Regular style={{ color: "#4a9eff" }} />
           </div>
           <span className={styles.kpiLabel}>TOTAL ITEMS</span>
           <span className={styles.kpiValue}>{stats.total}</span>
           <span className={styles.kpiSub}>across all accounts</span>
-        </div>
-        <div className={styles.kpiCard}>
+        </motion.div>
+        <motion.div className={styles.kpiCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.06 }}>
           <div className={styles.kpiIcon} style={{ backgroundColor: "rgba(61,214,140,0.12)" }}>
             <ArrowUp24Regular style={{ color: "#3dd68c" }} />
           </div>
           <span className={styles.kpiLabel}>COMPLETION RATE</span>
           <span className={styles.kpiValue}>{stats.completionRate}%</span>
           <span className={styles.kpiSub}>{stats.complete} of {stats.total} complete</span>
-        </div>
-        <div className={styles.kpiCard}>
+        </motion.div>
+        <motion.div className={styles.kpiCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.1 }}>
           <div className={styles.kpiIcon} style={{ backgroundColor: "rgba(245,158,11,0.12)" }}>
             <Clock24Regular style={{ color: "#f59e0b" }} />
           </div>
           <span className={styles.kpiLabel}>IN PROGRESS</span>
           <span className={styles.kpiValue}>{stats.inProgress}</span>
           <span className={styles.kpiSub}>actively being worked</span>
-        </div>
-        <div className={styles.kpiCard}>
+        </motion.div>
+        <motion.div className={styles.kpiCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.14 }}>
           <div className={styles.kpiIcon} style={{ backgroundColor: "rgba(248,113,113,0.12)" }}>
             <Warning24Regular style={{ color: "#f87171" }} />
           </div>
           <span className={styles.kpiLabel}>HIGH / TOP PRIORITY</span>
           <span className={styles.kpiValue}>{stats.highPriority}</span>
           <span className={styles.kpiSub}>need attention</span>
-        </div>
+        </motion.div>
       </div>
 
       {/* Charts Row 1: Status + Priority */}
       <div className={styles.chartsGrid}>
         {/* Status Breakdown - Donut */}
-        <div className={styles.chartCard}>
+        <motion.div className={styles.chartCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.18 }}>
           <div className={styles.chartTitle} style={{ borderLeftColor: "#4a9eff" }}>
             <span className={styles.chartTitleText}>STATUS BREAKDOWN</span>
           </div>
@@ -463,31 +527,40 @@ export const Dashboard: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Priority Distribution */}
-        <div className={styles.chartCard}>
+        <motion.div className={styles.chartCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.22 }}>
           <div className={styles.chartTitle} style={{ borderLeftColor: "#f87171" }}>
             <span className={styles.chartTitleText}>PRIORITY DISTRIBUTION</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {priorityOrder.map((p) => {
-              const cfg = priorityConfig[p];
-              if (!cfg) return null;
-              const count = stats.priorityMap.get(p) || 0;
-              const pct = maxPriority > 0 ? (count / maxPriority) * 100 : 0;
-              return (
-                <div key={p} className={styles.barRow}>
-                  <span className={styles.barLabel}>{cfg.label}</span>
-                  <div className={styles.barTrack}>
-                    <div className={styles.barFill} style={{ width: `${Math.max(pct, count > 0 ? 15 : 0)}%`, backgroundColor: cfg.color }}>
-                      {count > 0 && <span className={styles.barNum}>{count}</span>}
-                    </div>
-                  </div>
-                  <span className={styles.barCountR}>{count}</span>
-                </div>
-              );
-            })}
+          <div style={{ flexGrow: 1, minHeight: "160px" }}>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart layout="vertical" data={priorityData} margin={{ top: 4, right: 28, left: 0, bottom: 4 }}>
+                <XAxis type="number" hide />
+                <YAxis
+                  type="category"
+                  dataKey="label"
+                  width={100}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: tokens.colorNeutralForeground2, fontWeight: 500 }}
+                />
+                <RechartsTooltip
+                  cursor={{ fill: "var(--glass-highlight)" }}
+                  contentStyle={tooltipStyle}
+                  itemStyle={tooltipItemStyle}
+                  labelStyle={tooltipLabelStyle}
+                  formatter={(value: number) => [`${value}`, "count"]}
+                />
+                <Bar dataKey="count" radius={[0, 6, 6, 0]} animationDuration={700} animationEasing="ease-out">
+                  {priorityData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                  <LabelList dataKey="count" position="right" fill={tokens.colorNeutralForeground2} fontSize={12} fontWeight={600} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
           <div className={styles.summaryLine}>
             <span style={{ fontSize: "10px", fontWeight: 600, fontFamily: tokens.fontFamilyMonospace, color: tokens.colorNeutralForeground3, letterSpacing: "0.5px" }}>
@@ -497,13 +570,13 @@ export const Dashboard: React.FC = () => {
               {stats.highPriority}
             </span>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Charts Row 2: Types + Accounts */}
       <div className={styles.chartsGrid}>
         {/* Task Types */}
-        <div className={styles.chartCard}>
+        <motion.div className={styles.chartCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.26 }}>
           <div className={styles.chartTitle} style={{ borderLeftColor: "#a78bfa" }}>
             <span className={styles.chartTitleText}>TASK TYPES</span>
           </div>
@@ -514,54 +587,77 @@ export const Dashboard: React.FC = () => {
               return <div key={t} style={{ width: `${pct}%`, backgroundColor: typeConfig[t]?.color, transition: "width 0.6s ease", minWidth: count > 0 ? "4px" : 0 }} />;
             })}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {typeOrder.map((t) => {
-              const cfg = typeConfig[t];
-              if (!cfg) return null;
-              const count = stats.typeMap.get(t) || 0;
-              const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
-              return (
-                <div key={t} className={styles.typeRow}>
-                  <span className={styles.typeIcon} style={{ color: cfg.color }}>{cfg.icon}</span>
-                  <span className={styles.typeLabel}>{cfg.label}</span>
-                  <div className={styles.barTrack} style={{ height: "24px" }}>
-                    <div className={styles.barFill} style={{ width: `${Math.max(stats.total > 0 ? (count / stats.total) * 100 : 0, count > 0 ? 15 : 0)}%`, backgroundColor: cfg.color, height: "100%" }}>
-                      {count > 0 && <span className={styles.barNum} style={{ fontSize: "11px" }}>{count}</span>}
-                    </div>
-                  </div>
-                  <span className={styles.barCountR} style={{ width: "50px" }}>{count} ({pct}%)</span>
-                </div>
-              );
-            })}
+          <div style={{ flexGrow: 1, minHeight: "140px" }}>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart layout="vertical" data={typeData} margin={{ top: 4, right: 60, left: 0, bottom: 4 }}>
+                <XAxis type="number" hide />
+                <YAxis
+                  type="category"
+                  dataKey="label"
+                  width={80}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: tokens.colorNeutralForeground2, fontWeight: 500 }}
+                />
+                <RechartsTooltip
+                  cursor={{ fill: "var(--glass-highlight)" }}
+                  contentStyle={tooltipStyle}
+                  itemStyle={tooltipItemStyle}
+                  labelStyle={tooltipLabelStyle}
+                  formatter={(value: number, _name: string, props: { payload?: { pct?: number } }) => [
+                    `${value} (${props.payload?.pct ?? 0}%)`,
+                    "count",
+                  ]}
+                />
+                <Bar dataKey="count" radius={[0, 6, 6, 0]} animationDuration={700} animationEasing="ease-out">
+                  {typeData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                  <LabelList dataKey="count" position="right" fill={tokens.colorNeutralForeground2} fontSize={12} fontWeight={600} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Items by Account */}
-        <div className={styles.chartCard}>
+        <motion.div className={styles.chartCard} initial={cardInitial} animate={cardAnimate} transition={{ ...cardTransition, delay: 0.3 }}>
           <div className={styles.chartTitle} style={{ borderLeftColor: "#3dd68c" }}>
             <span className={styles.chartTitleText}>ITEMS BY ACCOUNT</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {stats.accountCounts.map((a, i) => {
-              const pct = maxAccount > 0 ? (a.count / maxAccount) * 100 : 0;
-              const color = accountColors[i % accountColors.length];
-              return (
-                <div key={a.name} className={styles.barRow}>
-                  <span className={styles.barLabel} title={a.name}>{a.name}</span>
-                  <div className={styles.barTrack}>
-                    <div className={styles.barFill} style={{ width: `${Math.max(pct, 15)}%`, backgroundColor: color }}>
-                      <span className={styles.barNum}>{a.count}</span>
-                    </div>
-                  </div>
-                  <span className={styles.barCountR}>{a.count}</span>
-                </div>
-              );
-            })}
-            {stats.accountCounts.length === 0 && (
-              <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "12px" }}>no account data</Body1>
-            )}
-          </div>
-        </div>
+          {accountData.length === 0 ? (
+            <Body1 style={{ color: tokens.colorNeutralForeground3, fontSize: "12px" }}>no account data</Body1>
+          ) : (
+            <div style={{ flexGrow: 1, minHeight: `${Math.max(accountData.length * 28 + 16, 160)}px` }}>
+              <ResponsiveContainer width="100%" height={Math.max(accountData.length * 28 + 16, 160)}>
+                <BarChart layout="vertical" data={accountData} margin={{ top: 4, right: 30, left: 0, bottom: 4 }}>
+                  <XAxis type="number" hide />
+                  <YAxis
+                    type="category"
+                    dataKey="label"
+                    width={120}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: tokens.colorNeutralForeground2, fontWeight: 500 }}
+                  />
+                  <RechartsTooltip
+                    cursor={{ fill: "var(--glass-highlight)" }}
+                    contentStyle={tooltipStyle}
+                    itemStyle={tooltipItemStyle}
+                    labelStyle={tooltipLabelStyle}
+                    formatter={(value: number) => [`${value}`, "items"]}
+                  />
+                  <Bar dataKey="count" radius={[0, 6, 6, 0]} animationDuration={700} animationEasing="ease-out">
+                    {accountData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                    <LabelList dataKey="count" position="right" fill={tokens.colorNeutralForeground2} fontSize={12} fontWeight={600} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

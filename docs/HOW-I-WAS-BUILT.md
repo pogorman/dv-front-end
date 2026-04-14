@@ -234,3 +234,11 @@ These emerged through building, not from a design doc:
 5. **Direct Line secrets in SPAs are inherently visible.** The secret is in the JavaScript bundle. Exchanging it immediately for a conversation token limits the exposure, but it's not truly secret. Acceptable for an internal tool.
 
 6. **Dark theme is harder than light theme.** Getting surface colors, borders, and text contrast right in dark mode takes more iteration than light mode. The `ogDarkTheme` tokens required comprehensive overrides.
+
+7. **Glassmorphism needs theme-aware CSS vars, not static rgba.** Dashboard KPI/chart cards and My Board columns/tiles all use `backdrop-filter: blur(14px) saturate(140%)` layered over `--glass-bg`. The variables live in `src/index.css` under `[data-theme="dark"]` and `[data-theme="light"]`, and `ThemeContext` writes `data-theme` onto `<html>` in its effect so the glass tokens flip in lockstep with the Fluent theme.
+
+8. **Recharts for the Dashboard, SVG for the donut.** Priority distribution, task types, and items-by-account are horizontal `<BarChart>` with per-bar `<Cell>` colors, `LabelList` counts, `animationDuration={700}`, and a glassmorphism `<Tooltip>` (`contentStyle` reuses `--glass-bg-strong`). The existing animated SVG donut for status breakdown was kept — swapping it for a Recharts `<PieChart>` would have been churn for no gain.
+
+9. **Framer Motion overrides `onDragStart` / `onDragEnd` types.** Wrapping kanban tiles in `motion.div` broke the native HTML5 drag handlers at compile time — framer-motion narrows those event props to its pan-gesture signature. Fix: annotate the handler param as `(e: any)`. Runtime is unchanged because native HTML5 drag fires regardless of framer's gesture subscription.
+
+10. **Griffel `:hover` + `borderColor` quirk.** Adding `borderColor: "string"` inside a nested `:hover` selector triggers `TS2322: Type 'string' is not assignable to type 'undefined'` when the parent rule uses the `border` long-form. Drop `borderColor` from `:hover` and keep just `backgroundColor` + `transform`.
