@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bartel's Ireland Trip</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --accent: #0f766e;
+        --accent-soft: #14b8a6;
+        --bg: #0b1416;
+        --panel: rgba(11, 20, 22, 0.82);
+        --text: #f1f5f9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: #1a2426;
+      }
+      #fatal-error {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        z-index: 2000;
+        padding: 14px 16px;
+        border-radius: 10px;
+        background: #7f1d1d;
+        color: #fee2e2;
+        font-size: 13px;
+        line-height: 1.4;
+        border: 1px solid #fca5a5;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        display: none;
+        white-space: pre-wrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      #fatal-error.show {
+        display: block;
+      }
+      .photo-marker {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        outline: 2px solid #0f172a;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+        background-size: cover;
+        background-position: center;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+      .photo-marker:hover {
+        transform: scale(1.15);
+      }
+      .start-marker {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #0f172a;
+        color: #fff;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        line-height: 1;
+      }
+      #hover-preview {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 1000;
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--panel);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        transform: translateY(-6px);
+        transition:
+          opacity 0.18s ease,
+          transform 0.18s ease;
+        pointer-events: none;
+      }
+      #hover-preview.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      #hover-preview img {
+        display: block;
+        width: 100%;
+        height: 70vh;
+        object-fit: contain;
+        background: #111;
+      }
+      #hover-preview .caption {
+        padding: 10px 14px 12px;
+        font-size: 12px;
+        color: #e2e8f0;
+      }
+      #hover-preview .when {
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      #hover-preview .where {
+        color: #94a3b8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+      }
+      #hover-preview .hint {
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      #hover-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(15, 23, 42, 0.85);
+        color: #f1f5f9;
+        font-size: 22px;
+        line-height: 1;
+        font-weight: 600;
+        cursor: pointer;
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+        transition:
+          background 0.15s ease,
+          transform 0.15s ease;
+      }
+      #hover-close:hover,
+      #hover-close:active {
+        background: rgba(220, 38, 38, 0.95);
+        transform: scale(1.08);
+      }
+      @media (max-width: 720px) {
+        .start-marker {
+          width: 24px;
+          height: 24px;
+          font-size: 12px;
+        }
+        #hover-preview {
+          top: auto;
+          bottom: 12px;
+          right: 12px;
+          left: 12px;
+          width: auto;
+          max-width: none;
+        }
+        #hover-preview img {
+          height: 50vh;
+        }
+        #hover-close {
+          top: 10px;
+          right: 10px;
+          width: 44px;
+          height: 44px;
+          font-size: 26px;
+        }
+        .leaflet-control-zoom {
+          display: none;
+        }
+        .start-marker {
+          font-size: 11px;
+          padding: 5px 9px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="fatal-error" role="alert"></div>
+    <div id="hover-preview" aria-hidden="true">
+      <button type="button" id="hover-close" aria-label="Close preview">&times;</button>
+      <img id="hover-img" alt="" />
+      <div class="caption">
+        <div class="when" id="hover-when"></div>
+        <div class="where" id="hover-where"></div>
+        <div class="hint">Tap marker to zoom map</div>
+      </div>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script>
+      const fmtWhen = (iso) => {
+        if (!iso) return 'Unknown time';
+        const d = new Date(iso);
+        return d.toLocaleString('en-IE', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: 'Europe/Dublin',
+        });
+      };
+
+      const fmtCoord = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+      const SHANNON = {
+        id: 'shannon-airport',
+        label: 'Shannon Airport',
+        lat: 52.701944,
+        lng: -8.924722,
+      };
+
+      const preview = {
+        el: document.getElementById('hover-preview'),
+        img: document.getElementById('hover-img'),
+        when: document.getElementById('hover-when'),
+        where: document.getElementById('hover-where'),
+      };
+
+      const showPreview = (photo) => {
+        preview.img.src = photo.full;
+        preview.img.alt = photo.source ?? '';
+        preview.when.textContent = fmtWhen(photo.takenAt);
+        preview.where.textContent = fmtCoord(photo.lat, photo.lng);
+        preview.el.classList.add('visible');
+        preview.el.setAttribute('aria-hidden', 'false');
+      };
+
+      const hidePreview = () => {
+        preview.el.classList.remove('visible');
+        preview.el.setAttribute('aria-hidden', 'true');
+      };
+
+      document.getElementById('hover-close').addEventListener('click', hidePreview);
+
+      const isMobile = () => window.matchMedia('(max-width: 720px)').matches;
+
+      const showFatalError = (msg) => {
+        const el = document.getElementById('fatal-error');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('show');
+      };
+
+      window.addEventListener('error', (e) => {
+        showFatalError('JS error: ' + (e.message || 'unknown') + '\n@ ' + (e.filename || '') + ':' + (e.lineno || '?'));
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        showFatalError('Promise rejection: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
+      });
+
+      const init = async () => {
+        if (typeof L === 'undefined') {
+          throw new Error('Leaflet failed to load (L is undefined)');
+        }
+        if (typeof L.markerClusterGroup !== 'function') {
+          throw new Error('Leaflet.markercluster failed to load');
+        }
+
+        const res = await fetch('photos.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('photos.json fetch failed: HTTP ' + res.status);
+        const data = await res.json();
+        const photos = (data && data.photos) || [];
+
+        const map = L.map('map', {
+          zoomControl: true,
+          preferCanvas: true,
+        }).setView([53.1424, -7.6921], 7);
+
+        L.tileLayer(
+          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+          {
+            maxZoom: 20,
+            subdomains: 'abcd',
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          }
+        ).addTo(map);
+
+        const routePoints = [[SHANNON.lat, SHANNON.lng], ...photos.map((p) => [p.lat, p.lng])];
+
+        if (routePoints.length > 1) {
+          L.polyline(routePoints, {
+            color: '#ffffff',
+            weight: 8,
+            opacity: 0.9,
+            lineCap: 'round',
+            lineJoin: 'round',
+          }).addTo(map);
+          L.polyline(routePoints, {
+            color: '#dc2626',
+            weight: 4,
+            opacity: 1,
+            lineCap: 'round',
+            lineJoin: 'round',
+          }).addTo(map);
+        }
+
+        const startIcon = L.divIcon({
+          className: '',
+          html: `<div class="start-marker">&#9992;</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+        L.marker([SHANNON.lat, SHANNON.lng], { icon: startIcon, zIndexOffset: 1000 })
+          .addTo(map)
+          .bindTooltip('Landed at Shannon Airport — first photos start nearby', {
+            direction: 'top',
+            offset: [0, -10],
+          });
+
+        const cluster = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          spiderfyDistanceMultiplier: 1.4,
+          maxClusterRadius: 40,
+        });
+
+        photos.forEach((photo) => {
+          const icon = L.divIcon({
+            className: '',
+            html: `<div class="photo-marker" style="background-image:url('${photo.thumb}')"></div>`,
+            iconSize: [46, 46],
+            iconAnchor: [23, 23],
+          });
+          const marker = L.marker([photo.lat, photo.lng], { icon });
+          marker.on('mouseover', () => showPreview(photo));
+          marker.on('click', () => {
+            showPreview(photo);
+            const targetZoom = isMobile() ? 14 : 16;
+            map.flyTo([photo.lat, photo.lng], targetZoom, { duration: 0.7 });
+          });
+          cluster.addLayer(marker);
+        });
+
+        map.addLayer(cluster);
+
+        if (routePoints.length) {
+          map.fitBounds(L.latLngBounds(routePoints).pad(0.15));
+        }
+      };
+
+      init().catch((err) => {
+        console.error(err);
+        showFatalError('init() failed: ' + (err && err.message ? err.message : String(err)));
+      });
+    </script>
+  </body>
+</html>
